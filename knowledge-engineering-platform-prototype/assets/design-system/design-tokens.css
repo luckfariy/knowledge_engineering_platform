@@ -1,0 +1,370 @@
+/* ==========================================================================
+   Hertz Design System v1.3.3 — 设计 Token
+   自动生成，请勿手改。来源 Figma 文件 j6W2i0PJJ67wr8DWJ6yHay
+   重新生成：python3 scripts/generate_css.py .cache/nodes-8847-32735.json
+   ========================================================================== */
+
+
+/* 尺度：间距、圆角、字号、字体 */
+:root {
+  --font-family-number: "DIN", "Roboto Mono", ui-monospace, monospace;
+  --font-family-sans: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+  --font-size-6xl: 56px;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-xl: 20px;
+  --font-size-xs: 12px;
+  --font-weight-regular: 400;
+  --font-weight-semibold: 600;
+  --line-height-2xl: 32px;
+  --line-height-3xl: 38px;
+  --line-height-4xl: 44px;
+  --line-height-5xl: 56px;
+  --line-height-6xl: 64px;
+  --line-height-base: 24px;
+  --line-height-sm: 22px;
+  --line-height-xl: 28px;
+  --line-height-xs: 20px;
+  --radius-4: 4px;
+  --radius-6: 6px;
+  --radius-8: 8px;
+  --radius-full: 9999px;
+  --size-1: 1px;
+  --size-16: 16px;
+  --size-2: 2px;
+  --size-20: 20px;
+  --size-28: 28px;
+  --size-3: 3px;
+  --size-32: 32px;
+  --size-40: 40px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-2: 2px;
+  --space-22: 22px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+}
+
+/* 亮色主题（默认） */
+:root,
+[data-theme='light'] {
+  --blur-a100-lg: blur(16px);
+  --color-backdrop-blur-a100: rgba(255, 255, 255, 0.24);
+  --color-background-100: #EEF0F4;
+  --color-background-200: #F7F8FA;
+  --color-background-300: #FFFFFF;
+  --color-background-400: #FFFFFF;
+  --color-background-500: #FFFFFF;
+  --color-background-600: #FFFFFF;
+  --color-cerulean-900: #0099EB;
+  --color-cerulean-a100: rgba(0, 153, 235, 0.12);
+  --color-general-100: #FFFFFF;
+  --color-general-800: #06195C;
+  --color-general-900: #151618;
+  --color-general-a100: rgba(255, 255, 255, 0.24);
+  --color-general-a200: rgba(255, 255, 255, 0.7);
+  --color-lime-900: #239545;
+  --color-lime-a100: rgba(35, 149, 69, 0.1);
+  --color-lime-a300: rgba(35, 149, 69, 0.22);
+  --color-link-100: #1F71FF;
+  --color-mono-100: #FFFFFF;
+  --color-mono-200: #F7F8FA;
+  --color-mono-300: #EEF0F4;
+  --color-mono-400: #E2E4E9;
+  --color-mono-500: #D7D9DE;
+  --color-mono-600: #CCCED4;
+  --color-mono-a100: rgba(15, 34, 67, 0.05);
+  --color-mono-a200: rgba(15, 34, 67, 0.07);
+  --color-mono-a300: rgba(15, 34, 67, 0.11);
+  --color-mono-a400: rgba(15, 34, 67, 0.14);
+  --color-mono-a500: rgba(15, 34, 67, 0.2);
+  --color-mono-a900: rgba(15, 34, 67, 0.9);
+  --color-mono-m100: rgba(226, 228, 233, 0.88);
+  --color-mono-m200: rgba(255, 255, 255, 0.8);
+  --color-nav-bg-100: #FFFFFF;
+  --color-orange-900: #FF9431;
+  --color-orange-a100: rgba(255, 148, 49, 0.12);
+  --color-primary-700: #5292FF;
+  --color-primary-800: #3D85FF;
+  --color-primary-900: #1F71FF;
+  --color-primary-a100: rgba(43, 121, 255, 0.1);
+  --color-primary-a200: rgba(43, 121, 255, 0.16);
+  --color-primary-a300: rgba(43, 121, 255, 0.24);
+  --color-red-100: #FFEFF1;
+  --color-red-200: #FFE5E8;
+  --color-red-900: #FF5266;
+  --color-red-a100: rgba(255, 82, 102, 0.09);
+  --color-red-a200: rgba(255, 82, 102, 0.15);
+  --color-red-a300: rgba(255, 82, 102, 0.22);
+  --color-sky-blue-900: #02D1FF;
+  --color-teal-900: #00BBC2;
+  --color-teal-a100: rgba(0, 187, 194, 0.12);
+  --color-teal-a200: rgba(0, 187, 194, 0.22);
+  --color-teal-a300: rgba(0, 187, 194, 0.32);
+  --color-teal-a50: rgba(0, 187, 194, 0.06);
+  --color-teal-a500: rgba(0, 187, 194, 0.5);
+  --color-type-600: rgba(21, 22, 24, 0.36);
+  --color-type-700: rgba(21, 22, 24, 0.48);
+  --color-type-800: rgba(21, 22, 24, 0.72);
+  --color-type-900: rgba(21, 22, 24, 0.92);
+  --color-violet-900: #9646FF;
+  --color-yellow-900: #F5CD00;
+  --color-yellow-a100: rgba(245, 205, 0, 0.16);
+  --gradient-a100: linear-gradient(180deg, rgba(53, 128, 255, 0) 0%, rgba(53, 128, 255, 0.08) 52.28%, rgba(53, 128, 255, 0.4) 100%);
+  --gradient-blue: linear-gradient(90deg, #1D4FFF 0%, #55CEF6 100%);
+  --shadow-c100: 0px 0px 1px 0px rgba(15, 34, 67, 0.16), 0px 4px 16px 0px rgba(15, 34, 67, 0.1);
+  --shadow-c200: 0px 0px 1px 0px rgba(15, 34, 67, 0.16), 0px 1px 3px 0px rgba(15, 34, 67, 0.08), 0px 4px 8px 0px rgba(15, 34, 67, 0.03);
+  --shadow-c300: 0px 0px 1px 0px rgba(15, 34, 67, 0.16), 0px 1px 3px 0px rgba(15, 34, 67, 0.12), 0px 8px 24px -6px rgba(15, 34, 67, 0.16);
+  --shadow-c400: 0px 0px 1px 0px rgba(15, 34, 67, 0.16), 0px 3px 8px -2px rgba(15, 34, 67, 0.16), 0px 16px 32px -6px rgba(15, 34, 67, 0.18);
+  --shadow-c500: 0px 0px 1px 0px rgba(15, 34, 67, 0.16), 0px 16px 64px -16px rgba(15, 34, 67, 0.32), 0px 48px 128px -16px rgba(15, 34, 67, 0.24);
+  --shadow-ds-shadow: 0px 104px 168px 0px rgba(4, 8, 16, 0.1);
+}
+
+/* 暗色主题 */
+[data-theme='dark'] {
+  --blur-a100-lg: blur(16px);
+  --color-backdrop-blur-a100: rgba(41, 50, 70, 0.24);
+  --color-background-100: #13151A;
+  --color-background-200: #191D25;
+  --color-background-300: #1F2430;
+  --color-background-400: #293246;
+  --color-background-500: #34405C;
+  --color-background-600: #3F4F73;
+  --color-cerulean-900: #0092E0;
+  --color-cerulean-a100: rgba(0, 146, 224, 0.15);
+  --color-general-100: #FFFFFF;
+  --color-general-800: #06195C;
+  --color-general-900: #151618;
+  --color-general-a100: rgba(255, 255, 255, 0.24);
+  --color-general-a200: #FFFFFF;
+  --color-lime-900: #218D41;
+  --color-lime-a100: rgba(33, 141, 65, 0.15);
+  --color-lime-a300: rgba(33, 141, 65, 0.25);
+  --color-link-100: #5C98FF;
+  --color-mono-100: #13151A;
+  --color-mono-200: #191D25;
+  --color-mono-300: #1F2430;
+  --color-mono-400: #293246;
+  --color-mono-500: #34405C;
+  --color-mono-600: #3F4F73;
+  --color-mono-a100: rgba(204, 219, 255, 0.06);
+  --color-mono-a200: rgba(204, 219, 255, 0.1);
+  --color-mono-a300: rgba(204, 219, 255, 0.16);
+  --color-mono-a400: rgba(204, 219, 255, 0.25);
+  --color-mono-a500: rgba(204, 219, 255, 0.32);
+  --color-mono-a900: rgba(230, 235, 255, 0.9);
+  --color-mono-m100: rgba(22, 28, 40, 0.82);
+  --color-nav-bg-100: #13151A;
+  --color-orange-900: #FF9029;
+  --color-orange-a100: rgba(255, 144, 41, 0.15);
+  --color-primary-700: #5C98FF;
+  --color-primary-800: #4C8EFF;
+  --color-primary-900: #3D85FF;
+  --color-primary-a100: rgba(61, 133, 255, 0.15);
+  --color-primary-a200: rgba(61, 133, 255, 0.3);
+  --color-primary-a300: rgba(61, 133, 255, 0.4);
+  --color-red-100: #361D24;
+  --color-red-200: #421F28;
+  --color-red-900: #FF475D;
+  --color-red-a100: rgba(255, 71, 93, 0.15);
+  --color-red-a200: rgba(255, 71, 93, 0.2);
+  --color-red-a300: rgba(255, 71, 93, 0.25);
+  --color-sky-blue-900: #02D1FF;
+  --color-teal-900: #00B1B8;
+  --color-teal-a100: rgba(0, 177, 184, 0.15);
+  --color-teal-a200: rgba(0, 177, 184, 0.25);
+  --color-teal-a300: rgba(0, 177, 184, 0.38);
+  --color-teal-a50: rgba(0, 177, 184, 0.08);
+  --color-teal-a500: rgba(0, 177, 184, 0.54);
+  --color-type-600: rgba(255, 255, 255, 0.32);
+  --color-type-700: rgba(255, 255, 255, 0.5);
+  --color-type-800: rgba(255, 255, 255, 0.7);
+  --color-type-900: #FFFFFF;
+  --color-violet-900: #913DFF;
+  --color-violet-a100: rgba(145, 61, 255, 0.15);
+  --color-yellow-900: #EBC400;
+  --color-yellow-a100: rgba(235, 196, 0, 0.15);
+  --gradient-a100: linear-gradient(180deg, rgba(53, 128, 255, 0) 0%, rgba(53, 128, 255, 0.08) 52.28%, rgba(53, 128, 255, 0.4) 100%);
+  --gradient-blue: linear-gradient(90deg, #1D4FFF 0%, #55CEF6 100%);
+  --shadow-c100: 0px 0px 1px 0px rgba(4, 8, 16, 0.32), 0px 4px 16px 0px rgba(4, 8, 16, 0.48);
+  --shadow-c200: 0px 0px 1px 0px rgba(4, 8, 16, 0.32), 0px 1px 3px 0px rgba(4, 8, 16, 0.32), 0px 4px 8px 0px rgba(4, 8, 16, 0.16);
+  --shadow-c300: 0px 0px 1px 0px rgba(4, 8, 16, 0.32), 0px 1px 3px 0px rgba(4, 8, 16, 0.3), 0px 8px 24px -6px rgba(4, 8, 16, 0.56);
+  --shadow-c400: 0px 0px 1px 0px rgba(4, 8, 16, 0.32), 0px 3px 8px -2px rgba(4, 8, 16, 0.48), 0px 16px 32px -6px rgba(4, 8, 16, 0.64);
+  --shadow-c500: 0px 0px 1px 0px rgba(4, 8, 16, 0.32), 0px 16px 64px -16px rgba(4, 8, 16, 0.72), 0px 48px 128px -16px rgba(4, 8, 16, 0.64);
+}
+
+/* Green 品牌 · 亮色覆盖 */
+[data-brand='green'] {
+  --color-link-100: #238580;
+  --color-primary-a200: rgba(85, 161, 157, 0.16);
+  --color-primary-a300: rgba(85, 161, 157, 0.24);
+}
+
+/* Green 品牌 · 暗色覆盖 */
+[data-brand='green'][data-theme='dark'] {
+  --color-link-100: #3F9E9A;
+  --color-primary-700: #4EA6A1;
+  --color-primary-800: #3F9E9A;
+  --color-primary-900: #268F89;
+  --color-primary-a100: rgba(38, 143, 137, 0.15);
+  --color-primary-a200: rgba(38, 143, 137, 0.3);
+  --color-primary-a300: rgba(38, 143, 137, 0.4);
+}
+
+/* 河图 BI · 亮色覆盖 */
+[data-brand='ht'] {
+  --color-background-100: #EEF0F4;
+  --color-background-200: #F7F8FA;
+  --color-background-300: #FAFBFC;
+  --color-background-400: #FFFFFF;
+  --color-background-500: #FFFFFF;
+  --color-background-600: #FFFFFF;
+}
+
+/* 河图 BI · 暗色覆盖 */
+[data-brand='ht'][data-theme='dark'] {
+  --color-background-100: #111213;
+  --color-background-200: #1A1B1F;
+  --color-background-300: #1F2126;
+  --color-background-400: #282D38;
+  --color-background-500: #313747;
+  --color-background-600: #374159;
+}
+
+/* 排版工具类：直接用在元素上，等价于 Figma 里的文字样式 */
+.text-page-title {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-4xl);
+  line-height: var(--line-height-4xl);
+  font-weight: 400;
+}
+.text-page-title-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-4xl);
+  line-height: var(--line-height-4xl);
+  font-weight: 600;
+}
+.text-operation-title-1 {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-5xl);
+  line-height: var(--line-height-5xl);
+  font-weight: 400;
+}
+.text-operation-title-1-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-5xl);
+  line-height: var(--line-height-5xl);
+  font-weight: 600;
+}
+.text-operation-title-2 {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-6xl);
+  line-height: var(--line-height-6xl);
+  font-weight: 400;
+}
+.text-operation-title-2-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-6xl);
+  line-height: var(--line-height-6xl);
+  font-weight: 600;
+}
+.text-xx-big {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-3xl);
+  font-weight: 400;
+}
+.text-xx-big-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-3xl);
+  line-height: var(--line-height-3xl);
+  font-weight: 600;
+}
+.text-x-big {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
+  font-weight: 400;
+}
+.text-x-big-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-2xl);
+  font-weight: 600;
+}
+.text-big {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-xl);
+  font-weight: 400;
+}
+.text-big-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-xl);
+  font-weight: 600;
+}
+.text-medium {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-weight: 400;
+}
+.text-medium-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-weight: 600;
+}
+.text-normal {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: 400;
+}
+.text-normal-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: 600;
+}
+.text-small {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  font-weight: 400;
+}
+.text-small-bold {
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  font-weight: 600;
+}
+.text-number {
+  font-family: var(--font-family-number);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 页面基线：引入本文件后 body 即具备正确的字体与前景/背景色 */
+body {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-type-900);
+  background: var(--color-background-100);
+  -webkit-font-smoothing: antialiased;
+}

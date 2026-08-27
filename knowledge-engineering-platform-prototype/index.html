@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>平台总览 - 知识工程平台</title>
+  <link rel="stylesheet" href="assets/design-system/design-tokens.css" />
+  <link rel="stylesheet" href="assets/design-system/components.css" />
+  <link rel="stylesheet" href="assets/css/platform.css" />
+</head>
+<body data-page="overview">
+  <div data-shell></div>
+  <template data-page-template>
+    <header class="page-heading">
+      <div><h1 class="page-title text-x-big-bold">平台总览</h1><p class="page-description text-normal">统一管理从知识资源到知识应用的全生命周期，建立可溯源、可治理、可服务的企业知识底座。</p></div>
+      <div class="page-actions"><button class="btn btn-medium btn-secondary" data-toast="已生成本周运营概览">导出概览</button><a class="btn btn-medium btn-primary" href="pages/collection.html">接入知识源</a></div>
+    </header>
+
+    <section class="grid grid-4" aria-label="核心指标">
+      <article class="metric-card"><div class="metric-label text-normal"><span>知识资源</span><span class="tag tag-small">全域</span></div><div class="metric-value text-x-big-bold text-number">286,430</div><div class="metric-foot text-small"><span class="trend-up">+12.4%</span><span>较上月</span></div></article>
+      <article class="metric-card"><div class="metric-label text-normal"><span>已发布资产</span><span class="tag tag-small">可服务</span></div><div class="metric-value text-x-big-bold text-number">198,672</div><div class="metric-foot text-small"><span class="trend-up">94.6%</span><span>质量合格</span></div></article>
+      <article class="metric-card"><div class="metric-label text-normal"><span>图谱知识</span><span class="tag tag-small">12 张</span></div><div class="metric-value text-x-big-bold text-number">4,826,190</div><div class="metric-foot text-small"><span>382 万实体</span><span>·</span><span>100 万关系</span></div></article>
+      <article class="metric-card"><div class="metric-label text-normal"><span>待治理问题</span><span class="tag tag-status tag-status-red">需关注</span></div><div class="metric-value text-x-big-bold text-number">46</div><div class="metric-foot text-small"><span class="trend-risk">8 项逾期</span><span>待责任人处理</span></div></article>
+    </section>
+
+    <section class="section">
+      <div class="section-heading"><div><h2 class="section-title text-big-bold">知识生命周期</h2><span class="section-note text-small">按产品主链路查看当前健康状态</span></div><button class="btn btn-dense btn-text" data-toast="生命周期配置功能将在系统管理中开放">管理流程</button></div>
+      <div class="lifecycle">
+        <a class="workflow-node" href="pages/collection.html"><span class="workflow-number text-small-bold">01</span><strong class="text-normal-bold">知识采集</strong><span class="workflow-meta text-small">8 个任务运行中</span></a>
+        <a class="workflow-node" href="pages/resources.html"><span class="workflow-number text-small-bold">02</span><strong class="text-normal-bold">知识资源</strong><span class="workflow-meta text-small">1,286 份待加工</span></a>
+        <a class="workflow-node is-current" href="pages/processing.html"><span class="workflow-number text-small-bold">03</span><strong class="text-normal-bold">知识加工</strong><span class="workflow-meta text-small">24 个批次执行中</span></a>
+        <a class="workflow-node" href="pages/assets.html"><span class="workflow-number text-small-bold">04</span><strong class="text-normal-bold">知识资产</strong><span class="workflow-meta text-small">36 项待审核</span></a>
+        <a class="workflow-node" href="pages/graphs.html"><span class="workflow-number text-small-bold">05</span><strong class="text-normal-bold">图谱构建</strong><span class="workflow-meta text-small">3 个项目更新中</span></a>
+        <a class="workflow-node" href="pages/services.html"><span class="workflow-number text-small-bold">06</span><strong class="text-normal-bold">知识服务</strong><span class="workflow-meta text-small">56 个服务已发布</span></a>
+        <a class="workflow-node" href="pages/applications.html"><span class="workflow-number text-small-bold">07</span><strong class="text-normal-bold">应用与 Agent</strong><span class="workflow-meta text-small">18 个应用运行中</span></a>
+        <a class="workflow-node" href="pages/operations.html"><span class="workflow-number text-small-bold">08</span><strong class="text-normal-bold">知识运营</strong><span class="workflow-meta text-small">6 项高优任务</span></a>
+      </div>
+    </section>
+
+    <section class="section grid grid-main-aside">
+      <article class="panel">
+        <div class="panel-header"><div><h2 class="panel-title text-big-bold">知识活性趋势</h2><p class="panel-description text-small">近 7 日新增、更新与调用的知识资产量</p></div><span class="tag tag-status tag-status-lime">运行健康</span></div>
+        <div class="chart-bars" role="img" aria-label="近七日知识活性整体上升，周五最高">
+          <div class="chart-column"><div class="chart-bar" data-bar="48"></div><span class="chart-label text-small">周一</span></div><div class="chart-column"><div class="chart-bar" data-bar="62"></div><span class="chart-label text-small">周二</span></div><div class="chart-column"><div class="chart-bar" data-bar="55"></div><span class="chart-label text-small">周三</span></div><div class="chart-column"><div class="chart-bar" data-bar="76"></div><span class="chart-label text-small">周四</span></div><div class="chart-column"><div class="chart-bar" data-bar="92"></div><span class="chart-label text-small">周五</span></div><div class="chart-column"><div class="chart-bar" data-bar="68"></div><span class="chart-label text-small">周六</span></div><div class="chart-column"><div class="chart-bar" data-bar="73"></div><span class="chart-label text-small">今日</span></div>
+        </div>
+      </article>
+      <aside class="panel">
+        <div class="panel-header"><div><h2 class="panel-title text-big-bold">待办事项</h2><p class="panel-description text-small">需要你审核或确认</p></div><span class="tag tag-small">12</span></div>
+        <div class="activity-list">
+          <div class="activity-item"><span class="activity-dot"></span><div class="activity-content"><strong class="text-normal">《对公授信审查办法》版本发布</strong><div class="activity-time text-small">6 项资产待审核</div></div></div>
+          <div class="activity-item"><span class="activity-dot"></span><div class="activity-content"><strong class="text-normal">客户实体合并冲突</strong><div class="activity-time text-small">18 组候选实体待确认</div></div></div>
+          <div class="activity-item"><span class="activity-dot"></span><div class="activity-content"><strong class="text-normal">授信专题图谱发布</strong><div class="activity-time text-small">图谱版本 v2.4 待审批</div></div></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-heading"><h2 class="section-title text-big-bold">八大产品中心</h2><span class="section-note text-small">从知识供给到业务价值的统一平台</span></div>
+      <div class="grid grid-4">
+        <a class="module-card" href="pages/collection.html"><div class="module-card-top"><h3 class="text-medium-bold">知识采集</h3><span class="module-index text-number">01</span></div><p class="text-normal">统一接入文件、数据库、API 和消息数据，同步原始权限。</p><div class="module-card-footer"><span class="text-small">32 个数据源</span><span>→</span></div></a>
+        <a class="module-card" href="pages/resources.html"><div class="module-card-top"><h3 class="text-medium-bold">知识资源</h3><span class="module-index text-number">02</span></div><p class="text-normal">管理原始资源、来源系统、基础元数据、版本与处理状态。</p><div class="module-card-footer"><span class="text-small">286,430 份资源</span><span>→</span></div></a>
+        <a class="module-card" href="pages/processing.html"><div class="module-card-top"><h3 class="text-medium-bold">知识加工</h3><span class="module-index text-number">03</span></div><p class="text-normal">通过解析、切片、抽取、对齐、融合和质量评估生成候选知识。</p><div class="module-card-footer"><span class="text-small">24 个批次运行中</span><span>→</span></div></a>
+        <a class="module-card" href="pages/assets.html"><div class="module-card-top"><h3 class="text-medium-bold">知识资产</h3><span class="module-index text-number">04</span></div><p class="text-normal">对候选知识进行审核、发布、授权、版本和权威等级管理。</p><div class="module-card-footer"><span class="text-small">198,672 项资产</span><span>→</span></div></a>
+        <a class="module-card" href="pages/graphs.html"><div class="module-card-top"><h3 class="text-medium-bold">图谱构建</h3><span class="module-index text-number">05</span></div><p class="text-normal">基于已发布知识资产构建企业统一语义图谱和专题业务图谱。</p><div class="module-card-footer"><span class="text-small">12 张已发布图谱</span><span>→</span></div></a>
+        <a class="module-card" href="pages/services.html"><div class="module-card-top"><h3 class="text-medium-bold">知识服务</h3><span class="module-index text-number">06</span></div><p class="text-normal">将全文、向量、图谱与规则检索封装为 API、MCP 与 Skill。</p><div class="module-card-footer"><span class="text-small">56 个在线服务</span><span>→</span></div></a>
+        <a class="module-card" href="pages/applications.html"><div class="module-card-top"><h3 class="text-medium-bold">应用与 Agent</h3><span class="module-index text-number">07</span></div><p class="text-normal">面向制度、授信、合同、风险等业务场景构建知识应用。</p><div class="module-card-footer"><span class="text-small">18 个应用运行中</span><span>→</span></div></a>
+        <a class="module-card" href="pages/operations.html"><div class="module-card-top"><h3 class="text-medium-bold">知识运营</h3><span class="module-index text-number">08</span></div><p class="text-normal">从无答案、冲突、过期和用户反馈中驱动知识持续保鲜。</p><div class="module-card-footer"><span class="text-small">94.6% 知识健康度</span><span>→</span></div></a>
+      </div>
+    </section>
+  </template>
+  <script type="module" src="assets/js/platform.js"></script>
+</body>
+</html>
