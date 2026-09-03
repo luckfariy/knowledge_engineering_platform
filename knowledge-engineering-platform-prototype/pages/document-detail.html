@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>文件详情 - 知识工程平台</title>
+  <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
+  <link rel="stylesheet" href="../assets/design-system/components.css" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=9" />
+</head>
+<body data-page="documents">
+  <div data-shell></div>
+  <template data-page-template>
+    <header class="page-heading document-detail-heading">
+      <div>
+        <a class="back-link text-small" href="documents.html">‹ 返回文档中心</a>
+        <h1 class="page-title text-x-big-bold" data-detail-title>对公授信审查办法</h1>
+        <p class="page-description text-normal">查看文件信息、原文内容和历史版本。</p>
+      </div>
+      <div class="page-actions"><input class="visually-hidden" type="file" data-file-version-input aria-label="选择新版本文件" /><button class="btn btn-medium btn-primary" type="button" data-update-file>更新文件</button></div>
+    </header>
+
+    <section class="panel detail-section" aria-labelledby="basic-info-title">
+      <div class="panel-header"><div><h2 class="panel-title text-medium-bold" id="basic-info-title">基本信息</h2><p class="panel-description text-small">文件当前版本的核心属性</p></div><span class="tag tag-status tag-status-lime">已就绪</span></div>
+      <dl class="metadata-grid">
+        <div><dt>文件名称</dt><dd data-detail-name>对公授信审查办法</dd></div><div><dt>文件类型</dt><dd>PDF</dd></div><div><dt>当前版本</dt><dd class="text-number">v3.2</dd></div><div><dt>文件大小</dt><dd>8.6 MB</dd></div><div><dt>知识源</dt><dd>本地上传</dd></div><div><dt>创建人</dt><dd>王翠</dd></div><div><dt>创建时间</dt><dd>2026-08-12 09:30</dd></div><div><dt>更新时间</dt><dd>2026-09-02 09:30</dd></div>
+        <div class="metadata-summary"><dt>摘要信息</dt><dd data-detail-summary>本文件系统规范了对公授信业务的审查原则、职责分工、风险评估、审批流程与授信后管理要求，重点强调风险分级、资料完整性和审查时效，为各级机构开展授信决策提供统一依据。</dd></div>
+      </dl>
+    </section>
+
+    <section class="detail-grid">
+      <article class="panel original-document" aria-labelledby="original-title">
+        <div class="panel-header"><div><h2 class="panel-title text-medium-bold" id="original-title">原文内容</h2><p class="panel-description text-small">PDF 文本解析预览 · 共 28 页</p></div><button class="btn btn-dense btn-secondary" type="button" data-toast="已打开原文预览">查看原文</button></div>
+        <div class="document-paper">
+          <div class="document-page-number text-small">第 1 页</div>
+          <h3>对公授信审查办法</h3>
+          <p>第一条　为规范对公授信业务审查工作，强化信用风险管理，提升授信决策质量，制定本办法。</p>
+          <p>第二条　本办法适用于境内各级机构开展的对公客户授信申请、风险评估、审查审批和授信后管理。</p>
+          <h4>第一章　总则</h4>
+          <p>授信审查应遵循独立性、审慎性、全面性和时效性原则，充分识别客户、行业、区域及担保风险。</p>
+        </div>
+      </article>
+
+      <aside class="panel version-panel" aria-labelledby="version-title">
+        <div class="panel-header"><div><h2 class="panel-title text-medium-bold" id="version-title">历史版本</h2><p class="panel-description text-small">选择 2–3 个版本进行对比</p></div><button class="btn btn-dense btn-primary" type="button" data-compare-versions disabled>版本对比</button></div>
+        <div class="version-list">
+          <label class="version-item"><input class="checkbox-input" type="checkbox" value="v3.2" data-version-check /><span class="version-main"><strong>v3.2</strong><small>2026-09-02 09:30 · 王翠</small></span><span class="tag tag-status tag-status-lime">当前</span></label>
+          <label class="version-item"><input class="checkbox-input" type="checkbox" value="v3.1" data-version-check /><span class="version-main"><strong>v3.1</strong><small>2026-08-26 14:12 · 王翠</small></span><span class="text-small">调整风险等级</span></label>
+          <label class="version-item"><input class="checkbox-input" type="checkbox" value="v3.0" data-version-check /><span class="version-main"><strong>v3.0</strong><small>2026-08-12 09:30 · 李程</small></span><span class="text-small">年度改版</span></label>
+          <label class="version-item"><input class="checkbox-input" type="checkbox" value="v2.4" data-version-check /><span class="version-main"><strong>v2.4</strong><small>2026-05-18 16:05 · 陈曦</small></span><span class="text-small">修订审查流程</span></label>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel comparison-panel" data-comparison-panel hidden aria-labelledby="comparison-title">
+      <div class="panel-header"><div><h2 class="panel-title text-medium-bold" id="comparison-title">版本对比</h2><p class="panel-description text-small" data-comparison-summary></p></div><button class="btn btn-dense btn-text" type="button" data-close-comparison>收起</button></div>
+      <div class="comparison-grid"><article><span class="tag tag-status tag-status-red">删除</span><p>原规定：授信审查应在五个工作日内完成。</p></article><article><span class="tag tag-status tag-status-lime">新增</span><p>现规定：授信审查应根据风险等级分类完成，最长不超过五个工作日。</p></article></div>
+    </section>
+  </template>
+  <script type="module" src="../assets/js/app.js?v=9"></script>
+</body>
+</html>

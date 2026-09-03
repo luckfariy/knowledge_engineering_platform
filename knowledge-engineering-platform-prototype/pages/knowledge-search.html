@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>搜索界面 - 知识工程平台</title>
+  <link rel="stylesheet" href="../assets/design-system/design-tokens.css"/>
+  <link rel="stylesheet" href="../assets/design-system/components.css"/>
+  <link rel="stylesheet" href="../assets/css/platform.css?v=3"/>
+</head>
+<body data-page="knowledge-search">
+<div data-shell></div>
+<template data-page-template>
+  <header class="search-hero">
+    <div>
+      <h1 class="page-title text-x-big-bold">搜索界面</h1>
+      <p class="page-description text-normal">搜索制度、业务知识、问答与图谱内容。</p>
+    </div>
+    <form class="knowledge-search-form" data-knowledge-search-form role="search">
+      <svg class="knowledge-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
+      <span class="input-wrap knowledge-search-input"><input class="input text-medium" type="search" placeholder="输入关键词，搜索全部企业知识" aria-label="搜索全部企业知识" data-knowledge-search-input/></span>
+      <button class="btn btn-large btn-primary knowledge-search-button" type="submit">全局搜索</button>
+    </form>
+  </header>
+
+  <section class="knowledge-search-workbench">
+    <aside class="panel knowledge-directory-panel" aria-label="知识目录">
+      <div class="panel-header"><div><h2 class="panel-title text-medium-bold">目录树</h2><p class="panel-description text-small">按知识域筛选</p></div></div>
+      <div class="knowledge-directory-tree">
+        <button class="directory-item is-active" type="button" data-search-directory="all" aria-pressed="true"><span class="directory-caret">▾</span><span>全部知识</span><span class="source-count">24</span></button>
+        <button class="directory-item" type="button" data-search-directory="policy" aria-pressed="false"><span class="directory-caret">›</span><span>制度与规范</span><span class="source-count">8</span></button>
+        <button class="directory-item" type="button" data-search-directory="business" aria-pressed="false"><span class="directory-caret">›</span><span>经营与客户</span><span class="source-count">6</span></button>
+        <button class="directory-item" type="button" data-search-directory="risk" aria-pressed="false"><span class="directory-caret">›</span><span>风险与合规</span><span class="source-count">5</span></button>
+        <button class="directory-item" type="button" data-search-directory="product" aria-pressed="false"><span class="directory-caret">›</span><span>产品与服务</span><span class="source-count">5</span></button>
+      </div>
+    </aside>
+
+    <div class="panel knowledge-result-panel">
+      <div class="panel-header knowledge-result-header"><div><h2 class="panel-title text-medium-bold" data-search-result-title>全部知识</h2><p class="panel-description text-small" data-search-result-summary>已为你整理 6 条相关知识</p></div><span class="tag tag-status tag-status-blue" data-search-result-count>6 条结果</span></div>
+      <div class="knowledge-result-list" data-search-results>
+        <article class="knowledge-result-item" data-search-result data-directory="policy"><div class="knowledge-result-meta"><span class="tag tag-small">制度与规范</span><span class="text-small">更新于 2026-08-28</span></div><h3 class="text-medium-bold">企业知识管理办法</h3><p class="text-normal">明确企业知识的归集、审核、发布、权限与持续更新要求。</p><div class="knowledge-result-source text-small">来源：总行制度库 / 知识管理制度</div></article>
+        <article class="knowledge-result-item" data-search-result data-directory="business"><div class="knowledge-result-meta"><span class="tag tag-small">经营与客户</span><span class="text-small">更新于 2026-08-27</span></div><h3 class="text-medium-bold">重点客户经营指引</h3><p class="text-normal">围绕客户分层、需求识别和协同服务提供标准化经营建议。</p><div class="knowledge-result-source text-small">来源：客户经营知识库</div></article>
+        <article class="knowledge-result-item" data-search-result data-directory="risk"><div class="knowledge-result-meta"><span class="tag tag-small">风险与合规</span><span class="text-small">更新于 2026-08-25</span></div><h3 class="text-medium-bold">授信业务风险审查要点</h3><p class="text-normal">覆盖准入、额度测算、担保审查与贷后风险监测等关键环节。</p><div class="knowledge-result-source text-small">来源：风险政策知识库</div></article>
+        <article class="knowledge-result-item" data-search-result data-directory="product"><div class="knowledge-result-meta"><span class="tag tag-small">产品与服务</span><span class="text-small">更新于 2026-08-23</span></div><h3 class="text-medium-bold">企业现金管理产品手册</h3><p class="text-normal">介绍账户管理、资金归集、流动性管理与对账服务能力。</p><div class="knowledge-result-source text-small">来源：产品知识中心</div></article>
+        <article class="knowledge-result-item" data-search-result data-directory="policy"><div class="knowledge-result-meta"><span class="tag tag-small">制度与规范</span><span class="text-small">更新于 2026-08-21</span></div><h3 class="text-medium-bold">数据安全分级分类规范</h3><p class="text-normal">定义数据分类、敏感级别、访问授权和安全使用控制要求。</p><div class="knowledge-result-source text-small">来源：信息科技制度库</div></article>
+        <article class="knowledge-result-item" data-search-result data-directory="business"><div class="knowledge-result-meta"><span class="tag tag-small">经营与客户</span><span class="text-small">更新于 2026-08-18</span></div><h3 class="text-medium-bold">客户服务常见问题</h3><p class="text-normal">汇总业务办理、产品使用、收费标准和服务渠道相关问答。</p><div class="knowledge-result-source text-small">来源：服务问答知识库</div></article>
+      </div>
+      <div class="knowledge-empty" data-search-empty hidden><span class="service-entry-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg></span><strong class="text-medium-bold">暂未找到相关知识</strong><p class="text-normal">请更换关键词或切换知识目录。</p></div>
+    </div>
+  </section>
+
+  <button class="ai-chat-fab" type="button" aria-label="打开 AI 搜索对话" aria-haspopup="dialog" aria-expanded="false" data-ai-chat-open><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M5 5h14v11H9l-4 4V5Z"/><path d="M9 10h.01M12 10h.01M15 10h.01"/></svg></button>
+  <div class="dialog-mask ai-chat-mask" data-ai-chat-dialog hidden>
+    <section class="dialog dialog-wide ai-chat-dialog" role="dialog" aria-modal="true" aria-labelledby="ai-chat-title">
+      <header class="dialog-header"><h2 class="dialog-title" id="ai-chat-title">AI 搜索对话</h2><button class="dialog-close" type="button" aria-label="关闭对话" data-ai-chat-close></button></header>
+      <div class="dialog-body ai-chat-body">
+        <div class="ai-chat-messages" data-ai-chat-messages aria-live="polite"><div class="ai-message ai-message-assistant"><span class="ai-message-avatar">AI</span><div><strong class="text-small-bold">知识助手</strong><p class="text-normal">你好，我可以基于企业知识为你查找答案。你想了解什么？</p></div></div></div>
+        <form class="ai-chat-composer" data-ai-chat-form><span class="input-wrap input-large"><input class="input" data-ai-chat-input placeholder="输入问题，按 Enter 发送" aria-label="输入 AI 搜索问题"/></span><button class="btn btn-large btn-primary" type="submit">发送</button></form>
+      </div>
+    </section>
+  </div>
+</template>
+<script type="module" src="../assets/js/app.js?v=3"></script>
+</body>
+</html>
