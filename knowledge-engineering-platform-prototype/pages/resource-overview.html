@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>文档概览 - 知识工程平台</title>
+  <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
+  <link rel="stylesheet" href="../assets/design-system/components.css" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=6" />
+</head>
+<body data-page="resource-overview">
+  <div data-shell></div>
+  <template data-page-template>
+    <header class="page-heading">
+      <div><h1 class="page-title text-x-big-bold">文档概览</h1><p class="page-description text-normal">统一查看企业、团队和个人空间的文档规模、加工状态与治理质量。</p></div>
+      <div class="page-actions"><button class="btn btn-medium btn-secondary" type="button" data-toast="文档报告已生成">导出报告</button><a class="btn btn-medium btn-primary" href="documents.html">进入企业空间</a></div>
+    </header>
+    <section class="grid grid-4" aria-label="文档核心指标">
+      <article class="metric-card"><div class="metric-label text-normal"><span>文档总量</span><span class="tag tag-small">全空间</span></div><div class="metric-value text-x-big-bold text-number">286,430</div><div class="metric-foot text-small"><span class="trend-up">+8.7%</span><span>较上月</span></div></article>
+      <article class="metric-card"><div class="metric-label text-normal"><span>已完成加工</span></div><div class="metric-value text-x-big-bold text-number">241,806</div><div class="metric-foot text-small"><span>加工覆盖率 84.4%</span></div></article>
+      <article class="metric-card"><div class="metric-label text-normal"><span>待完善元数据</span></div><div class="metric-value text-x-big-bold text-number">3,286</div><div class="metric-foot text-small"><span class="trend-risk">428 份低于 60%</span></div></article>
+      <article class="metric-card"><div class="metric-label text-normal"><span>今日新增</span></div><div class="metric-value text-x-big-bold text-number">9,842</div><div class="metric-foot text-small"><span>企业 8,126</span><span>团队与个人 1,716</span></div></article>
+    </section>
+    <section class="section">
+      <div class="section-heading"><div><h2 class="section-title text-big-bold">空间分布</h2><span class="section-note text-small">按文档所有权与协作边界划分</span></div></div>
+      <div class="grid grid-3">
+        <a class="resource-card" href="documents.html"><div class="resource-card-head"><strong class="text-medium-bold">企业空间</strong><span class="tag tag-status tag-status-lime">受控资产</span></div><div class="resource-card-value text-x-big-bold text-number">238,621</div><div class="resource-card-meta text-small"><span>统一目录与企业权限</span><span>元数据完整率 96.8%</span><span>12 项权限异常</span></div></a>
+        <a class="resource-card" href="team-documents.html"><div class="resource-card-head"><strong class="text-medium-bold">团队空间</strong><span class="tag tag-status tag-status-blue">协作资源</span></div><div class="resource-card-value text-x-big-bold text-number">31,285</div><div class="resource-card-meta text-small"><span>18 个团队</span><span>1,286 份待加工</span><span>本周新增 642 份</span></div></a>
+        <a class="resource-card" href="personal-documents.html"><div class="resource-card-head"><strong class="text-medium-bold">个人空间</strong><span class="tag tag-status tag-status-secondary">个人归属</span></div><div class="resource-card-value text-x-big-bold text-number">16,524</div><div class="resource-card-meta text-small"><span>支持文件共享</span><span>4.6 GB 当前用量</span><span>本周新增 186 份</span></div></a>
+      </div>
+    </section>
+    <section class="section grid grid-main-aside">
+      <article class="panel"><div class="panel-header"><div><h2 class="panel-title text-big-bold">最近文档活动</h2><p class="panel-description text-small">跨空间查看最新上传、同步与自动入目记录</p></div></div><div class="table-wrap"><table class="table"><thead><tr><th>文档</th><th>所属空间</th><th>来源</th><th>更新时间</th><th>状态</th></tr></thead><tbody><tr><td class="cell-primary">对公授信审查办法<span class="cell-secondary text-small">PDF · V3.2</span></td><td>企业空间</td><td>制度中台</td><td>2 分钟前</td><td><span class="tag tag-status tag-status-lime">已加工</span></td></tr><tr><td class="cell-primary">零售业务培训资料<span class="cell-secondary text-small">DOCX · V1.0</span></td><td>团队空间</td><td>本地上传</td><td>18 分钟前</td><td><span class="tag tag-status tag-status-blue">解析中</span></td></tr><tr><td class="cell-primary">客户访谈纪要<span class="cell-secondary text-small">DOCX · V2.1</span></td><td>个人空间</td><td>本地上传</td><td>1 小时前</td><td><span class="tag tag-status tag-status-secondary">已解析</span></td></tr></tbody></table></div></article>
+      <aside class="panel"><div class="panel-header"><div><h2 class="panel-title text-big-bold">文档健康度</h2><p class="panel-description text-small">综合完整性、时效性和权限状态</p></div></div><div class="status-list"><div class="status-row"><div><strong>元数据完整度</strong><small>业务与管理属性覆盖</small></div><strong class="text-number">96</strong><div class="progress"><span data-bar="96"></span></div></div><div class="status-row"><div><strong>内容解析成功率</strong><small>近 30 日解析任务</small></div><strong class="text-number">98</strong><div class="progress"><span data-bar="98"></span></div></div><div class="status-row"><div><strong>权限配置完整度</strong><small>企业空间文档</small></div><strong class="text-number">92</strong><div class="progress"><span data-bar="92"></span></div></div></div></aside>
+    </section>
+  </template>
+  <script type="module" src="../assets/js/app.js?v=6"></script>
+</body>
+</html>

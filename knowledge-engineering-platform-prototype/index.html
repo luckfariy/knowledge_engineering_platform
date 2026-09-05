@@ -1,6 +1,62 @@
-<!doctype html><html lang="zh-CN" data-theme="light" data-brand="ht"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>资源概览 - 知识工程平台</title><link rel="stylesheet" href="assets/design-system/design-tokens.css"/><link rel="stylesheet" href="assets/design-system/components.css"/><link rel="stylesheet" href="assets/css/platform.css?v=2"/></head><body data-page="resource-overview" data-root="true"><div data-shell></div><template data-page-template>
-<header class="page-heading"><div><h1 class="page-title text-x-big-bold">资源概览</h1><p class="page-description text-normal">统一查看文档、数据表和图数据的接入规模、同步状态、质量与异常。</p></div><div class="page-actions"><button class="btn btn-medium btn-secondary" data-toast="资源报告已生成">导出报告</button><a class="btn btn-medium btn-primary" href="pages/documents.html">接入资源</a></div></header>
-<section class="grid grid-4" aria-label="资源核心指标"><article class="metric-card"><div class="metric-label text-normal"><span>资源总量</span><span class="tag tag-small">全域</span></div><div class="metric-value text-x-big-bold text-number">316,842</div><div class="metric-foot text-small"><span class="trend-up">+8.7%</span><span>较上月</span></div></article><article class="metric-card"><div class="metric-label text-normal"><span>资源连接</span><span class="tag tag-small">42 个</span></div><div class="metric-value text-x-big-bold text-number">38</div><div class="metric-foot text-small"><span>正常运行</span><span class="trend-risk">4 个异常</span></div></article><article class="metric-card"><div class="metric-label text-normal"><span>今日新增</span></div><div class="metric-value text-x-big-bold text-number">12,486</div><div class="metric-foot text-small"><span>文档 9,842</span><span>数据记录 2,644</span></div></article><article class="metric-card"><div class="metric-label text-normal"><span>待处理异常</span><span class="tag tag-status tag-status-red">需关注</span></div><div class="metric-value text-x-big-bold text-number">26</div><div class="metric-foot text-small"><span class="trend-risk">7 项超过 SLA</span></div></article></section>
-<section class="section"><div class="section-heading"><div><h2 class="section-title text-big-bold">资源构成</h2><span class="section-note text-small">进入对应资源页面查看详情</span></div></div><div class="grid grid-3"><a class="resource-card" href="pages/documents.html"><div class="resource-card-head"><strong class="text-medium-bold">文档中心</strong><span class="tag tag-status tag-status-lime">正常</span></div><div class="resource-card-value text-x-big-bold text-number">286,430</div><div class="resource-card-meta text-small"><span>32 个知识源</span><span>1,286 份待加工</span><span>12 项权限异常</span></div></a><a class="resource-card" href="pages/data-tables.html"><div class="resource-card-head"><strong class="text-medium-bold">数据表</strong><span class="tag tag-status tag-status-lime">正常</span></div><div class="resource-card-value text-x-big-bold text-number">8,246</div><div class="resource-card-meta text-small"><span>18 个连接</span><span>186,420 个字段</span><span>6 项结构变更</span></div></a><a class="resource-card" href="pages/graph-data.html"><div class="resource-card-head"><strong class="text-medium-bold">图数据</strong><span class="tag tag-status tag-status-secondary">2 项待处理</span></div><div class="resource-card-value text-x-big-bold text-number">22,166</div><div class="resource-card-meta text-small"><span>6 个图数据源</span><span>382 万节点</span><span>100 万条边</span></div></a></div></section>
-<section class="section grid grid-main-aside"><article class="panel"><div class="panel-header"><div><h2 class="panel-title text-big-bold">最近同步</h2><p class="panel-description text-small">文档、数据表和图数据的统一执行记录</p></div></div><div class="table-wrap"><table class="table"><thead><tr><th>任务</th><th>资源类型</th><th>来源</th><th>更新时间</th><th>状态</th></tr></thead><tbody><tr><td class="cell-primary">制度文件增量同步<span class="cell-secondary text-small">TASK-DOC-0827</span></td><td>文档</td><td>制度中台</td><td>2 分钟前</td><td><span class="tag tag-status tag-status-lime">成功</span></td></tr><tr><td class="cell-primary">客户主数据同步<span class="cell-secondary text-small">TASK-TABLE-0318</span></td><td>数据表</td><td>CRM</td><td>刚刚</td><td><span class="tag tag-status tag-status-blue">运行中</span></td></tr><tr><td class="cell-primary">产品关系图导入<span class="cell-secondary text-small">TASK-GRAPH-0112</span></td><td>图数据</td><td>产品关系库</td><td>18 分钟前</td><td><span class="tag tag-status tag-status-red">失败</span></td></tr></tbody></table></div></article><aside class="panel"><div class="panel-header"><div><h2 class="panel-title text-big-bold">资源健康度</h2><p class="panel-description text-small">综合完整性、时效性与权限状态</p></div></div><div class="status-list"><div class="status-row"><div><strong>文档资源</strong><small>元数据完整率 96.8%</small></div><strong class="text-number">94</strong><div class="progress"><span data-bar="94"></span></div></div><div class="status-row"><div><strong>数据表</strong><small>字段元数据完整率 91.4%</small></div><strong class="text-number">91</strong><div class="progress"><span data-bar="91"></span></div></div><div class="status-row"><div><strong>图数据</strong><small>节点关系完整率 87.6%</small></div><strong class="text-number">88</strong><div class="progress"><span data-bar="88"></span></div></div></div></aside></section>
-</template><script type="module" src="assets/js/app.js?v=2"></script></body></html>
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>知识工程平台</title>
+  <link rel="stylesheet" href="assets/design-system/design-tokens.css"/>
+  <link rel="stylesheet" href="assets/design-system/components.css"/>
+  <link rel="stylesheet" href="assets/css/platform.css?v=6"/>
+</head>
+<body class="product-home-body" data-page="platform-home" data-root="true">
+  <div data-shell></div>
+  <template data-page-template>
+    <section class="home-hero" aria-labelledby="home-title">
+      <div class="home-hero-copy">
+        <p class="home-eyebrow text-normal-bold"><span class="home-status-dot"></span>企业知识全生命周期工作台</p>
+        <h1 id="home-title" class="home-title text-page-title">早上好，开始今天的知识工作</h1>
+        <p class="home-description text-medium">将分散的业务资源持续转化为可追溯、可治理、可服务的知识资产。</p>
+      </div>
+      <div class="home-hero-actions">
+        <a class="btn btn-medium btn-secondary" href="pages/knowledge-search.html">搜索知识</a>
+        <a class="btn btn-medium btn-primary" href="pages/processing-tasks.html">新建加工任务</a>
+      </div>
+    </section>
+
+    <section class="home-focus" aria-labelledby="focus-title">
+      <div class="home-section-heading">
+        <div><p class="home-section-kicker text-small">TODAY</p><h2 id="focus-title" class="home-section-title text-big-bold">待你处理</h2></div>
+        <a class="home-text-link text-normal" href="pages/processing-tasks.html">查看全部任务 <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="home-focus-grid">
+        <a class="home-task-card" href="pages/processing-tasks.html"><span class="home-card-icon home-card-icon-blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></svg></span><span class="home-task-content"><strong class="text-medium-bold">7 个加工任务待确认</strong><small class="text-small">合同条款抽取与制度解析已完成</small></span><span class="tag tag-status tag-status-blue">待确认</span></a>
+        <a class="home-task-card" href="pages/management-overview.html"><span class="home-card-icon home-card-icon-lime" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4 8-4Zm-8 8 8 4 8-4m-16 4 8 4 8-4"/></svg></span><span class="home-task-content"><strong class="text-medium-bold">12 项候选知识待审核</strong><small class="text-small">通过质量门禁后可发布为正式资产</small></span><span class="tag tag-status tag-status-secondary">待审核</span></a>
+        <a class="home-task-card" href="pages/documents.html"><span class="home-card-icon home-card-icon-red" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 8v5m0 3h.01M10 3h4l7 16H3l7-16Z"/></svg></span><span class="home-task-content"><strong class="text-medium-bold">4 个资源连接异常</strong><small class="text-small">CRM 与制度库同步需要检查</small></span><span class="tag tag-status tag-status-red">需关注</span></a>
+      </div>
+    </section>
+
+    <section class="home-spaces" aria-labelledby="spaces-title">
+      <div class="home-section-heading"><div><p class="home-section-kicker text-small">WORKSPACES</p><h2 id="spaces-title" class="home-section-title text-big-bold">知识工作空间</h2><p class="home-section-description text-normal">从资源接入到知识应用，沿业务生命周期进入对应工作域。</p></div></div>
+      <div class="home-space-grid">
+        <a class="home-space-card" href="pages/resource-overview.html"><span class="home-card-index text-small text-number">01</span><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h6l2 2h8v11H4zM8 12h8M8 15h5"/></svg></span><span class="home-space-content"><strong class="text-big-bold">资源纳管</strong><small class="text-normal">统一接入、登记和管理企业原始知识资源</small></span><span class="home-space-meta text-small"><b class="text-number">316,842</b> 项资源 · 4 个异常</span><span class="home-card-arrow" aria-hidden="true">→</span></a>
+        <a class="home-space-card" href="pages/processing-overview.html"><span class="home-card-index text-small text-number">02</span><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 5 4 4-4 4m7-4h7M5 17h14"/></svg></span><span class="home-space-content"><strong class="text-big-bold">知识生产</strong><small class="text-normal">解析、抽取、融合并形成可审核的候选知识</small></span><span class="home-space-meta text-small"><b class="text-number">23</b> 个运行中 · 7 个待确认</span><span class="home-card-arrow" aria-hidden="true">→</span></a>
+        <a class="home-space-card" href="pages/management-overview.html"><span class="home-card-index text-small text-number">03</span><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4 8-4Zm-8 8 8 4 8-4m-16 4 8 4 8-4"/></svg></span><span class="home-space-content"><strong class="text-big-bold">知识资产</strong><small class="text-normal">审核、发布和治理可复用的正式知识资产</small></span><span class="home-space-meta text-small"><b class="text-number">8,642</b> 项资产 · 12 项待审核</span><span class="home-card-arrow" aria-hidden="true">→</span></a>
+        <a class="home-space-card" href="pages/services.html"><span class="home-card-index text-small text-number">04</span><span class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 7h14v10H5zM8 4v3m8-3v3M8 17v3m8-3v3"/></svg></span><span class="home-space-content"><strong class="text-big-bold">知识服务</strong><small class="text-normal">通过搜索、智能体和 SDK 安全交付知识</small></span><span class="home-space-meta text-small"><b class="text-number">42</b> 个服务 · 今日调用 18.6 万次</span><span class="home-card-arrow" aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <section class="home-bottom-grid" aria-label="运营概览与快捷入口">
+      <article class="home-insight-panel">
+        <div class="home-section-heading home-section-heading-compact"><div><p class="home-section-kicker text-small">GOVERNANCE</p><h2 class="home-section-title text-big-bold">全域知识健康度</h2></div><span class="tag tag-status tag-status-lime">整体良好</span></div>
+        <div class="home-health-score"><strong class="text-page-title text-number">92</strong><span class="text-small">综合得分</span></div>
+        <div class="home-health-items"><div><span class="text-small">元数据完整性</span><strong class="text-normal text-number">96%</strong><span class="progress"><i data-bar="96"></i></span></div><div><span class="text-small">来源可追溯性</span><strong class="text-normal text-number">94%</strong><span class="progress"><i data-bar="94"></i></span></div><div><span class="text-small">权限合规性</span><strong class="text-normal text-number">87%</strong><span class="progress"><i data-bar="87"></i></span></div></div>
+      </article>
+      <aside class="home-quick-panel">
+        <div class="home-section-heading home-section-heading-compact"><div><p class="home-section-kicker text-small">QUICK START</p><h2 class="home-section-title text-big-bold">常用入口</h2></div></div>
+        <nav class="home-quick-links" aria-label="常用入口"><a href="pages/documents.html"><span>接入文档资源</span><small>文档中心</small></a><a href="pages/processing-models.html"><span>配置加工模型</span><small>模型中心</small></a><a href="pages/knowledge-search.html"><span>检索企业知识</span><small>知识搜索</small></a><a href="pages/agent-access.html"><span>对接智能体</span><small>Agent 服务</small></a></nav>
+      </aside>
+    </section>
+  </template>
+  <script type="module" src="assets/js/app.js?v=6"></script>
+</body>
+</html>

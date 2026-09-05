@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>标签管理 - 知识工程平台</title>
+  <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
+  <link rel="stylesheet" href="../assets/design-system/components.css" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=22" />
+</head>
+<body data-page="resource-tags">
+  <div data-shell></div>
+  <template data-page-template>
+    <header class="page-heading"><div><h1 class="page-title text-x-big-bold">标签管理</h1><p class="page-description text-normal">统一管理资源标签，为文档分类、检索和知识加工提供标准标识。</p></div><div class="page-actions"><button class="btn btn-medium btn-primary" type="button" data-toast="新建标签功能已打开">新建标签</button></div></header>
+    <section class="panel">
+      <div class="toolbar"><label class="field"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索标签名称" data-table-search="#resource-tag-table" aria-label="搜索标签" /></span></label><div class="toolbar-spacer"></div><span class="text-small">共 6 个标签</span></div>
+      <div class="table-wrap"><table class="table" id="resource-tag-table"><thead><tr><th>标签名称</th><th>标签分类</th><th>关联资源</th><th>创建人</th><th>更新时间</th><th class="cell-actions">操作</th></tr></thead><tbody>
+        <tr><td class="cell-primary">制度规范</td><td>知识类型</td><td class="text-number">1,286</td><td>王翠</td><td>2026-09-03 16:20</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-toast="标签编辑功能已打开">编辑</button></td></tr>
+        <tr><td class="cell-primary">风险管理</td><td>业务域</td><td class="text-number">842</td><td>陈曦</td><td>2026-09-03 10:12</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-toast="标签编辑功能已打开">编辑</button></td></tr>
+        <tr><td class="cell-primary">授信审批</td><td>业务场景</td><td class="text-number">536</td><td>李程</td><td>2026-09-02 14:08</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-toast="标签编辑功能已打开">编辑</button></td></tr>
+        <tr><td class="cell-primary">客户经理</td><td>适用岗位</td><td class="text-number">426</td><td>赵楠</td><td>2026-09-01 11:42</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-toast="标签编辑功能已打开">编辑</button></td></tr>
+        <tr><td class="cell-primary">内部公开</td><td>安全等级</td><td class="text-number">2,418</td><td>周俊</td><td>2026-08-30 09:36</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-toast="标签编辑功能已打开">编辑</button></td></tr>
+        <tr><td class="cell-primary">产品手册</td><td>知识主题</td><td class="text-number">318</td><td>刘敏</td><td>2026-08-29 17:20</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-toast="标签编辑功能已打开">编辑</button></td></tr>
+      </tbody></table></div>
+    </section>
+  </template>
+  <script type="module" src="../assets/js/app.js?v=22"></script>
+</body>
+</html>
