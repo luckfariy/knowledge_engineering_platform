@@ -17,9 +17,8 @@
   - 流程加工
   - 加工任务
 - 知识管理
-  - 概览
-  - 语义知识图谱
-  - 知识库
+  - 知识资产
+  - 资产目录管理
 - 知识服务
   - 工作台
   - 搜索界面
@@ -36,7 +35,7 @@
 
 - `index.html`：平台首页，采用顶部生命周期导航与知识工作台布局
 - `pages/resource-overview.html`：资源概览
-- `pages/documents.html`：文档中心
+- `pages/documents.html`：企业空间，知识源目录按非结构化数据与结构化数据 Tab 切换
 - `pages/resource-tasks.html`：资源接入与自动入目任务中心
 - `pages/data-tables.html`：数据表
 - `pages/graph-data.html`：图数据
@@ -45,7 +44,10 @@
 - `pages/processing-models.html`：加工模型
 - `pages/processing-flows.html`：流程加工
 - `pages/processing-tasks.html`：加工任务与新建任务流程
-- `pages/management-overview.html`：知识管理概览
+- `pages/management-overview.html`：知识资产目录与卡片视图，可切换资源目录设计中的目录树及机构目录
+- `pages/knowledge-base-detail.html`：知识库详情占位页
+- `pages/unified-semantic-graph-detail.html`：统一语义知识图谱详情占位页
+- `pages/topic-knowledge-graph-detail.html`：专题知识图谱详情占位页
 - `pages/semantic-graphs.html`：语义知识图谱
 - `pages/knowledge-bases.html`：知识库
 - `pages/processing.html` 与 `pages/management.html`：兼容旧地址的跳转页

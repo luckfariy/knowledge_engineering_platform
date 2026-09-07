@@ -1,4 +1,4 @@
-import { renderShell } from './shell.js?v=26';
+import { renderShell } from './shell.js?v=33';
 
 const platformStylesheet = document.querySelector('link[href$="platform.css"]');
 if (platformStylesheet) platformStylesheet.href = `${platformStylesheet.href}?v=2`;
@@ -351,6 +351,7 @@ function filterKnowledgeSource(button) {
   const tree = button.closest('[data-knowledge-source-tree]');
   if (!tree) return;
   const sourceId = button.dataset.knowledgeSource;
+  const sourceKind = button.dataset.sourceKind || button.closest('[data-source-kind]')?.dataset.sourceKind || 'unstructured';
   tree.querySelectorAll('[data-knowledge-source]').forEach(item => {
     const active = item === button;
     item.classList.toggle('is-active', active);
@@ -358,7 +359,7 @@ function filterKnowledgeSource(button) {
   });
   let visibleCount = 0;
   document.querySelectorAll('#resource-table tbody tr[data-knowledge-source-row]').forEach(row => {
-    const visible = sourceId === 'all' || row.dataset.knowledgeSourceRow === sourceId;
+    const visible = row.dataset.sourceKind === sourceKind && (sourceId === 'all' || row.dataset.knowledgeSourceRow === sourceId);
     row.hidden = !visible;
     if (visible) visibleCount += 1;
   });
@@ -368,12 +369,39 @@ function filterKnowledgeSource(button) {
   const emptyNode = document.querySelector('[data-resource-source-empty]');
   const emptyMessage = document.querySelector('[data-resource-empty-message]');
   const sourceName = button.querySelector('.source-label strong')?.textContent || '全部知识源';
-  if (titleNode) titleNode.textContent = sourceId === 'all' ? '全部知识源内容' : sourceName;
-  if (summaryNode) summaryNode.textContent = sourceId === 'all' ? '展示 6 个已配置知识源下的内容' : `当前展示“${sourceName}”下的内容`;
+  const kindLabel = sourceKind === 'structured' ? '结构化数据' : '非结构化数据';
+  if (titleNode) titleNode.textContent = sourceId === 'all' ? `全部${kindLabel}` : sourceName;
+  if (summaryNode) summaryNode.textContent = sourceId === 'all' ? `展示已配置知识源下的${kindLabel}` : `当前展示“${sourceName}”下的内容`;
   if (countNode) countNode.textContent = `${visibleCount} 条结果`;
   if (emptyNode) emptyNode.hidden = visibleCount !== 0;
   if (emptyMessage && sourceId === 'oracle') emptyMessage.textContent = '该知识源尚未完成认证，完成连接并同步后将在此展示内容。';
 }
+
+const sourceKindTabs = document.querySelector('[data-source-kind-tabs]');
+
+function activateSourceKind(kind) {
+  const tree = document.querySelector('[data-knowledge-source-tree]');
+  if (!tree) return;
+  sourceKindTabs?.querySelectorAll('[data-source-kind-tab]').forEach(tab => {
+    const active = tab.dataset.sourceKindTab === kind;
+    tab.classList.toggle('is-active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
+  tree.querySelectorAll('[data-source-kind]').forEach(item => { item.hidden = item.dataset.sourceKind !== kind; });
+  const search = document.querySelector('[data-source-directory-search]');
+  if (search) search.value = '';
+  const count = document.querySelector('[data-connected-source-count]');
+  if (count) count.textContent = kind === 'structured' ? '3' : '6';
+  closeSourceFunctionMenus();
+  const allButton = tree.querySelector(`[data-knowledge-source="all"][data-source-kind="${kind}"]`);
+  if (allButton) filterKnowledgeSource(allButton);
+}
+
+sourceKindTabs?.addEventListener('click', event => {
+  const tab = event.target.closest('[data-source-kind-tab]');
+  if (tab) activateSourceKind(tab.dataset.sourceKindTab);
+});
+if (sourceKindTabs) activateSourceKind('unstructured');
 
 document.querySelector('.source-panel')?.addEventListener('click', event => {
   const button = event.target.closest('[data-knowledge-source]');
@@ -400,8 +428,11 @@ const sourceClassificationPaths = {
   gitlab: ['客户风险评级服务设计', '征信接口变更记录'],
   confluence: ['对公授信审查办法', '固定资产贷款管理办法'],
   postgresql: ['customer_profile', 'customer_risk_rating'],
+  mysql: ['transaction_summary', 'account_flow'],
   jira: ['CREDIT-2841 授信审查规则异常'],
-  s3: ['2025年授信档案汇编', '历史合同归档清单', '客户尽调影像索引']
+  's3-docs': ['2025年授信档案汇编'],
+  's3-images': ['客户尽调影像包'],
+  's3-videos': ['授信业务审查培训视频']
 };
 const suggestedCatalogPath = name => /风险|征信|授信/.test(name) ? '金融业务 / 信贷业务 / 风险管理' : /合同|档案/.test(name) ? '企业治理 / 法律合规 / 合同管理' : /customer|客户/.test(name) ? '金融业务 / 零售金融 / 客户服务' : '信息科技 / 数据治理';
 function getSourceTasks(){try{const tasks=JSON.parse(localStorage.getItem('kep-source-processing-tasks')||'[]');return Array.isArray(tasks)?tasks:[]}catch{return[]}}
@@ -489,10 +520,11 @@ document.querySelector('[data-knowledge-source-tree]')?.addEventListener('click'
 document.querySelector('[data-source-directory-search]')?.addEventListener('input', event => {
   const query = event.currentTarget.value.trim().toLowerCase();
   const tree = document.querySelector('[data-knowledge-source-tree]');
+  const activeKind = sourceKindTabs?.querySelector('[data-source-kind-tab].is-active')?.dataset.sourceKindTab || 'unstructured';
   tree?.querySelectorAll(':scope > .source-tree-row').forEach(row => {
-    row.hidden = !row.textContent.toLowerCase().includes(query);
+    row.hidden = row.dataset.sourceKind !== activeKind || !row.textContent.toLowerCase().includes(query);
   });
-  const allSources = tree?.querySelector(':scope > [data-knowledge-source="all"]');
+  const allSources = tree?.querySelector(`:scope > [data-knowledge-source="all"][data-source-kind="${activeKind}"]`);
   if (allSources) allSources.hidden = Boolean(query);
 });
 document.addEventListener('click', event => { if (!event.target.closest('.source-tree-row')) closeSourceFunctionMenus(); });
@@ -1778,6 +1810,25 @@ function updatePickedFiles(){const count=document.querySelectorAll('[data-picker
 document.querySelector('[data-source-picker]')?.addEventListener('click',event=>{const button=event.target.closest('[data-source-filter]');if(!button)return;pickerSource=button.dataset.sourceFilter;document.querySelectorAll('[data-source-filter]').forEach(item=>item.classList.toggle('is-active',item===button));renderSourceFiles()});document.querySelector('[data-picker-file-search]')?.addEventListener('input',renderSourceFiles);document.querySelector('[data-picker-file-rows]')?.addEventListener('change',updatePickedFiles);document.querySelectorAll('[data-add-file-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(directoryFileDialog,false)));document.querySelector('[data-add-file-confirm]')?.addEventListener('click',()=>{const count=document.querySelectorAll('[data-picker-file]:checked').length;if(!count)return;setDialogState(directoryFileDialog,false);showToast(`已将 ${count} 个文件添加到“${pickerTarget.dataset.folderName}”`)});if(assetTreeNode){switchCatalogTree(activeAssetTree);renderClassificationReview()}
 const permissionAddDialog=document.querySelector('[data-permission-add-dialog]');document.querySelector('[data-open-permission-add]')?.addEventListener('click',event=>setDialogState(permissionAddDialog,true,'input',event.currentTarget));document.querySelectorAll('[data-permission-add-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(permissionAddDialog,false)));document.querySelectorAll('[data-query-file]').forEach(node=>{const file=new URLSearchParams(location.search).get('file');if(file)node.textContent=file});
 
+// 资源目录设计：文档分类体系与分类专属抽取属性。
+const catalogDesignSelect=document.querySelector('[data-design-tree-select]'),catalogCategoryList=document.querySelector('[data-document-category-list]'),catalogPropertyRows=document.querySelector('[data-category-property-rows]');
+const catalogDesignTrees={document:{name:'文档库分类管理',description:'按照企业文档的业务载体类型进行分类',categories:{policy:{name:'制度类',description:'企业正式发布的制度、办法、细则及操作规范。',properties:[['制度名称','policy_name','文本',true,'识别标题中的正式制度名称'],['发文机构','issuing_org','文本',true,'识别落款或文号中的机构'],['发文字号','document_no','文本',false,'识别正文首页的发文字号'],['发布日期','publish_date','日期',true,'识别签发或发布日期'],['生效日期','effective_date','日期',false,'识别生效条款中的日期'],['适用范围','scope','多选',false,'概括适用部门、岗位或业务']]},plan:{name:'规划类',description:'战略规划、专项规划、建设方案和阶段性计划。',properties:[['规划名称','plan_name','文本',true,'识别规划文件标题'],['规划周期','plan_period','文本',true,'识别起止年份或阶段'],['牵头部门','lead_department','文本',false,'识别编制或牵头单位'],['规划目标','objectives','多选',true,'抽取核心目标'],['重点任务','key_tasks','多选',false,'抽取任务章节要点']]},contract:{name:'合同类',description:'业务合同、协议、补充协议和标准合同模板。',properties:[['合同名称','contract_name','文本',true,'识别合同首页标题'],['甲方','party_a','文本',true,'识别合同主体甲方'],['乙方','party_b','文本',true,'识别合同主体乙方'],['合同金额','amount','数字',false,'识别金额及币种'],['签订日期','signed_date','日期',false,'识别落款签署日期'],['履行期限','term','文本',false,'识别合同有效期'],['违约责任','liability','文本',false,'概括违约责任条款']]},credit:{name:'征信类',description:'企业与个人征信报告、信用评价和风险信息。',properties:[['报告主体','subject','文本',true,'识别被查询企业或个人'],['报告编号','report_no','文本',true,'识别征信报告编号'],['查询日期','query_date','日期',true,'识别报告生成日期'],['信用等级','credit_level','单选',false,'识别信用评级'],['风险事件','risk_events','多选',false,'抽取逾期及异常事件'],['数据来源','data_source','文本',false,'识别征信机构']]},report:{name:'报告类',description:'研究报告、经营分析、审计报告和专题报告。',properties:[['报告名称','report_name','文本',true,'识别报告标题'],['报告类型','report_type','单选',true,'判断研究、经营或审计类型'],['报告期','report_period','文本',false,'识别数据统计区间'],['编制部门','authoring_dept','文本',false,'识别编制单位'],['核心结论','conclusions','多选',true,'提炼摘要与结论章节']]},judicial:{name:'司法类',description:'裁判文书、案件材料、司法公告及执行信息。',properties:[['案件名称','case_name','文本',true,'识别文书标题'],['案号','case_no','文本',true,'识别法院案号'],['审理法院','court','文本',true,'识别出具文书的法院'],['案件类型','case_type','单选',false,'判断民事、刑事或行政'],['裁判日期','judgment_date','日期',false,'识别裁判落款日期'],['裁判结果','judgment_result','文本',true,'概括判决或裁定结果']]}}}};
+const catalogDesignStorageKey='kep-resource-catalog-design-trees';
+try{const savedTrees=JSON.parse(localStorage.getItem(catalogDesignStorageKey)||'{}');if(savedTrees&&typeof savedTrees==='object')Object.assign(catalogDesignTrees,savedTrees)}catch{}
+Object.values(catalogDesignTrees).forEach(tree=>Object.values(tree.categories||{}).forEach(item=>{item.parentId=item.parentId||null;item.depth=item.depth||1;item.properties=Array.isArray(item.properties)?item.properties:[]}));
+const saveCatalogDesignTrees=()=>localStorage.setItem(catalogDesignStorageKey,JSON.stringify(catalogDesignTrees));
+if(catalogDesignSelect){Object.entries(catalogDesignTrees).forEach(([id,tree])=>{if(catalogDesignSelect.querySelector(`option[value="${id}"]`))return;const option=document.createElement('option');option.value=id;option.textContent=tree.name;catalogDesignSelect.append(option)});document.querySelector('[data-design-tree-count]').textContent=String(Object.keys(catalogDesignTrees).length);saveCatalogDesignTrees()}
+let activeDesignTree='document',activeDesignCategory='policy',pendingDesignParent=null;const safeDesignText=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+function designCategoryHtml(id,item,categories){const children=Object.entries(categories).filter(([,child])=>child.parentId===id);return `<div class="catalog-type-node" role="treeitem" aria-level="${item.depth}"><div class="catalog-type-row"><button class="catalog-type-item ${id===activeDesignCategory?'is-active':''}" type="button" data-document-category="${id}"><span><i class="catalog-type-caret">${children.length?'⌄':'›'}</i> ${safeDesignText(item.name)}</span><small>${item.properties.length} 个属性</small></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-design-node-menu aria-label="${safeDesignText(item.name)}功能组">⋮</button><div class="source-function-menu" role="menu" hidden>${item.depth<5?'<button type="button" role="menuitem" data-add-design-child>新建子目录</button>':'<button class="is-disabled" type="button" role="menuitem" disabled>已达到五层</button>'}<button type="button" role="menuitem" data-toast="目录修改已打开">修改目录</button></div></div>${children.length?`<div class="catalog-type-children" role="group">${children.map(([childId,child])=>designCategoryHtml(childId,child,categories)).join('')}</div>`:''}</div>`}
+function renderDesignCategories(){if(!catalogCategoryList)return;const categories=catalogDesignTrees[activeDesignTree].categories;const roots=Object.entries(categories).filter(([,item])=>!item.parentId);catalogCategoryList.innerHTML=roots.map(([id,item])=>designCategoryHtml(id,item,categories)).join('')||'<p class="source-empty-state text-small">尚无目录，请新建一级目录</p>'}
+function renderDesignProperties(){if(!catalogPropertyRows)return;const item=catalogDesignTrees[activeDesignTree].categories[activeDesignCategory];document.querySelector('[data-category-title]').textContent=item?.name||'尚未选择分类';document.querySelector('[data-category-description]').textContent=item?.description||'请先新增一个分类。';catalogPropertyRows.innerHTML=(item?.properties||[]).map(property=>`<tr><td class="cell-primary">${safeDesignText(property[0])}</td><td class="text-number">${safeDesignText(property[1])}</td><td>${property[2]}</td><td><span class="tag tag-status ${property[3]?'tag-status-blue':'tag-status-secondary'}">${property[3]?'必填':'选填'}</span></td><td>${safeDesignText(property[4])}</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-toast="属性编辑已打开">编辑</button></td></tr>`).join('');renderDesignCategories()}
+function activateDesignTree(id){activeDesignTree=id;const tree=catalogDesignTrees[id];activeDesignCategory=Object.keys(tree.categories)[0]||null;document.querySelector('[data-design-tree-title]').textContent=tree.name;document.querySelector('[data-design-tree-description]').textContent=tree.description;renderDesignProperties()}
+catalogDesignSelect?.addEventListener('change',event=>activateDesignTree(event.currentTarget.value));catalogCategoryList?.addEventListener('click',event=>{const menuTrigger=event.target.closest('[data-design-node-menu]');if(menuTrigger){const open=menuTrigger.getAttribute('aria-expanded')!=='true';document.querySelectorAll('[data-design-node-menu]').forEach(trigger=>{trigger.setAttribute('aria-expanded',String(open&&trigger===menuTrigger));trigger.parentElement.querySelector('.source-function-menu').hidden=!(open&&trigger===menuTrigger)});return}const childAction=event.target.closest('[data-add-design-child]');if(childAction){const id=childAction.closest('.catalog-type-node').querySelector('[data-document-category]').dataset.documentCategory;openDesignCategoryDialog(id);return}const button=event.target.closest('[data-document-category]');if(!button)return;activeDesignCategory=button.dataset.documentCategory;renderDesignProperties()});
+const designTreeDialog=document.querySelector('[data-design-tree-dialog]'),designPropertyDialog=document.querySelector('[data-property-dialog]'),designCategoryDialog=document.querySelector('[data-design-category-dialog]');document.querySelector('[data-open-design-tree]')?.addEventListener('click',()=>setDialogState(designTreeDialog,true,'[name="treeName"]'));document.querySelectorAll('[data-design-tree-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(designTreeDialog,false)));document.querySelector('[data-design-tree-form]')?.addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget),name=String(data.get('treeName')||'').trim(),description=String(data.get('treeDescription')||'').trim();if(Object.values(catalogDesignTrees).some(tree=>tree.name===name))return showToast('目录树名称已存在');const id=`design-${Date.now()}`;catalogDesignTrees[id]={name,description,categories:{}};saveCatalogDesignTrees();const option=document.createElement('option');option.value=id;option.textContent=name;catalogDesignSelect.append(option);catalogDesignSelect.value=id;document.querySelector('[data-design-tree-count]').textContent=String(Object.keys(catalogDesignTrees).length);setDialogState(designTreeDialog,false);activateDesignTree(id);showToast(`已创建目录树“${name}”`)});
+function openDesignCategoryDialog(parentId=null){pendingDesignParent=parentId;const parent=parentId?catalogDesignTrees[activeDesignTree].categories[parentId]:null,depth=parent?parent.depth+1:1;document.querySelector('[data-design-category-title]').textContent=parent?'新建子目录':'新建一级目录';document.querySelector('[data-design-parent-name]').textContent=parent?.name||catalogDesignTrees[activeDesignTree].name;document.querySelector('[data-design-category-level]').textContent=`${['一','二','三','四','五'][depth-1]}级目录`;document.querySelector('[data-design-category-form]').reset();setDialogState(designCategoryDialog,true,'[name="categoryName"]')}
+document.querySelector('[data-add-design-category]')?.addEventListener('click',()=>openDesignCategoryDialog());document.querySelectorAll('[data-design-category-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(designCategoryDialog,false)));document.querySelector('[data-design-category-form]')?.addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget),name=String(data.get('categoryName')||'').trim(),description=String(data.get('categoryDescription')||'').trim(),categories=catalogDesignTrees[activeDesignTree].categories,parent=pendingDesignParent?categories[pendingDesignParent]:null,depth=parent?parent.depth+1:1;if(depth>5)return showToast('目录树最多支持五层');if(Object.values(categories).some(item=>item.parentId===pendingDesignParent&&item.name===name))return showToast('同级目录名称已存在');const id=`category-${Date.now()}`;categories[id]={name,description,properties:[],parentId:pendingDesignParent,depth};activeDesignCategory=id;saveCatalogDesignTrees();setDialogState(designCategoryDialog,false);event.currentTarget.reset();renderDesignProperties();showToast(`已新增${depth}级目录“${name}”`)});
+document.querySelector('[data-open-property-dialog]')?.addEventListener('click',()=>activeDesignCategory?setDialogState(designPropertyDialog,true,'[name="propertyName"]'):showToast('请先新增分类'));document.querySelectorAll('[data-property-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(designPropertyDialog,false)));document.querySelector('[data-property-form]')?.addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget),item=catalogDesignTrees[activeDesignTree].categories[activeDesignCategory],code=String(data.get('propertyCode')||'').trim();if(item.properties.some(property=>property[1]===code))return showToast('字段编码已存在');item.properties.push([String(data.get('propertyName')).trim(),code,String(data.get('propertyType')),data.get('required')==='on',String(data.get('propertyPrompt')).trim()]);saveCatalogDesignTrees();setDialogState(designPropertyDialog,false);event.currentTarget.reset();renderDesignProperties();showToast('已新增分类属性')});if(catalogCategoryList)renderDesignProperties();
+
 const sourceSpace = document.body.dataset.page === 'documents-personal' ? 'personal' : document.body.dataset.page === 'documents-team' ? 'team' : 'enterprise';
 document.querySelectorAll('a[href^="space-file-detail.html"]').forEach(link => {
   const url = new URL(link.href, location.href);
@@ -1839,4 +1890,124 @@ if (enterpriseAttributeSections.length) {
     setAttributeEditing(false);
     showToast('文件属性已保存');
   });
+}
+
+const knowledgeAssetTreeSelect = document.querySelector('[data-knowledge-asset-tree-select]');
+const knowledgeAssetTreeNode = document.querySelector('[data-knowledge-asset-tree]');
+const organizationAssetTree = {
+  name: '机构目录',
+  description: '按企业组织机构体系组织知识资产',
+  categories: {
+    'head-office': { name: '总行', description: '总行级共享知识资产', parentId: null, depth: 1, properties: [] },
+    'customer-business': { name: '公司业务部', description: '客户经营与公司业务知识资产', parentId: 'head-office', depth: 2, properties: [] },
+    'risk-compliance': { name: '风险与合规部', description: '风险管理与合规知识资产', parentId: 'head-office', depth: 2, properties: [] },
+    'technology': { name: '信息科技部', description: '信息科技与数据管理知识资产', parentId: 'head-office', depth: 2, properties: [] }
+  }
+};
+const knowledgeAssetTrees = { ...catalogDesignTrees, organization: organizationAssetTree };
+let activeKnowledgeAssetTree = 'document';
+let activeKnowledgeAssetDirectory = 'all';
+
+function knowledgeAssetPaths(card) {
+  return String(card.dataset.assetPaths || '').split(',').map(path => path.trim()).filter(Boolean);
+}
+
+function knowledgeAssetDescendants(categories, id) {
+  const descendants = new Set([id]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    Object.entries(categories).forEach(([childId, item]) => {
+      if (item.parentId && descendants.has(item.parentId) && !descendants.has(childId)) {
+        descendants.add(childId);
+        changed = true;
+      }
+    });
+  }
+  return descendants;
+}
+
+function knowledgeAssetCardMatches(card, treeId, directoryId) {
+  const treePaths = knowledgeAssetPaths(card).filter(path => path.startsWith(`${treeId}:`));
+  if (directoryId === 'all') return treePaths.length > 0;
+  const descendants = knowledgeAssetDescendants(knowledgeAssetTrees[treeId].categories, directoryId);
+  return treePaths.some(path => descendants.has(path.split(':')[1]));
+}
+
+function knowledgeAssetDirectoryCount(treeId, directoryId) {
+  return [...document.querySelectorAll('[data-knowledge-asset-card]')].filter(card => knowledgeAssetCardMatches(card, treeId, directoryId)).length;
+}
+
+function knowledgeAssetCategoryMarkup(treeId, id, item, categories) {
+  const children = Object.entries(categories).filter(([, child]) => child.parentId === id);
+  return `<div class="knowledge-asset-tree-branch"><button class="knowledge-asset-tree-item" type="button" data-knowledge-asset-directory="${safeDesignText(id)}" aria-pressed="false"><span class="knowledge-asset-tree-caret">${children.length ? '▾' : '›'}</span><span class="knowledge-asset-tree-folder">▰</span><span>${safeDesignText(item.name)}</span><span class="knowledge-asset-tree-count text-number">${knowledgeAssetDirectoryCount(treeId, id)}</span></button>${children.length ? `<div class="knowledge-asset-tree-children">${children.map(([childId, child]) => knowledgeAssetCategoryMarkup(treeId, childId, child, categories)).join('')}</div>` : ''}</div>`;
+}
+
+function updateKnowledgeAssetCards() {
+  const tree = knowledgeAssetTrees[activeKnowledgeAssetTree];
+  const category = tree.categories[activeKnowledgeAssetDirectory];
+  let visibleCount = 0;
+  document.querySelectorAll('[data-knowledge-asset-card]').forEach(card => {
+    const visible = knowledgeAssetCardMatches(card, activeKnowledgeAssetTree, activeKnowledgeAssetDirectory);
+    card.hidden = !visible;
+    if (!visible) return;
+    visibleCount += 1;
+    const matchingPath = knowledgeAssetPaths(card).find(path => path.startsWith(`${activeKnowledgeAssetTree}:`));
+    const categoryName = matchingPath ? tree.categories[matchingPath.split(':')[1]]?.name : null;
+    const location = card.querySelector('.knowledge-asset-card-footer > span:first-child');
+    if (location && categoryName) location.textContent = categoryName;
+  });
+  document.querySelector('[data-knowledge-asset-list-empty]')?.remove();
+  if (!visibleCount) {
+    const empty = document.createElement('div');
+    empty.className = 'knowledge-asset-list-empty';
+    empty.dataset.knowledgeAssetListEmpty = '';
+    empty.innerHTML = '<strong class="text-medium-bold">当前目录暂无知识资产</strong><p class="text-normal">可在后续资产发布或移动时挂载到该目录节点。</p>';
+    document.querySelector('[data-knowledge-asset-list]')?.append(empty);
+  }
+  const label = activeKnowledgeAssetDirectory === 'all' ? '全部资产' : category?.name || '目录';
+  document.querySelector('[data-knowledge-asset-title]').textContent = label;
+  document.querySelector('[data-knowledge-asset-directory-label]').textContent = label;
+  document.querySelector('[data-knowledge-asset-summary]').textContent = `当前目录共挂载 ${visibleCount} 项知识资产`;
+  document.querySelectorAll('[data-knowledge-asset-directory]').forEach(button => {
+    const active = button.dataset.knowledgeAssetDirectory === activeKnowledgeAssetDirectory;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+
+function renderKnowledgeAssetTree(treeId) {
+  activeKnowledgeAssetTree = treeId;
+  activeKnowledgeAssetDirectory = 'all';
+  const tree = knowledgeAssetTrees[treeId];
+  const categories = tree.categories || {};
+  const roots = Object.entries(categories).filter(([, item]) => !item.parentId);
+  document.querySelector('[data-knowledge-asset-tree-title]').textContent = tree.name;
+  document.querySelector('[data-knowledge-asset-tree-description]').textContent = treeId === 'organization' ? tree.description : `同步资源目录设计 · ${tree.description}`;
+  document.querySelector('[data-knowledge-asset-path-tree]').textContent = tree.name;
+  const total = knowledgeAssetDirectoryCount(treeId, 'all');
+  knowledgeAssetTreeNode.innerHTML = `<button class="knowledge-asset-tree-item is-active" type="button" data-knowledge-asset-directory="all" aria-pressed="true"><span class="knowledge-asset-tree-caret">▾</span><span class="knowledge-asset-tree-folder">▰</span><span>全部资产</span><span class="knowledge-asset-tree-count text-number">${total}</span></button>${roots.map(([id, item]) => knowledgeAssetCategoryMarkup(treeId, id, item, categories)).join('') || '<p class="knowledge-asset-tree-empty text-small">该目录树还没有目录节点</p>'}`;
+  updateKnowledgeAssetCards();
+}
+
+if (knowledgeAssetTreeSelect && knowledgeAssetTreeNode) {
+  knowledgeAssetTreeSelect.innerHTML = Object.entries(knowledgeAssetTrees).map(([id, tree]) => `<option value="${safeDesignText(id)}">${safeDesignText(tree.name)}</option>`).join('');
+  document.querySelector('[data-knowledge-asset-tree-count]').textContent = String(Object.keys(knowledgeAssetTrees).length);
+  knowledgeAssetTreeSelect.addEventListener('change', event => renderKnowledgeAssetTree(event.currentTarget.value));
+  knowledgeAssetTreeNode.addEventListener('click', event => {
+    const button = event.target.closest('[data-knowledge-asset-directory]');
+    if (!button) return;
+    activeKnowledgeAssetDirectory = button.dataset.knowledgeAssetDirectory;
+    updateKnowledgeAssetCards();
+  });
+  renderKnowledgeAssetTree(activeKnowledgeAssetTree);
+}
+
+const knowledgeAssetDetailName = document.querySelector('[data-knowledge-asset-detail-name]');
+if (knowledgeAssetDetailName) {
+  const assetName = new URLSearchParams(window.location.search).get('name');
+  if (assetName) {
+    knowledgeAssetDetailName.textContent = assetName;
+    document.title = `${assetName} - 知识工程平台`;
+  }
 }

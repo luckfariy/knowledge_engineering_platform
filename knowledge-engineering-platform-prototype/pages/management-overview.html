@@ -1,6 +1,76 @@
-<!doctype html><html lang="zh-CN" data-theme="light" data-brand="ht"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>知识管理概览 - 知识工程平台</title><link rel="stylesheet" href="../assets/design-system/design-tokens.css"/><link rel="stylesheet" href="../assets/design-system/components.css"/><link rel="stylesheet" href="../assets/css/platform.css?v=6"/></head><body data-page="management-overview"><div data-shell></div><template data-page-template>
-<header class="page-heading"><div><h1 class="page-title text-x-big-bold">知识管理概览</h1><p class="page-description text-normal">统一管理语义知识图谱与知识库，掌握发布、质量、版本和权限状态。</p></div><div class="page-actions"><a class="btn btn-medium btn-secondary" href="semantic-graphs.html">进入知识图谱</a><a class="btn btn-medium btn-primary" href="knowledge-bases.html">新建知识库</a></div></header>
-<section class="grid grid-4" aria-label="知识管理核心指标"><article class="metric-card"><div class="metric-label text-normal"><span>已发布知识资产</span></div><div class="metric-value text-x-big-bold text-number">286,430</div><div class="metric-foot text-small"><span class="trend-up">+8.7%</span><span>较上月</span></div></article><article class="metric-card"><div class="metric-label text-normal"><span>语义知识图谱</span></div><div class="metric-value text-x-big-bold text-number">18</div><div class="metric-foot text-small"><span>382 万节点</span><span>1,024 万关系</span></div></article><article class="metric-card"><div class="metric-label text-normal"><span>知识库</span></div><div class="metric-value text-x-big-bold text-number">42</div><div class="metric-foot text-small"><span>36 个已发布</span></div></article><article class="metric-card"><div class="metric-label text-normal"><span>待治理问题</span><span class="tag tag-status tag-status-red">需关注</span></div><div class="metric-value text-x-big-bold text-number">68</div><div class="metric-foot text-small"><span class="trend-risk">12 项高风险</span></div></article></section>
-<section class="section grid grid-2"><a class="resource-card" href="semantic-graphs.html"><div class="resource-card-head"><strong class="text-medium-bold">语义知识图谱</strong><span class="tag tag-status tag-status-lime">16 个正常</span></div><div class="resource-card-value text-x-big-bold text-number">18</div><div class="resource-card-meta text-small"><span>本体、实体、关系与来源证据</span><span>2 个待发布版本</span></div></a><a class="resource-card" href="knowledge-bases.html"><div class="resource-card-head"><strong class="text-medium-bold">知识库</strong><span class="tag tag-status tag-status-blue">3 个构建中</span></div><div class="resource-card-value text-x-big-bold text-number">42</div><div class="resource-card-meta text-small"><span>文档、表格、图谱与多路召回索引</span><span>整体健康度 94%</span></div></a></section>
-<section class="section panel"><div class="panel-header"><div><h2 class="panel-title text-big-bold">最近发布动态</h2><p class="panel-description text-small">正式知识资产与索引的发布记录</p></div></div><div class="table-wrap"><table class="table"><thead><tr><th>资产</th><th>类型</th><th>版本</th><th>发布人</th><th>发布时间</th><th>状态</th></tr></thead><tbody><tr><td class="cell-primary">信贷制度语义图谱<span class="cell-secondary text-small">GRAPH-CREDIT</span></td><td>语义知识图谱</td><td class="text-number">v6.8</td><td>李明</td><td>28 分钟前</td><td><span class="tag tag-status tag-status-lime">已发布</span></td></tr><tr><td class="cell-primary">零售业务知识库<span class="cell-secondary text-small">KB-RETAIL</span></td><td>知识库</td><td class="text-number">v4.2</td><td>王芳</td><td>1 小时前</td><td><span class="tag tag-status tag-status-lime">已发布</span></td></tr><tr><td class="cell-primary">风险案例知识图谱<span class="cell-secondary text-small">GRAPH-RISK</span></td><td>语义知识图谱</td><td class="text-number">v3.5</td><td>张强</td><td>3 小时前</td><td><span class="tag tag-status tag-status-secondary">待审核</span></td></tr></tbody></table></div></section>
-</template><script type="module" src="../assets/js/app.js?v=6"></script></body></html>
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>知识资产 - 知识工程平台</title>
+  <link rel="stylesheet" href="../assets/design-system/design-tokens.css"/>
+  <link rel="stylesheet" href="../assets/design-system/components.css"/>
+  <link rel="stylesheet" href="../assets/css/platform.css?v=34"/>
+</head>
+<body data-page="management-overview">
+<div data-shell></div>
+<template data-page-template>
+  <header class="page-heading knowledge-asset-heading">
+    <div>
+      <h1 class="page-title text-x-big-bold">知识资产</h1>
+      <p class="page-description text-normal">按业务目录统一组织和使用正式发布的知识库与知识图谱。</p>
+    </div>
+  </header>
+
+  <section class="knowledge-asset-workbench">
+    <aside class="panel knowledge-asset-tree-panel" aria-label="知识资产目录">
+      <header class="knowledge-asset-tree-heading"><div><h2 class="panel-title text-medium-bold">资产目录</h2><p class="panel-description text-small"><span data-knowledge-asset-tree-count>2</span> 套目录树可切换</p></div></header>
+      <label class="field knowledge-asset-tree-switcher"><span class="field-label text-small">当前目录树</span><span class="input-wrap input-middle"><select class="input" data-knowledge-asset-tree-select aria-label="切换知识资产目录树"><option value="document">文档库分类管理</option><option value="organization">机构目录</option></select></span></label>
+      <div class="knowledge-asset-tree-meta"><strong class="text-normal-bold" data-knowledge-asset-tree-title>文档库分类管理</strong><p class="text-small" data-knowledge-asset-tree-description>同步资源目录设计中的分类体系</p></div>
+      <nav class="knowledge-asset-tree" data-knowledge-asset-tree aria-label="知识资产目录树"></nav>
+    </aside>
+
+    <section class="panel knowledge-asset-list-panel" aria-labelledby="knowledge-asset-list-title">
+      <header class="knowledge-asset-list-heading">
+        <div>
+          <div class="knowledge-asset-path text-small"><span data-knowledge-asset-path-tree>文档库分类管理</span><span>/</span><strong data-knowledge-asset-directory-label>全部资产</strong></div>
+          <h2 class="panel-title text-big-bold" id="knowledge-asset-list-title" data-knowledge-asset-title>全部资产</h2>
+          <p class="panel-description text-small" data-knowledge-asset-summary>当前目录共挂载 6 项知识资产</p>
+        </div>
+        <div class="knowledge-asset-type-legend" aria-label="支持的资产类型"><span class="tag tag-small">知识库</span><span class="tag tag-small">统一语义知识图谱</span><span class="tag tag-small">专题知识图谱</span></div>
+      </header>
+
+      <div class="knowledge-asset-card-grid" data-knowledge-asset-list>
+        <a class="knowledge-asset-card" href="unified-semantic-graph-detail.html?name=%E4%BC%81%E4%B8%9A%E7%BB%9F%E4%B8%80%E8%AF%AD%E4%B9%89%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1" data-knowledge-asset-card data-asset-paths="document:report,organization:head-office">
+          <span class="knowledge-asset-card-icon is-unified" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="17" r="2"/><circle cx="19" cy="17" r="2"/><path d="m11 7-5 8m7-8 5 8M7 17h10"/></svg></span>
+          <div class="knowledge-asset-card-main"><span class="tag tag-status tag-status-blue">统一语义知识图谱</span><h3 class="text-medium-bold">企业统一语义知识图谱</h3><p class="text-normal">沉淀企业统一概念、实体和关系，形成跨业务域共享的语义底座。</p></div>
+          <footer class="knowledge-asset-card-footer text-small"><span>报告类</span><span class="knowledge-asset-card-link">查看详情 →</span></footer>
+        </a>
+        <a class="knowledge-asset-card" href="knowledge-base-detail.html?name=%E4%BC%81%E4%B8%9A%E5%88%B6%E5%BA%A6%E7%9F%A5%E8%AF%86%E5%BA%93" data-knowledge-asset-card data-asset-paths="document:policy,organization:head-office">
+          <span class="knowledge-asset-card-icon is-library" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z"/><path d="M7 16h12M9 8h6M9 11h6"/></svg></span>
+          <div class="knowledge-asset-card-main"><span class="tag tag-status tag-status-lime">知识库</span><h3 class="text-medium-bold">企业制度知识库</h3><p class="text-normal">汇集现行制度、管理办法与操作规程，支持全文和语义检索。</p></div>
+          <footer class="knowledge-asset-card-footer text-small"><span>制度类</span><span class="knowledge-asset-card-link">查看详情 →</span></footer>
+        </a>
+        <a class="knowledge-asset-card" href="topic-knowledge-graph-detail.html?name=%E6%B3%95%E8%A7%84%E5%90%88%E8%A7%84%E4%B8%93%E9%A2%98%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1" data-knowledge-asset-card data-asset-paths="document:policy,organization:risk-compliance">
+          <span class="knowledge-asset-card-icon is-topic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="6" cy="7" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="m8 7 8-1m-9 3 4 7m6-8-4 8"/></svg></span>
+          <div class="knowledge-asset-card-main"><span class="tag tag-status tag-status-secondary">专题知识图谱</span><h3 class="text-medium-bold">法规合规专题知识图谱</h3><p class="text-normal">关联法规条款、内部制度与控制措施，支撑合规影响分析。</p></div>
+          <footer class="knowledge-asset-card-footer text-small"><span>制度类</span><span class="knowledge-asset-card-link">查看详情 →</span></footer>
+        </a>
+        <a class="knowledge-asset-card" href="knowledge-base-detail.html?name=%E9%87%8D%E7%82%B9%E5%AE%A2%E6%88%B7%E7%BB%8F%E8%90%A5%E7%9F%A5%E8%AF%86%E5%BA%93" data-knowledge-asset-card data-asset-paths="document:report,organization:customer-business">
+          <span class="knowledge-asset-card-icon is-library" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h12a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z"/><path d="M7 16h12M9 8h6M9 11h6"/></svg></span>
+          <div class="knowledge-asset-card-main"><span class="tag tag-status tag-status-lime">知识库</span><h3 class="text-medium-bold">重点客户经营知识库</h3><p class="text-normal">整合客户洞察、行业方案和服务案例，辅助客户经理开展经营。</p></div>
+          <footer class="knowledge-asset-card-footer text-small"><span>报告类</span><span class="knowledge-asset-card-link">查看详情 →</span></footer>
+        </a>
+        <a class="knowledge-asset-card" href="topic-knowledge-graph-detail.html?name=%E5%AE%A2%E6%88%B7%E4%B8%8E%E4%BA%A7%E5%93%81%E4%B8%93%E9%A2%98%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1" data-knowledge-asset-card data-asset-paths="document:plan,organization:customer-business">
+          <span class="knowledge-asset-card-icon is-topic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="6" cy="7" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="m8 7 8-1m-9 3 4 7m6-8-4 8"/></svg></span>
+          <div class="knowledge-asset-card-main"><span class="tag tag-status tag-status-secondary">专题知识图谱</span><h3 class="text-medium-bold">客户与产品专题知识图谱</h3><p class="text-normal">连接客户、需求、产品与服务案例，支持产品适配和关系洞察。</p></div>
+          <footer class="knowledge-asset-card-footer text-small"><span>规划类</span><span class="knowledge-asset-card-link">查看详情 →</span></footer>
+        </a>
+        <a class="knowledge-asset-card" href="topic-knowledge-graph-detail.html?name=%E9%A3%8E%E9%99%A9%E6%A1%88%E4%BE%8B%E4%B8%93%E9%A2%98%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1" data-knowledge-asset-card data-asset-paths="document:credit,organization:risk-compliance">
+          <span class="knowledge-asset-card-icon is-topic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="6" cy="7" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="m8 7 8-1m-9 3 4 7m6-8-4 8"/></svg></span>
+          <div class="knowledge-asset-card-main"><span class="tag tag-status tag-status-secondary">专题知识图谱</span><h3 class="text-medium-bold">风险案例专题知识图谱</h3><p class="text-normal">组织风险事件、成因、控制措施和处置结果，支撑风险研判。</p></div>
+          <footer class="knowledge-asset-card-footer text-small"><span>征信类</span><span class="knowledge-asset-card-link">查看详情 →</span></footer>
+        </a>
+      </div>
+    </section>
+  </section>
+</template>
+<script type="module" src="../assets/js/app.js?v=34"></script>
+</body>
+</html>
