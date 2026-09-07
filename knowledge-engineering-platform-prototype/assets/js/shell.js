@@ -26,10 +26,13 @@ export function icon(name, className = '') {
 }
 
 const resourceChildren = [
+  ['resource-overview', '资源概览', 'pages/resource-overview.html', 'overview'],
   ['documents-enterprise', '文档中心', 'pages/documents.html', 'document'],
   ['data-tables', '数据表', 'pages/data-tables.html', 'table'],
   ['graph-data', '图数据', 'pages/graph-data.html', 'graph'],
+  ['asset-catalogs', '资源目录管理', 'pages/asset-catalogs.html', 'management'],
   ['resource-tags', '标签管理', 'pages/resource-tags.html', 'tag'],
+  ['resource-tasks', '任务中心', 'pages/resource-tasks.html', 'processing'],
   ['knowledge-sources', '知识源管理', 'pages/knowledge-sources.html', 'source']
 ];
 
@@ -54,7 +57,7 @@ const serviceChildren = [
 ];
 
 const primaryMenus = [
-  ['resource', '资源纳管', 'pages/documents.html', 'resource', resourceChildren],
+  ['resource', '资源纳管', 'pages/resource-overview.html', 'resource', resourceChildren],
   ['processing', '知识加工', 'pages/processing-overview.html', 'processing', processingChildren],
   ['management', '知识管理', 'pages/management-overview.html', 'management', managementChildren],
   ['services', '知识服务', 'pages/services.html', 'service', serviceChildren]
@@ -69,34 +72,36 @@ export function renderShell() {
   const page = document.body.dataset.page;
   const root = document.body.dataset.root === 'true';
   const documentPages = new Set(['documents-enterprise', 'documents-team', 'documents-personal']);
-  const resourcePages = new Set(['resource-overview', 'documents', ...documentPages, 'data-tables', 'graph-data', 'resource-tags', 'knowledge-sources']);
+  const resourcePages = new Set(['resource-overview', 'resource-tasks', 'documents', ...documentPages, 'data-tables', 'graph-data', 'asset-catalogs', 'resource-tags', 'knowledge-sources']);
   if (page === 'platform-home') {
-    document.querySelector('[data-shell]').innerHTML = `<a class="skip-link" href="#main-content">跳到主内容</a><div class="home-shell"><header class="home-topbar"><a class="home-brand" href="index.html"><span class="brand-mark">${icon('graph')}</span><span><strong class="brand-title text-normal-bold">知识工程平台</strong><small class="brand-subtitle text-small">Knowledge Engineering</small></span></a><nav class="home-lifecycle-nav" aria-label="平台主导航"><a class="is-active" href="index.html" aria-current="page">${icon('workspace')}<span>首页</span></a><a href="pages/documents.html">资源纳管</a><a href="pages/processing-overview.html">知识生产</a><a href="pages/management-overview.html">知识资产</a><a href="pages/services.html">知识服务</a><a href="pages/agent-access.html">知识应用</a></nav><div class="home-topbar-actions"><a class="icon-button" href="pages/knowledge-search.html" aria-label="全局搜索">${icon('search')}</a><button class="icon-button" type="button" aria-label="通知" data-toast="暂无新通知">${icon('bell')}</button><a class="user-avatar text-normal-bold" href="pages/system-user-org.html" aria-label="进入系统配置">知</a></div></header><main class="home-main" id="main-content" tabindex="-1"><div data-page-content></div></main></div><div class="toast" role="status" aria-live="polite" data-toast-node></div>`;
+    document.querySelector('[data-shell]').innerHTML = `<a class="skip-link" href="#main-content">跳到主内容</a><div class="home-shell"><header class="home-topbar"><a class="home-brand" href="index.html"><span class="brand-mark">${icon('graph')}</span><span><strong class="brand-title text-normal-bold">知识工程平台</strong><small class="brand-subtitle text-small">Knowledge Engineering</small></span></a><nav class="home-lifecycle-nav" aria-label="平台主导航"><a class="is-active" href="index.html" aria-current="page">${icon('workspace')}<span>首页</span></a><a href="pages/resource-overview.html">资源纳管</a><a href="pages/processing-overview.html">知识生产</a><a href="pages/management-overview.html">知识资产</a><a href="pages/services.html">知识服务</a><a href="pages/agent-access.html">知识应用</a></nav><div class="home-topbar-actions"><a class="icon-button" href="pages/knowledge-search.html" aria-label="全局搜索">${icon('search')}</a><button class="icon-button" type="button" aria-label="通知" data-toast="暂无新通知">${icon('bell')}</button><a class="user-avatar text-normal-bold" href="pages/system-user-org.html" aria-label="进入系统配置">知</a></div></header><main class="home-main" id="main-content" tabindex="-1"><div data-page-content></div></main></div><div class="toast" role="status" aria-live="polite" data-toast-node></div>`;
     return;
   }
   if (resourcePages.has(page)) {
-    const inDocumentCenter = page === 'resource-overview' || page === 'documents' || documentPages.has(page);
+    const inDocumentCenter = page === 'documents' || documentPages.has(page);
     const documentLinks = [
-      ['resource-overview', '文档概览', 'resource-overview.html', page === 'resource-overview'],
       ['documents-enterprise', '企业空间', 'documents.html', page === 'documents-enterprise' || page === 'documents'],
       ['documents-team', '团队空间', 'team-documents.html', page === 'documents-team'],
       ['documents-personal', '个人空间', 'personal-documents.html', page === 'documents-personal']
     ];
     const documentNavigation = documentLinks.map(([, label, path, active]) => `<a class="resource-nav-child ${active ? 'is-active' : ''}" href="${path}" ${active ? 'aria-current="page"' : ''}>${label}</a>`).join('');
+    const overviewNavigation = `<a class="resource-nav-item ${page === 'resource-overview' ? 'is-active' : ''}" href="resource-overview.html" ${page === 'resource-overview' ? 'aria-current="page"' : ''}>${icon('overview')}<span>资源概览</span></a>`;
     const firstLevelLinks = [
       ['data-tables', '数据表', 'data-tables.html', 'table', page === 'data-tables'],
       ['graph-data', '图数据', 'graph-data.html', 'graph', page === 'graph-data'],
+      ['asset-catalogs', '资源目录管理', 'asset-catalogs.html', 'management', page === 'asset-catalogs'],
       ['resource-tags', '标签管理', 'resource-tags.html', 'tag', page === 'resource-tags'],
+      ['resource-tasks', '任务中心', 'resource-tasks.html', 'processing', page === 'resource-tasks'],
       ['knowledge-sources', '知识源管理', 'knowledge-sources.html', 'source', page === 'knowledge-sources']
     ].map(([, label, path, iconName, active]) => `<a class="resource-nav-item ${active ? 'is-active' : ''}" href="${path}" ${active ? 'aria-current="page"' : ''}>${icon(iconName)}<span>${label}</span></a>`).join('');
-    const firstLevelLabels = { 'data-tables': '数据表', 'graph-data': '图数据', 'resource-tags': '标签管理', 'knowledge-sources': '知识源管理' };
+    const firstLevelLabels = { 'resource-tasks': '任务中心', 'data-tables': '数据表', 'graph-data': '图数据', 'asset-catalogs': '资源目录管理', 'resource-tags': '标签管理', 'knowledge-sources': '知识源管理' };
     const currentLabel = page === 'resource-overview'
-      ? '文档概览'
+      ? '资源概览'
       : documentPages.has(page)
           ? documentLinks.find(([key]) => key === page)?.[1] || '企业空间'
           : firstLevelLabels[page];
 
-    document.querySelector('[data-shell]').innerHTML = `<a class="skip-link" href="#main-content">跳到主内容</a><div class="home-shell resource-workspace-shell"><header class="home-topbar"><a class="home-brand" href="../index.html"><span class="brand-mark">${icon('graph')}</span><span><strong class="brand-title text-normal-bold">知识工程平台</strong><small class="brand-subtitle text-small">Knowledge Engineering</small></span></a><nav class="home-lifecycle-nav" aria-label="平台主导航"><a href="../index.html">${icon('workspace')}<span>首页</span></a><a class="is-active" href="documents.html" aria-current="page">资源纳管</a><a href="processing-overview.html">知识生产</a><a href="management-overview.html">知识资产</a><a href="services.html">知识服务</a><a href="agent-access.html">知识应用</a></nav><div class="home-topbar-actions"><a class="icon-button" href="knowledge-search.html" aria-label="全局搜索">${icon('search')}</a><div class="notification-wrap"><button class="icon-button notification-button" type="button" aria-label="任务通知" aria-expanded="false" data-notification-toggle>${icon('bell')}<span class="notification-badge text-small-bold" data-notification-badge hidden>0</span></button><section class="notification-panel" aria-label="任务进度" data-notification-panel hidden><div class="notification-header"><strong class="text-normal-bold">任务中心</strong><span class="text-small" data-upload-summary>暂无进行中的任务</span></div><div class="upload-task-list" data-upload-task-list><div class="upload-empty text-small" data-upload-empty>上传与自动入目任务将在这里显示</div></div></section></div><a class="user-avatar text-normal-bold" href="system-user-org.html" aria-label="进入系统配置">知</a></div></header><div class="resource-workspace-layout"><aside class="resource-workspace-sidebar" id="sidebar" aria-label="资源纳管菜单"><nav class="resource-workspace-nav"><div class="resource-nav-group ${inDocumentCenter ? 'is-active' : ''}"><a class="resource-nav-item resource-nav-parent ${inDocumentCenter ? 'is-active' : ''}" href="resource-overview.html">${icon('document')}<span>文档中心</span>${icon('chevron', 'resource-nav-chevron')}</a><div class="resource-nav-children">${documentNavigation}</div></div>${firstLevelLinks}</nav><div class="resource-workspace-footer"><label class="control"><span class="switch"><input class="switch-input" id="theme-switch" type="checkbox"/><span class="switch-track"></span></span><span class="control-label">深色模式</span></label></div></aside><main class="resource-workspace-main main-content" id="main-content" tabindex="-1"><div data-page-content></div></main></div></div><div class="toast" role="status" aria-live="polite" data-toast-node></div>`;
+    document.querySelector('[data-shell]').innerHTML = `<a class="skip-link" href="#main-content">跳到主内容</a><div class="home-shell resource-workspace-shell"><header class="home-topbar"><a class="home-brand" href="../index.html"><span class="brand-mark">${icon('graph')}</span><span><strong class="brand-title text-normal-bold">知识工程平台</strong><small class="brand-subtitle text-small">Knowledge Engineering</small></span></a><nav class="home-lifecycle-nav" aria-label="平台主导航"><a href="../index.html">${icon('workspace')}<span>首页</span></a><a class="is-active" href="resource-overview.html" aria-current="page">资源纳管</a><a href="processing-overview.html">知识生产</a><a href="management-overview.html">知识资产</a><a href="services.html">知识服务</a><a href="agent-access.html">知识应用</a></nav><div class="home-topbar-actions"><a class="icon-button" href="knowledge-search.html" aria-label="全局搜索">${icon('search')}</a><div class="notification-wrap"><button class="icon-button notification-button" type="button" aria-label="任务通知" aria-expanded="false" data-notification-toggle>${icon('bell')}<span class="notification-badge text-small-bold" data-notification-badge hidden>0</span></button><section class="notification-panel" aria-label="任务进度" data-notification-panel hidden><div class="notification-header"><strong class="text-normal-bold">任务中心</strong><span class="text-small" data-upload-summary>暂无进行中的任务</span></div><div class="upload-task-list" data-upload-task-list><div class="upload-empty text-small" data-upload-empty>上传与自动入目任务将在这里显示</div></div></section></div><a class="user-avatar text-normal-bold" href="system-user-org.html" aria-label="进入系统配置">知</a></div></header><div class="resource-workspace-layout"><aside class="resource-workspace-sidebar" id="sidebar" aria-label="资源纳管菜单"><nav class="resource-workspace-nav">${overviewNavigation}<div class="resource-nav-group ${inDocumentCenter ? 'is-active' : ''}"><a class="resource-nav-item resource-nav-parent ${inDocumentCenter ? 'is-active' : ''}" href="documents.html">${icon('document')}<span>文档中心</span>${icon('chevron', 'resource-nav-chevron')}</a><div class="resource-nav-children">${documentNavigation}</div></div>${firstLevelLinks}</nav><div class="resource-workspace-footer"><label class="control"><span class="switch"><input class="switch-input" id="theme-switch" type="checkbox"/><span class="switch-track"></span></span><span class="control-label">深色模式</span></label></div></aside><main class="resource-workspace-main main-content" id="main-content" tabindex="-1"><div data-page-content></div></main></div></div><div class="toast" role="status" aria-live="polite" data-toast-node></div>`;
     return;
   }
   if (page.startsWith('system-')) {

@@ -6,66 +6,106 @@
   <title>知识源管理 - 知识工程平台</title>
   <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
   <link rel="stylesheet" href="../assets/design-system/components.css" />
-  <link rel="stylesheet" href="../assets/css/platform.css?v=23" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=25" />
 </head>
 <body data-page="knowledge-sources">
   <div data-shell></div>
   <template data-page-template>
-      <div class="document-tab-panel" id="knowledge-source-panel">
-    <section class="document-workbench" aria-label="知识源与文件管理">
-      <aside class="source-panel panel" aria-label="知识源">
-        <div class="source-panel-header">
-          <div><h2 class="panel-title text-medium-bold">知识源</h2><p class="panel-description text-small">3 类来源 · 8 个接入点</p></div>
-          <button class="icon-button source-add-button" type="button" aria-label="新建知识源" data-toast="新建知识源向导已打开">+</button>
-        </div>
-        <nav class="source-tree" aria-label="知识源分类">
-          <button class="source-tree-item is-active" type="button" data-source-filter="all" aria-pressed="true"><span class="source-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5h6l2 2h8v12H4z"/></svg></span><span class="source-label"><strong>全部文件</strong><small>全部知识源</small></span><span class="source-count">126</span></button>
-          <div class="source-group-label text-small">来源类型</div>
-          <button class="source-tree-item" type="button" data-source-filter="local" aria-pressed="false"><span class="source-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 15v5h14v-5"/></svg></span><span class="source-label"><strong>本地上传</strong><small>手工上传的文件</small></span><span class="source-count">38</span></button>
-          <button class="source-tree-item" type="button" data-source-filter="external" aria-pressed="false"><span class="source-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 12h8m-1-4 4 4-4 4M9 5H5v14h4"/></svg></span><span class="source-label"><strong>外部对接</strong><small>NFS、S3 与 API</small></span><span class="source-count">64</span></button>
-          <button class="source-tree-item" type="button" data-source-filter="connector" aria-pressed="false"><span class="source-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 8V4m8 4V4M6 8h12v4a6 6 0 0 1-12 0zM12 18v3"/></svg></span><span class="source-label"><strong>连接器</strong><small>Wiki、网盘与业务系统</small></span><span class="source-count">24</span></button>
-        </nav>
-      </aside>
+    <header class="page-heading source-management-heading">
+      <div>
+        <h1 class="page-title text-x-big-bold">知识源管理</h1>
+        <p class="page-description text-normal">统一配置企业外部数据连接。建立连接后，可在知识库中选择知识源、设定同步范围并启动同步。</p>
+      </div>
+      <div class="page-actions"><button class="btn btn-medium btn-primary" type="button" data-open-source-dialog>新增知识源</button></div>
+    </header>
 
-      <div class="file-panel panel">
-        <div class="file-panel-header">
-          <div><h2 class="panel-title text-medium-bold" data-file-title>全部文件</h2><p class="panel-description text-small" data-file-summary>共 126 个文件，展示所有知识源内容</p></div>
-          <div class="page-actions" data-local-upload-actions hidden>
-            <input class="visually-hidden" type="file" multiple data-local-file-input aria-label="选择要上传的本地文件" />
-            <button class="btn btn-dense btn-primary" type="button" data-local-upload>上传文件</button>
-          </div>
-          <div class="page-actions" data-external-actions hidden><button class="btn btn-dense btn-primary" type="button" data-toast="新增外部对接向导已打开">新增对接</button></div>
-          <div class="page-actions" data-connector-actions hidden><button class="btn btn-dense btn-primary" type="button" data-toast="新增连接器向导已打开">新增连接器</button></div>
+    <section class="source-stat-strip" aria-label="知识源统计">
+      <div><span class="text-small">知识源实例</span><strong class="text-big-bold" data-source-total>6</strong></div>
+      <div><span class="text-small">运行正常</span><strong class="text-big-bold">4</strong></div>
+      <div><span class="text-small">同步中</span><strong class="text-big-bold">1</strong></div>
+      <div><span class="text-small">待处理异常</span><strong class="text-big-bold source-stat-risk">1</strong></div>
+    </section>
+
+    <section class="panel source-instance-panel" aria-labelledby="source-instance-title">
+      <div class="panel-header source-panel-titlebar">
+        <div>
+          <h2 class="panel-title text-medium-bold" id="source-instance-title">已配置的知识源</h2>
+          <p class="panel-description text-small">连接配置与数据同步分开管理，连接成功不代表内容已同步至知识库。</p>
         </div>
-        <div data-file-list-region>
-          <div class="toolbar file-toolbar"><label class="field file-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索文件名称、类型或创建人" data-table-search="#document-table" aria-label="搜索文件" /></span></label><div class="toolbar-spacer"></div><span class="text-small file-result-count" data-file-count>6 条结果</span></div>
-          <div class="table-wrap">
-          <table class="table" id="document-table">
-            <thead><tr><th>文件名称</th><th>文件类型</th><th>文件状态</th><th>版本</th><th>创建时间</th><th>更新时间</th><th>创建人</th><th class="cell-actions">操作</th></tr></thead>
-            <tbody>
-              <tr data-source-group="local"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=对公授信审查办法">对公授信审查办法</a><span class="cell-secondary text-small">PDF · 8.6 MB</span></td><td>PDF</td><td><span class="tag tag-status tag-status-lime">已入目</span></td><td class="text-number">v3.2</td><td>2026-08-12 09:30</td><td>2026-09-02 09:30</td><td>王翠</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button><button class="btn btn-dense btn-text" data-archive-file>归档</button></td></tr>
-              <tr data-source-group="external"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=固定资产贷款管理办法">固定资产贷款管理办法</a><span class="cell-secondary text-small">DOCX · 2.1 MB</span></td><td>DOCX</td><td><span class="tag tag-status tag-status-blue">加工中</span></td><td class="text-number">v2.0</td><td>2026-07-21 10:18</td><td>2026-09-01 16:42</td><td>李程</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button><button class="btn btn-dense btn-text" data-archive-file>归档</button></td></tr>
-              <tr data-source-group="connector"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=信用风险管理问答库">信用风险管理问答库</a><span class="cell-secondary text-small">XLSX · 1.4 MB</span></td><td>XLSX</td><td><span class="tag tag-status tag-status-lime">已加工</span></td><td class="text-number">v1.8</td><td>2026-06-08 14:18</td><td>2026-09-01 14:18</td><td>陈曦</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button><button class="btn btn-dense btn-text" data-archive-file>归档</button></td></tr>
-              <tr data-source-group="external"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=合同审查操作指引">合同审查操作指引</a><span class="cell-secondary text-small">PDF · 12.8 MB</span></td><td>PDF</td><td><span class="tag tag-status tag-status-blue">解析中</span></td><td class="text-number">v1.1</td><td>2026-08-20 11:06</td><td>2026-08-31 11:06</td><td>刘敏</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button><button class="btn btn-dense btn-text" data-archive-file>归档</button></td></tr>
-              <tr data-source-group="connector"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=零售客户分级规则">零售客户分级规则</a><span class="cell-secondary text-small">DOCX · 936 KB</span></td><td>DOCX</td><td><span class="tag tag-status tag-status-secondary">待同步</span></td><td class="text-number">v4.0</td><td>2026-05-16 17:24</td><td>2026-08-30 17:24</td><td>赵楠</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button><button class="btn btn-dense btn-text" data-archive-file>归档</button></td></tr>
-              <tr data-source-group="local"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=2026年上半年业务通知">2026 年上半年业务通知</a><span class="cell-secondary text-small">PDF · 4.3 MB</span></td><td>PDF</td><td><span class="tag tag-status tag-status-lime">已解析</span></td><td class="text-number">v1.0</td><td>2026-08-29 10:12</td><td>2026-08-29 10:12</td><td>周俊</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button><button class="btn btn-dense btn-text" data-archive-file>归档</button></td></tr>
-              <tr data-source-group="local"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=2025年度授信政策">2025 年度授信政策</a><span class="cell-secondary text-small">PDF · 6.8 MB</span></td><td>PDF</td><td><span class="tag tag-status tag-status-secondary">已归档</span></td><td class="text-number">v2.6</td><td>2025-01-08 10:20</td><td>2026-01-12 15:40</td><td>王翠</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button><button class="btn btn-dense btn-text" disabled>已归档</button></td></tr>
-            </tbody>
-          </table>
+        <div class="source-table-tools">
+          <label class="field source-search-field"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索名称或知识源类型" aria-label="搜索知识源" data-source-search /></span></label>
+          <div class="source-status-filter" role="group" aria-label="按状态筛选">
+            <button class="btn btn-dense is-active" type="button" data-source-status="all" aria-pressed="true">全部</button>
+            <button class="btn btn-dense" type="button" data-source-status="normal" aria-pressed="false">正常</button>
+            <button class="btn btn-dense" type="button" data-source-status="attention" aria-pressed="false">需处理</button>
           </div>
         </div>
-        <div class="integration-grid" data-integration-region hidden>
-          <article class="integration-card" data-integration-type="external"><div class="integration-card-head"><span class="integration-logo text-medium-bold">Fe</span><span class="tag tag-status tag-status-lime">运行中</span></div><h3 class="text-normal-bold">飞书知识库</h3><p class="text-small">同步飞书云文档、知识空间和共享文件。</p><dl class="integration-meta"><div><dt>已接入空间</dt><dd>6</dd></div><div><dt>文档数</dt><dd>28,462</dd></div><div><dt>最近同步</dt><dd>5 分钟前</dd></div></dl><div class="integration-card-actions"><button class="btn btn-dense btn-text" data-toast="已打开飞书知识库配置">管理</button><button class="btn btn-dense btn-text" data-toast="飞书知识库开始同步">立即同步</button></div></article>
-          <article class="integration-card" data-integration-type="external"><div class="integration-card-head"><span class="integration-logo text-medium-bold">Le</span><span class="tag tag-status tag-status-lime">运行中</span></div><h3 class="text-normal-bold">乐享知识库</h3><p class="text-small">接入企业乐享知识社区、文档与内容专栏。</p><dl class="integration-meta"><div><dt>已接入空间</dt><dd>4</dd></div><div><dt>文档数</dt><dd>19,830</dd></div><div><dt>最近同步</dt><dd>18 分钟前</dd></div></dl><div class="integration-card-actions"><button class="btn btn-dense btn-text" data-toast="已打开乐享知识库配置">管理</button><button class="btn btn-dense btn-text" data-toast="乐享知识库开始同步">立即同步</button></div></article>
-          <article class="integration-card" data-integration-type="external"><div class="integration-card-head"><span class="integration-logo text-medium-bold">Yu</span><span class="tag tag-status tag-status-secondary">已暂停</span></div><h3 class="text-normal-bold">语雀知识库</h3><p class="text-small">同步语雀团队知识库、知识小组和项目文档。</p><dl class="integration-meta"><div><dt>已接入空间</dt><dd>3</dd></div><div><dt>文档数</dt><dd>15,708</dd></div><div><dt>最近同步</dt><dd>昨日 21:30</dd></div></dl><div class="integration-card-actions"><button class="btn btn-dense btn-text" data-toast="已打开语雀知识库配置">管理</button><button class="btn btn-dense btn-text" data-toast="语雀知识库已恢复同步">恢复</button></div></article>
-          <article class="integration-card" data-integration-type="connector"><div class="integration-card-head"><span class="integration-logo text-medium-bold">Wi</span><span class="tag tag-status tag-status-lime">运行中</span></div><h3 class="text-normal-bold">Wiki</h3><p class="text-small">通过 Wiki 连接器统一接入企业内部页面、附件和历史版本。</p><dl class="integration-meta"><div><dt>已接入站点</dt><dd>5</dd></div><div><dt>文档数</dt><dd>24,106</dd></div><div><dt>最近同步</dt><dd>2 分钟前</dd></div></dl><div class="integration-card-actions"><button class="btn btn-dense btn-text" data-toast="已打开 Wiki 连接器配置">管理</button><button class="btn btn-dense btn-text" data-toast="Wiki 连接器开始同步">立即同步</button></div></article>
-        </div>
+      </div>
+      <div class="table-wrap source-table-wrap">
+        <table class="table source-management-table">
+          <thead><tr><th>知识源</th><th>连接状态</th><th>同步状态</th><th>关联知识库</th><th>刷新频率</th><th>最近同步</th><th>创建人</th><th class="cell-actions">操作</th></tr></thead>
+          <tbody data-source-instance-list>
+            <tr data-source-row data-name="研发协作空间 GitLab" data-status="normal"><td><div class="source-name-cell"><span class="connector-mark connector-gitlab">GL</span><span><strong>研发协作空间</strong><small>GitLab · gitlab.corp.example.com</small></span></div></td><td><span class="tag tag-status tag-status-lime">已连接</span></td><td><span class="sync-state"><i class="sync-dot is-running"></i>同步中 · 68%</span></td><td>研发知识库</td><td>每 30 分钟</td><td>今天 10:42</td><td>陈曦</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-sync-source>立即同步</button><button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td></tr>
+            <tr data-source-row data-name="制度文档空间 Confluence" data-status="normal"><td><div class="source-name-cell"><span class="connector-mark connector-confluence">CF</span><span><strong>制度文档空间</strong><small>Confluence · wiki.corp.example.com</small></span></div></td><td><span class="tag tag-status tag-status-lime">已连接</span></td><td><span class="sync-state"><i class="sync-dot is-success"></i>已完成 · 2,486 项</span></td><td>制度知识库</td><td>每 1 小时</td><td>今天 10:30</td><td>王翠</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-sync-source>立即同步</button><button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td></tr>
+            <tr data-source-row data-name="客户数据仓 PostgreSQL" data-status="normal"><td><div class="source-name-cell"><span class="connector-mark connector-postgresql">PG</span><span><strong>客户数据仓</strong><small>PostgreSQL · 10.24.18.16:5432</small></span></div></td><td><span class="tag tag-status tag-status-lime">已连接</span></td><td><span class="sync-state"><i class="sync-dot is-success"></i>已完成 · 184 张表</span></td><td>客户经营知识库</td><td>每天 02:00</td><td>今天 02:18</td><td>赵楠</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-sync-source>立即同步</button><button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td></tr>
+            <tr data-source-row data-name="授信问题跟踪 Jira" data-status="attention"><td><div class="source-name-cell"><span class="connector-mark connector-jira">JR</span><span><strong>授信问题跟踪</strong><small>Jira · jira.corp.example.com</small></span></div></td><td><span class="tag tag-status tag-status-lime">已连接</span></td><td><span class="sync-state is-error"><i class="sync-dot is-error"></i>同步失败</span></td><td>授信审查知识库</td><td>每 2 小时</td><td>昨天 22:10</td><td>李程</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-sync-source>重试</button><button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td></tr>
+            <tr data-source-row data-name="归档文件存储 S3" data-status="normal"><td><div class="source-name-cell"><span class="connector-mark connector-s3">S3</span><span><strong>归档文件存储</strong><small>S3 · bank-knowledge-prod</small></span></div></td><td><span class="tag tag-status tag-status-lime">已连接</span></td><td><span class="sync-state"><i class="sync-dot is-success"></i>已完成 · 36,824 项</span></td><td>档案知识库</td><td>每 6 小时</td><td>今天 06:02</td><td>刘敏</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-sync-source>立即同步</button><button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td></tr>
+            <tr data-source-row data-name="核心业务库 Oracle" data-status="attention"><td><div class="source-name-cell"><span class="connector-mark connector-oracle">OR</span><span><strong>核心业务库</strong><small>Oracle · 10.24.8.9:1521</small></span></div></td><td><span class="tag tag-status tag-status-secondary">待认证</span></td><td><span class="sync-state"><i class="sync-dot"></i>尚未同步</span></td><td>未关联</td><td>未设置</td><td>—</td><td>管理员</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-test-row>测试连接</button><button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td></tr>
+          </tbody>
+        </table>
+        <div class="source-empty-state" data-source-empty hidden><strong class="text-normal-bold">没有匹配的知识源</strong><span class="text-small">请调整搜索词或状态筛选条件。</span></div>
       </div>
     </section>
-      </div>
 
-    <input class="visually-hidden" type="file" data-file-version-input aria-label="选择新版本文件" />
+    <section class="source-catalog-section" aria-labelledby="source-catalog-title">
+      <div class="section-heading"><div><h2 class="section-title text-medium-bold" id="source-catalog-title">可用知识源</h2><p class="section-note text-small">选择类型后填写连接凭据。敏感字段只用于建立连接，不在页面回显明文。</p></div></div>
+      <div class="connector-catalog" data-connector-catalog>
+        <button class="connector-option" type="button" data-connector="confluence"><span class="connector-mark connector-confluence">CF</span><span><strong>Confluence</strong><small>同步空间、页面与附件</small></span><em>已配置 1</em></button>
+        <button class="connector-option" type="button" data-connector="s3"><span class="connector-mark connector-s3">S3</span><span><strong>S3</strong><small>AWS S3 与兼容对象存储</small></span><em>已配置 1</em></button>
+        <button class="connector-option" type="button" data-connector="oracle"><span class="connector-mark connector-oracle">OR</span><span><strong>Oracle</strong><small>同步表、视图与结构信息</small></span><em>已配置 1</em></button>
+        <button class="connector-option" type="button" data-connector="jira"><span class="connector-mark connector-jira">JR</span><span><strong>Jira</strong><small>同步项目、问题与评论</small></span><em>已配置 1</em></button>
+        <button class="connector-option" type="button" data-connector="gitlab"><span class="connector-mark connector-gitlab">GL</span><span><strong>GitLab</strong><small>同步仓库、Issue 与 Wiki</small></span><em>已配置 1</em></button>
+        <button class="connector-option" type="button" data-connector="github"><span class="connector-mark connector-github">GH</span><span><strong>GitHub</strong><small>同步仓库、Issue 与文档</small></span><em>未配置</em></button>
+        <button class="connector-option" type="button" data-connector="mysql"><span class="connector-mark connector-mysql">MY</span><span><strong>MySQL</strong><small>同步表、视图与结构信息</small></span><em>未配置</em></button>
+        <button class="connector-option" type="button" data-connector="postgresql"><span class="connector-mark connector-postgresql">PG</span><span><strong>PostgreSQL</strong><small>同步表、视图与结构信息</small></span><em>已配置 1</em></button>
+        <button class="connector-option" type="button" data-connector="hive"><span class="connector-mark connector-hive">HV</span><span><strong>Hive</strong><small>同步库表与数据仓元数据</small></span><em>未配置</em></button>
+      </div>
+    </section>
+
+    <div class="dialog-mask source-dialog-mask" data-source-dialog hidden>
+      <section class="dialog dialog-wide source-create-dialog" role="dialog" aria-modal="true" aria-labelledby="source-dialog-title">
+        <header class="dialog-header"><div><h2 class="dialog-title text-medium-bold" id="source-dialog-title">新增知识源</h2><p class="source-dialog-subtitle text-small">选择知识源类型并配置连接</p></div><button class="dialog-close" type="button" aria-label="关闭" data-close-source-dialog></button></header>
+        <div class="dialog-body source-dialog-body">
+          <aside class="source-type-picker" aria-label="知识源类型">
+            <label class="field"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索知识源" aria-label="搜索知识源类型" data-connector-search /></span></label>
+            <div class="source-type-list" data-source-type-list>
+              <button class="source-type-item is-active" type="button" data-source-type="confluence"><span class="connector-mark connector-confluence">CF</span><span>Confluence</span></button>
+              <button class="source-type-item" type="button" data-source-type="s3"><span class="connector-mark connector-s3">S3</span><span>S3</span></button>
+              <button class="source-type-item" type="button" data-source-type="oracle"><span class="connector-mark connector-oracle">OR</span><span>Oracle</span></button>
+              <button class="source-type-item" type="button" data-source-type="jira"><span class="connector-mark connector-jira">JR</span><span>Jira</span></button>
+              <button class="source-type-item" type="button" data-source-type="gitlab"><span class="connector-mark connector-gitlab">GL</span><span>GitLab</span></button>
+              <button class="source-type-item" type="button" data-source-type="github"><span class="connector-mark connector-github">GH</span><span>GitHub</span></button>
+              <button class="source-type-item" type="button" data-source-type="mysql"><span class="connector-mark connector-mysql">MY</span><span>MySQL</span></button>
+              <button class="source-type-item" type="button" data-source-type="postgresql"><span class="connector-mark connector-postgresql">PG</span><span>PostgreSQL</span></button>
+              <button class="source-type-item" type="button" data-source-type="hive"><span class="connector-mark connector-hive">HV</span><span>Hive</span></button>
+            </div>
+          </aside>
+          <form class="source-config-form" data-source-form>
+            <div class="source-config-heading"><span class="connector-mark connector-confluence" data-config-mark>CF</span><div><h3 class="text-normal-bold" data-config-title>配置 Confluence</h3><p class="text-small" data-config-description>同步 Confluence 空间、页面与附件。</p></div></div>
+            <div class="source-dynamic-fields" data-source-fields></div>
+            <div class="source-connection-note text-small"><strong>连接与同步是两个阶段</strong><span>保存连接后，请前往目标知识库选择此知识源并配置同步范围、解析方式和刷新频率。</span></div>
+          </form>
+        </div>
+        <footer class="dialog-actions source-dialog-actions"><span class="source-test-result text-small" data-source-test-result></span><button class="btn btn-medium" type="button" data-test-source>测试连接</button><button class="btn btn-medium btn-primary" type="button" data-save-source disabled>保存连接</button></footer>
+      </section>
+    </div>
+
+    <div class="source-more-menu" data-source-more-menu hidden>
+      <button type="button" data-toast="已打开知识源日志">查看同步日志</button>
+      <button type="button" data-toast="知识源已暂停同步">暂停同步</button>
+      <button class="is-danger" type="button" data-toast="删除为演示操作，未真实移除知识源">删除知识源</button>
+    </div>
   </template>
-  <script type="module" src="../assets/js/app.js?v=23"></script>
+  <script type="module" src="../assets/js/app.js?v=26"></script>
 </body>
 </html>

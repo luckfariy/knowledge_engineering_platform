@@ -7,8 +7,10 @@
 - 资源纳管
   - 资源概览
   - 文档中心
+  - 任务中心
   - 数据表
   - 图数据
+  - 资源目录管理
 - 知识加工
   - 概览
   - 加工模型
@@ -35,8 +37,10 @@
 - `index.html`：平台首页，采用顶部生命周期导航与知识工作台布局
 - `pages/resource-overview.html`：资源概览
 - `pages/documents.html`：文档中心
+- `pages/resource-tasks.html`：资源接入与自动入目任务中心
 - `pages/data-tables.html`：数据表
 - `pages/graph-data.html`：图数据
+- `pages/asset-catalogs.html`：资源目录管理
 - `pages/processing-overview.html`：知识加工概览
 - `pages/processing-models.html`：加工模型
 - `pages/processing-flows.html`：流程加工

@@ -12,76 +12,58 @@
   <div data-shell></div>
   <template data-page-template>
       <div class="document-tab-panel" id="resource-management-panel">
-        <section class="document-workbench resource-workbench" aria-label="目录与资源管理">
-          <aside class="source-panel panel" aria-label="资源目录">
-            <div class="source-panel-header">
-              <div><h2 class="panel-title text-medium-bold">资源目录树</h2><p class="panel-description text-small"><span data-directory-tree-count>3</span> 棵目录树 · 126 个文档</p></div>
-              <div class="directory-header-actions"><button class="btn btn-dense btn-secondary" type="button" data-new-directory>新建目录</button><button class="btn btn-dense btn-primary" type="button" data-new-directory-tree>新建目录树</button></div>
+        <section class="document-workbench space-card-workbench enterprise-source-workbench" aria-label="目录与资源管理">
+          <aside class="panel personal-folder-panel source-panel space-directory-card enterprise-source-panel" aria-label="知识源目录">
+            <div class="folder-panel-header enterprise-source-header">
+              <div><h2 class="panel-title text-medium-bold">知识源目录</h2><p class="panel-description text-small"><span data-connected-source-count>6</span> 个已配置知识源</p></div>
             </div>
-            <div class="directory-tree-switcher" role="tablist" aria-label="选择资源目录树">
-              <button class="directory-tree-tab is-active" type="button" role="tab" aria-selected="true" data-directory-tree-tab="organization">组织目录</button>
-              <button class="directory-tree-tab" type="button" role="tab" aria-selected="false" data-directory-tree-tab="business">业务目录</button>
-              <button class="directory-tree-tab" type="button" role="tab" aria-selected="false" data-directory-tree-tab="source-system">系统目录</button>
-            </div>
-            <p class="directory-tree-note text-small"><strong data-current-directory-tree>组织目录</strong><span>新文档默认进入“组织目录 / 待归类”</span></p>
-            <nav class="directory-tree" aria-label="组织目录" data-directory-tree="organization">
-              <button class="directory-item is-active" type="button" data-directory-filter="all" aria-pressed="true"><span class="directory-caret" aria-hidden="true">›</span><span>全部资源</span><span class="source-count">126</span></button>
-              <button class="directory-item" type="button" data-directory-filter="risk-management" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>风险管理部</span><span class="source-count">42</span></button>
-              <button class="directory-item" type="button" data-directory-filter="company-finance" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>公司金融部</span><span class="source-count">31</span></button>
-              <button class="directory-item" type="button" data-directory-filter="legal-compliance" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>法律合规部</span><span class="source-count">28</span></button>
-              <button class="directory-item" type="button" data-directory-filter="retail-finance" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>零售金融部</span><span class="source-count">22</span></button>
-              <button class="directory-item" type="button" data-directory-filter="unassigned" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>待归类</span><span class="source-count">3</span></button>
+            <label class="field folder-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索知识源" aria-label="搜索企业空间知识源" data-source-directory-search /></span></label>
+            <nav class="personal-folder-tree source-tree knowledge-source-directory" aria-label="已接入知识源" data-knowledge-source-tree>
+              <button class="source-tree-item is-active" type="button" data-knowledge-source="all" aria-pressed="true"><span class="source-icon">全</span><span class="source-label"><strong>全部知识源</strong><small>6 个已配置实例</small></span><span class="source-count">10</span></button>
+              <div class="source-tree-row"><button class="source-tree-item" type="button" data-knowledge-source="gitlab" aria-pressed="false"><span class="connector-mark connector-gitlab">GL</span><span class="source-label"><strong>研发协作空间</strong><small>GitLab · 同步中</small></span><span class="source-count">2</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-source-function aria-label="研发协作空间功能组">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-source-task="metadata">元数据信息补全</button><button type="button" role="menuitem" data-source-task="classify">自动分类</button><button type="button" role="menuitem" data-source-task="tag">智能打标</button></div></div>
+              <div class="source-tree-row"><button class="source-tree-item" type="button" data-knowledge-source="confluence" aria-pressed="false"><span class="connector-mark connector-confluence">CF</span><span class="source-label"><strong>制度文档空间</strong><small>Confluence · 已同步</small></span><span class="source-count">2</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-source-function aria-label="制度文档空间功能组">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-source-task="metadata">元数据信息补全</button><button type="button" role="menuitem" data-source-task="classify">自动分类</button><button type="button" role="menuitem" data-source-task="tag">智能打标</button></div></div>
+              <div class="source-tree-row"><button class="source-tree-item" type="button" data-knowledge-source="postgresql" aria-pressed="false"><span class="connector-mark connector-postgresql">PG</span><span class="source-label"><strong>客户数据仓</strong><small>PostgreSQL · 已同步</small></span><span class="source-count">2</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-source-function aria-label="客户数据仓功能组">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-source-task="metadata">元数据信息补全</button><button type="button" role="menuitem" data-source-task="classify">自动分类</button><button type="button" role="menuitem" data-source-task="tag">智能打标</button></div></div>
+              <div class="source-tree-row"><button class="source-tree-item" type="button" data-knowledge-source="jira" aria-pressed="false"><span class="connector-mark connector-jira">JR</span><span class="source-label"><strong>授信问题跟踪</strong><small>Jira · 同步失败</small></span><span class="source-count">1</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-source-function aria-label="授信问题跟踪功能组">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-source-task="metadata">元数据信息补全</button><button type="button" role="menuitem" data-source-task="classify">自动分类</button><button type="button" role="menuitem" data-source-task="tag">智能打标</button></div></div>
+              <div class="source-tree-row"><button class="source-tree-item" type="button" data-knowledge-source="s3" aria-pressed="false"><span class="connector-mark connector-s3">S3</span><span class="source-label"><strong>归档文件存储</strong><small>S3 · 已同步</small></span><span class="source-count">3</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-source-function aria-label="归档文件存储功能组">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-source-task="metadata">元数据信息补全</button><button type="button" role="menuitem" data-source-task="classify">自动分类</button><button type="button" role="menuitem" data-source-task="tag">智能打标</button></div></div>
+              <div class="source-tree-row"><button class="source-tree-item" type="button" data-knowledge-source="oracle" aria-pressed="false"><span class="connector-mark connector-oracle">OR</span><span class="source-label"><strong>核心业务库</strong><small>Oracle · 待认证</small></span><span class="source-count">0</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-source-function aria-label="核心业务库功能组">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-source-task="metadata">元数据信息补全</button><button type="button" role="menuitem" data-source-task="classify">自动分类</button><button type="button" role="menuitem" data-source-task="tag">智能打标</button></div></div>
             </nav>
-            <nav class="directory-tree" aria-label="业务目录" data-directory-tree="business" hidden>
-              <button class="directory-item is-active" type="button" data-directory-filter="all" aria-pressed="true"><span class="directory-caret" aria-hidden="true">›</span><span>全部资源</span><span class="source-count">126</span></button>
-              <button class="directory-item" type="button" data-directory-filter="credit" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>授信管理</span><span class="source-count">44</span></button>
-              <button class="directory-item" type="button" data-directory-filter="risk" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>风险管理</span><span class="source-count">29</span></button>
-              <button class="directory-item" type="button" data-directory-filter="contract" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>合同管理</span><span class="source-count">21</span></button>
-              <button class="directory-item" type="button" data-directory-filter="customer-service" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>客户服务</span><span class="source-count">32</span></button>
-            </nav>
-            <nav class="directory-tree" aria-label="系统目录" data-directory-tree="source-system" hidden>
-              <button class="directory-item is-active" type="button" data-directory-filter="all" aria-pressed="true"><span class="directory-caret" aria-hidden="true">›</span><span>全部资源</span><span class="source-count">126</span></button>
-              <button class="directory-item" type="button" data-directory-filter="local" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>本地上传</span><span class="source-count">26</span></button>
-              <button class="directory-item" type="button" data-directory-filter="feishu" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>飞书知识库</span><span class="source-count">38</span></button>
-              <button class="directory-item" type="button" data-directory-filter="lexiang" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>乐享知识库</span><span class="source-count">25</span></button>
-              <button class="directory-item" type="button" data-directory-filter="wiki" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>Wiki 连接器</span><span class="source-count">22</span></button>
-              <button class="directory-item" type="button" data-directory-filter="yuque" aria-pressed="false"><span class="directory-caret" aria-hidden="true">›</span><span>语雀知识库</span><span class="source-count">15</span></button>
-            </nav>
-            <form class="new-directory-form" data-directory-form hidden>
-              <label class="field"><span class="field-label">目录名称</span><span class="input-wrap input-middle"><input class="input" name="directoryName" required placeholder="输入目录名称" /></span></label>
-              <div class="inline-actions"><button class="btn btn-dense btn-secondary" type="button" data-cancel-directory>取消</button><button class="btn btn-dense btn-primary" type="submit">创建</button></div>
-            </form>
-            <form class="new-directory-form" data-directory-tree-form hidden>
-              <label class="field"><span class="field-label">目录树名称</span><span class="input-wrap input-middle"><input class="input" name="directoryTreeName" required placeholder="例如：产品目录" /></span></label>
-              <label class="field"><span class="field-label">目录树类型</span><span class="select-wrap select-middle"><select class="select" name="directoryTreeType"><option value="organization">组织目录</option><option value="business">业务目录</option><option value="source-system">系统目录</option></select></span></label>
-              <div class="inline-actions"><button class="btn btn-dense btn-secondary" type="button" data-cancel-directory-tree>取消</button><button class="btn btn-dense btn-primary" type="submit">创建</button></div>
-            </form>
           </aside>
 
-          <div class="file-panel panel">
-            <div class="file-panel-header">
-              <div><h2 class="panel-title text-medium-bold" data-resource-title>全部资源</h2><p class="panel-description text-small" data-resource-summary>统一管理目录内的文档与扩展属性</p></div>
+          <div class="panel personal-file-panel file-panel space-list-card enterprise-source-file-panel">
+            <div class="personal-file-header file-panel-header">
+              <div><h2 class="panel-title text-medium-bold" data-resource-title>全部知识源内容</h2><p class="panel-description text-small" data-resource-summary>展示 6 个已配置知识源下的内容</p></div>
               <div class="page-actions"><button class="btn btn-dense btn-secondary" type="button" data-open-attributes>扩展属性</button><button class="btn btn-dense btn-primary" type="button" data-auto-catalog>资源自动入目</button></div>
             </div>
-            <div class="toolbar file-toolbar"><label class="field file-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索文档名称、类型或创建人" data-table-search="#resource-table" aria-label="搜索资源文档" /></span></label><div class="toolbar-spacer"></div><span class="text-small file-result-count" data-resource-count>6 条结果</span></div>
+            <div class="toolbar personal-file-toolbar file-toolbar"><label class="field file-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索内容名称、类型或创建人" data-table-search="#resource-table" aria-label="搜索知识源内容" /></span></label><div class="toolbar-spacer"></div><span class="text-small file-result-count" data-resource-count>10 条结果</span></div>
             <div class="table-wrap">
-              <table class="table" id="resource-table">
-                <thead><tr><th>文件名称</th><th>文件类型</th><th>文件来源</th><th>状态</th><th>版本</th><th>元数据完整度</th><th>创建人</th><th>创建时间</th></tr></thead>
+              <table class="table personal-file-table" id="resource-table">
+                <thead><tr><th>内容名称</th><th>内容类型</th><th>知识源</th><th>版本</th><th>元数据完整度</th><th>创建人</th><th>创建时间</th></tr></thead>
                 <tbody>
-                  <tr data-organization="risk-management" data-business="credit" data-source-system="local"><td class="cell-primary"><a class="document-link" href="resource-detail.html?file=对公授信审查办法">对公授信审查办法</a></td><td>PDF</td><td>本地上传</td><td><span class="tag tag-status tag-status-lime">已发布</span></td><td class="text-number">v3.2</td><td><div class="metadata-completeness"><span class="text-number">10/10</span><div class="metadata-progress"><span data-bar="100"></span></div><small>100%</small></div></td><td>王翠</td><td>2026-08-12 09:30</td></tr>
-                  <tr data-organization="company-finance" data-business="credit" data-source-system="feishu"><td class="cell-primary"><a class="document-link" href="resource-detail.html?file=固定资产贷款管理办法">固定资产贷款管理办法</a></td><td>DOCX</td><td>飞书知识库</td><td><span class="tag tag-status tag-status-secondary">未发布</span></td><td class="text-number">v2.0</td><td><div class="metadata-completeness"><span class="text-number">7/10</span><div class="metadata-progress"><span data-bar="70"></span></div><small>70%</small></div></td><td>李程</td><td>2026-07-21 10:18</td></tr>
-                  <tr data-organization="risk-management" data-business="risk" data-source-system="wiki"><td class="cell-primary"><a class="document-link" href="resource-detail.html?file=信用风险管理问答库">信用风险管理问答库</a></td><td>XLSX</td><td>Wiki 连接器</td><td><span class="tag tag-status tag-status-lime">已发布</span></td><td class="text-number">v1.8</td><td><div class="metadata-completeness"><span class="text-number">9/10</span><div class="metadata-progress"><span data-bar="90"></span></div><small>90%</small></div></td><td>陈曦</td><td>2026-06-08 14:18</td></tr>
-                  <tr data-organization="legal-compliance" data-business="contract" data-source-system="lexiang"><td class="cell-primary"><a class="document-link" href="resource-detail.html?file=合同审查操作指引">合同审查操作指引</a></td><td>PDF</td><td>乐享知识库</td><td><span class="tag tag-status tag-status-secondary">未发布</span></td><td class="text-number">v1.1</td><td><div class="metadata-completeness"><span class="text-number">6/10</span><div class="metadata-progress"><span data-bar="60"></span></div><small>60%</small></div></td><td>刘敏</td><td>2026-08-20 11:06</td></tr>
-                  <tr data-organization="retail-finance" data-business="customer-service" data-source-system="yuque"><td class="cell-primary"><a class="document-link" href="resource-detail.html?file=零售客户分级规则">零售客户分级规则</a></td><td>DOCX</td><td>语雀知识库</td><td><span class="tag tag-status tag-status-lime">已发布</span></td><td class="text-number">v4.0</td><td><div class="metadata-completeness"><span class="text-number">8/10</span><div class="metadata-progress"><span data-bar="80"></span></div><small>80%</small></div></td><td>赵楠</td><td>2026-05-16 17:24</td></tr>
-                  <tr data-organization="unassigned" data-business="customer-service" data-source-system="local"><td class="cell-primary"><a class="document-link" href="resource-detail.html?file=客户信息查询常见问题">客户信息查询常见问题</a></td><td>PDF</td><td>本地上传</td><td><span class="tag tag-status tag-status-secondary">已归档</span></td><td class="text-number">v1.0</td><td><div class="metadata-completeness"><span class="text-number">10/10</span><div class="metadata-progress"><span data-bar="100"></span></div><small>100%</small></div></td><td>周俊</td><td>2026-03-29 10:12</td></tr>
+                  <tr data-knowledge-source-row="confluence"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=对公授信审查办法">对公授信审查办法</a></td><td>PDF</td><td>制度文档空间</td><td class="text-number">v3.2</td><td><div class="metadata-completeness"><span class="text-number">10/10</span><div class="metadata-progress"><span data-bar="100"></span></div><small>100%</small></div></td><td>王翠</td><td>2026-08-12 09:30</td></tr>
+                  <tr data-knowledge-source-row="confluence"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=固定资产贷款管理办法">固定资产贷款管理办法</a></td><td>DOCX</td><td>制度文档空间</td><td class="text-number">v2.0</td><td><div class="metadata-completeness"><span class="text-number">7/10</span><div class="metadata-progress"><span data-bar="70"></span></div><small>70%</small></div></td><td>李程</td><td>2026-07-21 10:18</td></tr>
+                  <tr data-knowledge-source-row="gitlab"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=客户风险评级服务设计">客户风险评级服务设计</a></td><td>Markdown</td><td>研发协作空间</td><td class="text-number">v1.6</td><td><div class="metadata-completeness"><span class="text-number">9/10</span><div class="metadata-progress"><span data-bar="90"></span></div><small>90%</small></div></td><td>陈曦</td><td>2026-08-28 14:18</td></tr>
+                  <tr data-knowledge-source-row="gitlab"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=征信接口变更记录">征信接口变更记录</a></td><td>Wiki</td><td>研发协作空间</td><td class="text-number">v2.4</td><td><div class="metadata-completeness"><span class="text-number">8/10</span><div class="metadata-progress"><span data-bar="80"></span></div><small>80%</small></div></td><td>陈曦</td><td>2026-09-05 10:42</td></tr>
+                  <tr data-knowledge-source-row="postgresql"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=customer_profile">customer_profile</a></td><td>数据表</td><td>客户数据仓</td><td class="text-number">v5.1</td><td><div class="metadata-completeness"><span class="text-number">10/10</span><div class="metadata-progress"><span data-bar="100"></span></div><small>100%</small></div></td><td>赵楠</td><td>2026-09-05 02:18</td></tr>
+                  <tr data-knowledge-source-row="postgresql"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=customer_risk_rating">customer_risk_rating</a></td><td>数据视图</td><td>客户数据仓</td><td class="text-number">v3.0</td><td><div class="metadata-completeness"><span class="text-number">8/10</span><div class="metadata-progress"><span data-bar="80"></span></div><small>80%</small></div></td><td>赵楠</td><td>2026-09-05 02:18</td></tr>
+                  <tr data-knowledge-source-row="jira"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=CREDIT-2841">CREDIT-2841 授信审查规则异常</a></td><td>问题单</td><td>授信问题跟踪</td><td class="text-number">v1.0</td><td><div class="metadata-completeness"><span class="text-number">6/10</span><div class="metadata-progress"><span data-bar="60"></span></div><small>60%</small></div></td><td>李程</td><td>2026-09-04 22:10</td></tr>
+                  <tr data-knowledge-source-row="s3"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=2025年授信档案汇编">2025年授信档案汇编</a></td><td>PDF</td><td>归档文件存储</td><td class="text-number">v1.0</td><td><div class="metadata-completeness"><span class="text-number">10/10</span><div class="metadata-progress"><span data-bar="100"></span></div><small>100%</small></div></td><td>刘敏</td><td>2026-09-05 06:02</td></tr>
+                  <tr data-knowledge-source-row="s3"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=历史合同归档清单">历史合同归档清单</a></td><td>XLSX</td><td>归档文件存储</td><td class="text-number">v2.2</td><td><div class="metadata-completeness"><span class="text-number">9/10</span><div class="metadata-progress"><span data-bar="90"></span></div><small>90%</small></div></td><td>刘敏</td><td>2026-09-05 06:02</td></tr>
+                  <tr data-knowledge-source-row="s3"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=客户尽调影像索引">客户尽调影像索引</a></td><td>JSON</td><td>归档文件存储</td><td class="text-number">v1.3</td><td><div class="metadata-completeness"><span class="text-number">7/10</span><div class="metadata-progress"><span data-bar="70"></span></div><small>70%</small></div></td><td>刘敏</td><td>2026-09-05 06:02</td></tr>
                 </tbody>
               </table>
+              <div class="source-empty-state resource-source-empty" data-resource-source-empty hidden><strong class="text-normal-bold">暂无可展示内容</strong><span class="text-small" data-resource-empty-message>该知识源尚未同步内容。</span></div>
             </div>
+            <nav class="pagination pagination-dense resource-pagination" aria-label="知识源内容分页">
+              <button class="pagination-item" type="button" disabled aria-label="上一页">‹</button>
+              <button class="pagination-item is-active" type="button" aria-current="page">1</button>
+              <button class="pagination-item" type="button" data-toast="已切换至第 2 页">2</button>
+              <button class="pagination-item" type="button" data-toast="已切换至第 3 页">3</button>
+              <button class="pagination-item" type="button" data-toast="已切换至下一页" aria-label="下一页">›</button>
+              <span class="pagination-bar text-small">共 10 条</span>
+              <label class="pagination-jump text-small">前往 <input class="input" type="number" min="1" max="3" value="1" aria-label="跳转页码" /> 页</label>
+            </nav>
           </div>
         </section>
-      </div>
-    </section>
-
       </div>
     <div class="dialog-mask" data-attribute-dialog hidden>
       <div class="dialog dialog-wide attribute-dialog" role="dialog" aria-modal="true" aria-labelledby="attribute-dialog-title">
@@ -110,6 +92,6 @@
     </div>
     <input class="visually-hidden" type="file" data-file-version-input aria-label="选择新版本文件" />
   </template>
-  <script type="module" src="../assets/js/app.js?v=23"></script>
+  <script type="module" src="../assets/js/app.js?v=26"></script>
 </body>
 </html>

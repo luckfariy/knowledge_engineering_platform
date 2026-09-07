@@ -12,9 +12,9 @@
   <div data-shell></div>
   <template data-page-template>
       <div class="space-tab-panel" id="team-space-panel">
-        <div class="team-space-layout">
-          <aside class="team-list-panel" aria-label="团队列表">
-            <div class="team-list-header"><div><h2 class="text-medium-bold">我的团队</h2><p class="text-small" data-team-list-count>共 3 个团队</p></div><button class="btn btn-dense btn-primary" type="button" data-open-team-dialog>创建团队</button></div>
+        <div class="team-space-layout ragflow-team-workbench">
+          <aside class="panel team-list-panel ragflow-team-sidebar" aria-label="团队列表">
+            <div class="team-list-header"><div><h2 class="text-medium-bold">我的团队</h2><p class="text-small" data-team-list-count>共 3 个团队</p></div><button class="btn btn-dense btn-primary" type="button" data-open-team-dialog>创建团队项目</button></div>
             <label class="field team-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索团队" aria-label="搜索团队" data-team-search /></span></label>
             <nav class="team-list" aria-label="选择团队">
               <button class="team-list-item is-active" type="button" data-team-name="知识工程产品组" data-team-leader="张明" data-team-members="12" data-team-description="负责知识工程平台规划、设计与产品迭代。" aria-pressed="true"><span class="team-avatar">知</span><span><strong>知识工程产品组</strong><small>12 名成员 · 张明负责</small></span></button>
@@ -22,14 +22,14 @@
               <button class="team-list-item" type="button" data-team-name="数据治理工作组" data-team-leader="王翠" data-team-members="8" data-team-description="协同维护数据标准、治理制度和实施规范。" aria-pressed="false"><span class="team-avatar">数</span><span><strong>数据治理工作组</strong><small>8 名成员 · 王翠负责</small></span></button>
             </nav>
           </aside>
-          <section class="team-resource-panel" aria-label="团队文件管理">
+          <section class="panel team-resource-panel ragflow-team-panel" aria-label="团队文件管理">
             <header class="team-resource-header"><div><div class="team-title-row"><h2 class="text-medium-bold" data-current-team-name>知识工程产品组</h2><span class="tag tag-status tag-status-blue">团队共享</span></div><p class="text-small" data-current-team-description>负责知识工程平台规划、设计与产品迭代。</p><div class="team-member-summary text-small"><span>负责人：<strong data-current-team-leader>张明</strong></span><span><strong data-current-team-members>12</strong> 名成员</span></div></div><div class="page-actions"><button class="btn btn-medium btn-secondary" type="button" data-open-member-dialog>成员管理</button><span class="page-actions"><input class="visually-hidden" type="file" multiple data-local-file-input aria-label="选择要上传的团队文件" /><button class="btn btn-medium btn-primary" type="button" data-local-upload><svg class="button-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 15v5h14v-5"/></svg>上传文件</button></span></div></header>
+            <div class="team-knowledge-metrics" aria-label="团队知识库概览"><div><span class="text-small">文档总数</span><strong class="text-big-bold text-number">64</strong></div><div><span class="text-small">已解析</span><strong class="text-big-bold text-number">58</strong></div><div><span class="text-small">本周更新</span><strong class="text-big-bold text-number">12</strong></div><div><span class="text-small">占用空间</span><strong class="text-big-bold text-number">18.6 GB</strong></div></div>
             <div class="team-file-workbench">
-              <aside class="team-folder-panel" aria-label="团队文件夹"><div class="team-folder-header"><strong class="text-normal-bold">团队文件夹</strong><button class="icon-button" type="button" aria-label="新建团队文件夹" data-toast="新建团队文件夹功能已打开">+</button></div><nav class="directory-tree"><button class="directory-item is-active" type="button" data-team-folder="all" aria-pressed="true"><span class="directory-caret">›</span><span>全部文件</span><span class="source-count">64</span></button><button class="directory-item" type="button" data-team-folder="plan" aria-pressed="false"><span class="directory-caret">›</span><span>产品规划</span><span class="source-count">18</span></button><button class="directory-item" type="button" data-team-folder="design" aria-pressed="false"><span class="directory-caret">›</span><span>设计方案</span><span class="source-count">21</span></button><button class="directory-item" type="button" data-team-folder="research" aria-pressed="false"><span class="directory-caret">›</span><span>调研资料</span><span class="source-count">15</span></button><button class="directory-item" type="button" data-team-folder="archive" aria-pressed="false"><span class="directory-caret">›</span><span>历史归档</span><span class="source-count">10</span></button></nav></aside>
-              <div class="team-file-list"><div class="toolbar"><label class="field file-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索团队文件" data-table-search="#team-document-table" aria-label="搜索团队文件" /></span></label><div class="toolbar-spacer"></div><span class="text-small" data-team-file-count>3 条结果</span></div><div class="table-wrap"><table class="table" id="team-document-table"><thead><tr><th>文件名称</th><th>文件类型</th><th>状态</th><th>版本</th><th>更新时间</th><th>上传人</th><th class="cell-actions">操作</th></tr></thead><tbody>
-                <tr data-team-folder-row="plan"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=知识工程产品路线图">知识工程产品路线图</a><span class="cell-secondary text-small">PPTX · 6.8 MB</span></td><td>PPTX</td><td><span class="tag tag-status tag-status-blue">团队共享</span></td><td class="text-number">v3.2</td><td>2026-09-03 09:20</td><td>张明</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button></td></tr>
-                <tr data-team-folder-row="design"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=文档中心交互设计">文档中心交互设计</a><span class="cell-secondary text-small">PDF · 3.4 MB</span></td><td>PDF</td><td><span class="tag tag-status tag-status-blue">团队共享</span></td><td class="text-number">v2.1</td><td>2026-09-02 16:42</td><td>李程</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button></td></tr>
-                <tr data-team-folder-row="research"><td class="cell-primary"><a class="document-link" href="document-detail.html?file=竞品调研报告">竞品调研报告</a><span class="cell-secondary text-small">DOCX · 2.1 MB</span></td><td>DOCX</td><td><span class="tag tag-status tag-status-blue">团队共享</span></td><td class="text-number">v1.8</td><td>2026-09-01 14:18</td><td>王翠</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button></td></tr>
+              <div class="team-file-list"><div class="team-dataset-tabs"><strong class="text-normal-bold">团队文档</strong><nav class="team-folder-filters" aria-label="团队文件夹"><button class="btn btn-dense btn-text is-active" type="button" data-team-folder="all" aria-pressed="true">全部 <span class="text-number">64</span></button><button class="btn btn-dense btn-text" type="button" data-team-folder="plan" aria-pressed="false">产品规划 <span class="text-number">18</span></button><button class="btn btn-dense btn-text" type="button" data-team-folder="design" aria-pressed="false">设计方案 <span class="text-number">21</span></button><button class="btn btn-dense btn-text" type="button" data-team-folder="research" aria-pressed="false">调研资料 <span class="text-number">15</span></button><button class="btn btn-dense btn-text" type="button" data-team-folder="archive" aria-pressed="false">历史归档 <span class="text-number">10</span></button></nav><button class="btn btn-dense btn-secondary" type="button" data-toast="新建团队文件夹功能已打开">+新建文件夹</button></div><div class="toolbar team-document-toolbar"><label class="field file-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索文档名称、类型或上传人" data-table-search="#team-document-table" aria-label="搜索团队文件" /></span></label><div class="toolbar-spacer"></div><span class="text-small" data-team-file-count>3 条结果</span></div><div class="table-wrap"><table class="table" id="team-document-table"><thead><tr><th>文档名称</th><th>类型</th><th>解析状态</th><th>版本</th><th>更新时间</th><th>上传人</th><th class="cell-actions">操作</th></tr></thead><tbody>
+                <tr data-team-folder-row="plan"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=知识工程产品路线图">知识工程产品路线图</a><span class="cell-secondary text-small">PPTX · 6.8 MB</span></td><td>PPTX</td><td><span class="tag tag-status tag-status-lime">已解析</span></td><td class="text-number">v3.2</td><td>2026-09-03 09:20</td><td>张明</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button></td></tr>
+                <tr data-team-folder-row="design"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=文档中心交互设计">文档中心交互设计</a><span class="cell-secondary text-small">PDF · 3.4 MB</span></td><td>PDF</td><td><span class="tag tag-status tag-status-lime">已解析</span></td><td class="text-number">v2.1</td><td>2026-09-02 16:42</td><td>李程</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button></td></tr>
+                <tr data-team-folder-row="research"><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=竞品调研报告">竞品调研报告</a><span class="cell-secondary text-small">DOCX · 2.1 MB</span></td><td>DOCX</td><td><span class="tag tag-status tag-status-blue">解析中</span></td><td class="text-number">v1.8</td><td>2026-09-01 14:18</td><td>王翠</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button></td></tr>
               </tbody></table></div></div>
             </div>
           </section>
@@ -37,7 +37,7 @@
       </div>
     <div class="dialog-mask" data-team-dialog hidden>
       <div class="dialog dialog-form" role="dialog" aria-modal="true" aria-labelledby="team-dialog-title">
-        <div class="dialog-header"><h2 class="dialog-title" id="team-dialog-title">创建团队</h2><button class="dialog-close" type="button" aria-label="关闭" data-close-team-dialog></button></div>
+        <div class="dialog-header"><h2 class="dialog-title" id="team-dialog-title">创建团队项目</h2><button class="dialog-close" type="button" aria-label="关闭" data-close-team-dialog></button></div>
         <form data-team-form>
           <div class="dialog-body form-stack">
             <label class="field"><span class="field-label">团队名称</span><span class="input-wrap input-middle"><input class="input" name="teamName" required placeholder="例如：客户经营项目组" /></span></label>
@@ -45,7 +45,7 @@
             <label class="field"><span class="field-label">团队成员</span><span class="input-wrap input-middle"><input class="input" name="teamMembers" required placeholder="输入成员姓名，使用逗号分隔" /></span><span class="field-hint text-small">负责人默认也是团队成员，创建后可以继续调整成员权限。</span></label>
             <label class="field"><span class="field-label">团队描述</span><span class="input-wrap"><textarea class="input team-description-input" name="teamDescription" rows="3" placeholder="说明团队职责和知识协作范围"></textarea></span></label>
           </div>
-          <div class="dialog-actions"><button class="btn btn-medium btn-secondary" type="button" data-close-team-dialog>取消</button><button class="btn btn-medium btn-primary" type="submit">创建团队</button></div>
+          <div class="dialog-actions"><button class="btn btn-medium btn-secondary" type="button" data-close-team-dialog>取消</button><button class="btn btn-medium btn-primary" type="submit">创建团队项目</button></div>
         </form>
       </div>
     </div>
@@ -71,6 +71,6 @@
 
     <input class="visually-hidden" type="file" data-file-version-input aria-label="选择新版本文件" />
   </template>
-  <script type="module" src="../assets/js/app.js?v=23"></script>
+  <script type="module" src="../assets/js/app.js?v=26"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-import { renderShell } from './shell.js?v=23';
+import { renderShell } from './shell.js?v=26';
 
 const platformStylesheet = document.querySelector('link[href$="platform.css"]');
 if (platformStylesheet) platformStylesheet.href = `${platformStylesheet.href}?v=2`;
@@ -55,6 +55,10 @@ document.querySelectorAll('[data-table-search]').forEach(input => input.addEvent
   const query = input.value.trim().toLowerCase();
   table?.querySelectorAll('tbody tr').forEach(row => { row.hidden = !row.textContent.toLowerCase().includes(query); });
 }));
+document.querySelectorAll('[data-category-mode]').forEach(tab=>tab.addEventListener('click',()=>{document.querySelectorAll('[data-category-mode]').forEach(x=>{const on=x===tab;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',String(on))});document.querySelectorAll('[data-category-tree]').forEach(x=>x.hidden=x.dataset.categoryTree!==tab.dataset.categoryMode)}));
+document.querySelector('[data-data-category-search]')?.addEventListener('input',e=>{const q=e.currentTarget.value.trim().toLowerCase();document.querySelectorAll('[data-category-tree]:not([hidden]) .data-category-item').forEach(x=>x.hidden=!x.textContent.toLowerCase().includes(q))});
+document.querySelectorAll('[data-data-category]').forEach(button=>button.addEventListener('click',()=>{const c=button.dataset.dataCategory;document.querySelectorAll('[data-data-category]').forEach(x=>x.classList.toggle('is-active',x===button));document.querySelectorAll('[data-category-row]').forEach(row=>row.hidden=c!=='all'&&!row.dataset.categoryRow.split(' ').includes(c))}));
+document.querySelectorAll('[data-data-view]').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('[data-data-view]').forEach(x=>x.classList.toggle('is-active',x===button));document.querySelector('.data-list-panel')?.classList.toggle('is-card-view',button.dataset.dataView==='card')}));
 
 document.querySelectorAll('[data-tabs]').forEach(scope => {
   const tablist = scope.querySelector(':scope > [role="tablist"]');
@@ -117,7 +121,7 @@ document.querySelectorAll('[data-bar]').forEach(bar => { bar.style.width = `${ba
 const notificationPanelNode = document.querySelector('[data-notification-panel]');
 if (notificationPanelNode) {
   notificationPanelNode.setAttribute('aria-label', '任务消息中心');
-  notificationPanelNode.innerHTML = '<div class="notification-header"><div><strong class="text-normal-bold">任务消息</strong><span class="text-small notification-summary" data-task-summary>暂无进行中任务</span></div></div><div class="task-category-tabs" role="group" aria-label="任务分类"><button class="task-category is-active" type="button" data-task-filter="all" aria-pressed="true">全部</button><button class="task-category" type="button" data-task-filter="upload" aria-pressed="false">上传任务</button><button class="task-category" type="button" data-task-filter="catalog" aria-pressed="false">自动入目任务</button></div><div class="task-center-list"><section class="task-section" data-task-section="upload"><div class="task-section-title text-small-bold">上传任务</div><div class="upload-task-list" data-upload-task-list><div class="upload-empty text-small" data-upload-empty>暂无上传任务</div></div></section><section class="task-section" data-task-section="catalog"><div class="task-section-title text-small-bold">自动入目任务</div><div class="catalog-task-list" data-catalog-task-list><div class="upload-empty text-small" data-catalog-empty>暂无自动入目任务</div></div></section></div>';
+  notificationPanelNode.innerHTML = '<div class="notification-header"><div><strong class="text-normal-bold">任务消息</strong><span class="text-small notification-summary" data-task-summary>暂无任务消息</span></div><a class="btn btn-dense btn-text" href="resource-tasks.html">进入任务中心</a></div><div class="task-category-tabs" role="group" aria-label="任务分类"><button class="task-category is-active" type="button" data-task-filter="all" aria-pressed="true">全部</button><button class="task-category" type="button" data-task-filter="upload" aria-pressed="false">上传任务</button><button class="task-category" type="button" data-task-filter="catalog" aria-pressed="false">智能处理</button></div><div class="task-center-list"><section class="task-section" data-task-section="upload"><div class="task-section-title text-small-bold">上传任务通知</div><div class="upload-task-list" data-upload-task-list><div class="upload-empty text-small" data-upload-empty>暂无上传任务</div></div></section><section class="task-section" data-task-section="catalog"><div class="task-section-title text-small-bold">知识源处理通知</div><div class="catalog-task-list" data-catalog-task-list><div class="upload-empty text-small" data-catalog-empty>暂无处理任务</div></div></section></div>';
 }
 
 const notificationToggle = document.querySelector('[data-notification-toggle]');
@@ -238,7 +242,7 @@ function updateUploadSummary() {
 
 function updateTaskCenterSummary() {
   const uploading = [...document.querySelectorAll('.upload-task')].filter(task => !task.classList.contains('is-complete')).length;
-  const cataloging = [...document.querySelectorAll('.catalog-task')].filter(task => !task.classList.contains('is-complete')).length;
+  const cataloging = [...document.querySelectorAll('.catalog-task,.task-notice')].filter(task => !task.classList.contains('is-complete')).length;
   const active = uploading + cataloging;
   const badge = document.querySelector('[data-notification-badge]');
   const summary = document.querySelector('[data-task-summary]');
@@ -293,14 +297,8 @@ document.querySelector('[data-catalog-task-list]')?.addEventListener('click', ev
   const button = event.target.closest('[data-create-recommended-directory]');
   if (!button) return;
   const name = button.dataset.createRecommendedDirectory;
-  const directory = document.createElement('button');
-  directory.className = 'directory-item';
-  directory.type = 'button';
-  directory.innerHTML = '<span class="directory-caret" aria-hidden="true">›</span><span></span><span class="source-count">3</span>';
-  directory.querySelector('span:nth-child(2)').textContent = name;
-  directory.dataset.directoryFilter = `recommended-${Date.now()}`;
-  document.querySelector('[data-directory-tree="business"]')?.append(directory);
-  button.closest('.catalog-recommendation').innerHTML = `<strong class="text-small-bold">目录已创建</strong><span class="text-small">3 份文档已自动归属到“${name}”</span>`;
+  const sourceName = document.querySelector('[data-knowledge-source].is-active .source-label strong')?.textContent || '全部知识源';
+  button.closest('.catalog-recommendation').innerHTML = `<strong class="text-small-bold">已完成入目</strong><span class="text-small">3 份内容已归属到“${sourceName} / ${name}”</span>`;
   const status = button.closest('.catalog-task').querySelector('[data-catalog-status]');
   status.textContent = '已完成';
   showToast(`已创建“${name}”并完成入目`);
@@ -319,7 +317,7 @@ function appendUploadedFile(file, targetSpace = 'enterprise') {
     row.innerHTML = '<td class="cell-primary"><a class="document-link" href="document-detail.html" data-uploaded-name></a><span class="cell-secondary text-small" data-uploaded-meta></span></td><td data-uploaded-type></td><td><span class="tag tag-status tag-status-blue">团队共享</span></td><td class="text-number">v1.0</td><td data-uploaded-time></td><td>当前用户</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-update-file>更新</button></td>';
     const nameLink = row.querySelector('[data-uploaded-name]');
     nameLink.textContent = file.name;
-    nameLink.href = `document-detail.html?file=${encodeURIComponent(file.name)}`;
+    nameLink.href = `space-file-detail.html?file=${encodeURIComponent(file.name)}&space=team`;
     row.querySelector('[data-uploaded-meta]').textContent = `${extension} · ${formatFileSize(file.size)}`;
     row.querySelector('[data-uploaded-type]').textContent = extension;
     row.querySelector('[data-uploaded-time]').textContent = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
@@ -333,7 +331,7 @@ function appendUploadedFile(file, targetSpace = 'enterprise') {
   row.innerHTML = `<td class="cell-primary"><a class="document-link" href="document-detail.html" data-uploaded-name></a><span class="cell-secondary text-small" data-uploaded-meta></span></td><td data-uploaded-type></td><td><span class="tag tag-status ${personalSpace ? 'tag-status-secondary' : 'tag-status-lime'}">${personalSpace ? '仅自己' : '已解析'}</span></td><td class="text-number">v1.0</td><td data-uploaded-created></td><td data-uploaded-time></td><td>当前用户</td><td class="cell-actions"><button class="btn btn-dense btn-text" ${personalSpace ? 'data-open-share-dialog' : 'data-toast="分享设置已打开"'}>分享</button><button class="btn btn-dense btn-text" data-update-file>更新</button></td>`;
   const nameLink = row.querySelector('[data-uploaded-name]');
   nameLink.textContent = file.name;
-  nameLink.href = `document-detail.html?file=${encodeURIComponent(file.name)}`;
+  nameLink.href = `space-file-detail.html?file=${encodeURIComponent(file.name)}&space=${personalSpace ? 'personal' : 'enterprise'}`;
   row.querySelector('[data-uploaded-meta]').textContent = `${extension} · ${formatFileSize(file.size)}`;
   row.querySelector('[data-uploaded-type]').textContent = extension;
   const time = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
@@ -349,135 +347,155 @@ function formatFileSize(bytes) {
   return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
-const directoryTitles = {
-  all: '全部资源'
-};
-
-let activeDirectoryTree = 'organization';
-
-function directoryTreeDatasetKey(treeKey) {
-  return treeKey.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-}
-
-function filterResourceDirectory(button) {
-  const tree = button.closest('[data-directory-tree]');
+function filterKnowledgeSource(button) {
+  const tree = button.closest('[data-knowledge-source-tree]');
   if (!tree) return;
-  const filter = button.dataset.directoryFilter;
-  tree.querySelectorAll('[data-directory-filter]').forEach(item => {
+  const sourceId = button.dataset.knowledgeSource;
+  tree.querySelectorAll('[data-knowledge-source]').forEach(item => {
     const active = item === button;
     item.classList.toggle('is-active', active);
     item.setAttribute('aria-pressed', String(active));
   });
   let visibleCount = 0;
-  const rowKey = directoryTreeDatasetKey(tree.dataset.directoryTree);
-  document.querySelectorAll('#resource-table tbody tr').forEach(row => {
-    const visible = filter === 'all' || row.dataset[rowKey] === filter;
+  document.querySelectorAll('#resource-table tbody tr[data-knowledge-source-row]').forEach(row => {
+    const visible = sourceId === 'all' || row.dataset.knowledgeSourceRow === sourceId;
     row.hidden = !visible;
     if (visible) visibleCount += 1;
   });
   const titleNode = document.querySelector('[data-resource-title]');
+  const summaryNode = document.querySelector('[data-resource-summary]');
   const countNode = document.querySelector('[data-resource-count]');
-  const label = button.querySelector('span:nth-child(2)')?.textContent || directoryTitles[filter] || '全部资源';
-  if (titleNode) titleNode.textContent = label;
+  const emptyNode = document.querySelector('[data-resource-source-empty]');
+  const emptyMessage = document.querySelector('[data-resource-empty-message]');
+  const sourceName = button.querySelector('.source-label strong')?.textContent || '全部知识源';
+  if (titleNode) titleNode.textContent = sourceId === 'all' ? '全部知识源内容' : sourceName;
+  if (summaryNode) summaryNode.textContent = sourceId === 'all' ? '展示 6 个已配置知识源下的内容' : `当前展示“${sourceName}”下的内容`;
   if (countNode) countNode.textContent = `${visibleCount} 条结果`;
+  if (emptyNode) emptyNode.hidden = visibleCount !== 0;
+  if (emptyMessage && sourceId === 'oracle') emptyMessage.textContent = '该知识源尚未完成认证，完成连接并同步后将在此展示内容。';
 }
 
 document.querySelector('.source-panel')?.addEventListener('click', event => {
-  const button = event.target.closest('[data-directory-filter]');
-  if (button) filterResourceDirectory(button);
+  const button = event.target.closest('[data-knowledge-source]');
+  if (button) filterKnowledgeSource(button);
 });
 
-function activateDirectoryTree(treeKey) {
-  activeDirectoryTree = treeKey;
-  document.querySelectorAll('[data-directory-tree-tab]').forEach(tab => {
-    const active = tab.dataset.directoryTreeTab === treeKey;
-    tab.classList.toggle('is-active', active);
-    tab.setAttribute('aria-selected', String(active));
-    tab.tabIndex = active ? 0 : -1;
+function closeSourceFunctionMenus(except = null) {
+  document.querySelectorAll('[data-source-function]').forEach(trigger => {
+    const menu = trigger.parentElement.querySelector('.source-function-menu');
+    const open = trigger === except;
+    trigger.setAttribute('aria-expanded', String(open));
+    if (menu) menu.hidden = !open;
   });
-  document.querySelectorAll('[data-directory-tree]').forEach(tree => {
-    tree.hidden = tree.dataset.directoryTree !== treeKey;
-  });
-  const activeTab = document.querySelector(`[data-directory-tree-tab="${treeKey}"]`);
-  const currentLabel = document.querySelector('[data-current-directory-tree]');
-  if (currentLabel && activeTab) currentLabel.textContent = activeTab.textContent.trim();
-  const activeTree = document.querySelector(`[data-directory-tree="${treeKey}"]`);
-  const activeFilter = activeTree?.querySelector('[data-directory-filter].is-active') || activeTree?.querySelector('[data-directory-filter="all"]');
-  if (activeFilter) filterResourceDirectory(activeFilter);
 }
 
-document.querySelector('.directory-tree-switcher')?.addEventListener('click', event => {
-  const tab = event.target.closest('[data-directory-tree-tab]');
-  if (tab) activateDirectoryTree(tab.dataset.directoryTreeTab);
-});
+function getClassificationResults() {
+  try {
+    const results = JSON.parse(localStorage.getItem('kep-source-classification-results') || '[]');
+    return Array.isArray(results) ? results : [];
+  } catch { return []; }
+}
 
-const directoryForm = document.querySelector('[data-directory-form]');
-document.querySelector('[data-new-directory]')?.addEventListener('click', () => {
-  document.querySelector('[data-directory-tree-form]').hidden = true;
-  directoryForm.hidden = false;
-  directoryForm.querySelector('input')?.focus();
-});
-document.querySelector('[data-cancel-directory]')?.addEventListener('click', () => { directoryForm.hidden = true; });
-directoryForm?.addEventListener('submit', event => {
-  event.preventDefault();
-  const input = directoryForm.querySelector('input');
-  const name = input.value.trim();
-  if (!name) return;
-  const button = document.createElement('button');
-  button.className = 'directory-item';
-  button.type = 'button';
-  button.dataset.directoryFilter = `custom-${Date.now()}`;
-  button.setAttribute('aria-pressed', 'false');
-  button.innerHTML = `<span class="directory-caret" aria-hidden="true">›</span><span></span><span class="source-count">0</span>`;
-  button.querySelector('span:nth-child(2)').textContent = name;
-  document.querySelector(`[data-directory-tree="${activeDirectoryTree}"]`)?.append(button);
-  input.value = '';
-  directoryForm.hidden = true;
-  showToast(`已创建目录“${name}”`);
-});
+const sourceClassificationPaths = {
+  gitlab: ['客户风险评级服务设计', '征信接口变更记录'],
+  confluence: ['对公授信审查办法', '固定资产贷款管理办法'],
+  postgresql: ['customer_profile', 'customer_risk_rating'],
+  jira: ['CREDIT-2841 授信审查规则异常'],
+  s3: ['2025年授信档案汇编', '历史合同归档清单', '客户尽调影像索引']
+};
+const suggestedCatalogPath = name => /风险|征信|授信/.test(name) ? '金融业务 / 信贷业务 / 风险管理' : /合同|档案/.test(name) ? '企业治理 / 法律合规 / 合同管理' : /customer|客户/.test(name) ? '金融业务 / 零售金融 / 客户服务' : '信息科技 / 数据治理';
+function getSourceTasks(){try{const tasks=JSON.parse(localStorage.getItem('kep-source-processing-tasks')||'[]');return Array.isArray(tasks)?tasks:[]}catch{return[]}}
+function saveSourceTasks(tasks){localStorage.setItem('kep-source-processing-tasks',JSON.stringify(tasks))}
+function renderSourceTaskNotices(){const list=document.querySelector('[data-catalog-task-list]'),tasks=getSourceTasks().slice(0,5);if(!list||!tasks.length)return;document.querySelector('[data-catalog-empty]')?.remove();list.innerHTML=tasks.map(item=>`<article class="task-notice ${item.status==='已完成'?'is-complete':''}"><div class="task-notice-head"><div><strong class="text-small-bold">${item.taskName}</strong><p class="text-small">${item.sourceName} · ${item.fileCount} 个文件</p></div><span class="tag tag-status ${item.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${item.status}</span></div><a class="btn btn-dense btn-text task-notice-link" href="resource-tasks.html?task=${encodeURIComponent(item.id)}">${item.status==='已完成'?'任务已完成，查看详情':'进入任务中心查看'}</a></article>`).join('');updateTaskCenterSummary()}
+function renderSourceTasks(){const body=document.querySelector('[data-resource-task-rows]');if(!body)return;getSourceTasks().slice().reverse().forEach(item=>{const row=document.createElement('tr'),completed=item.status==='已完成';row.dataset.sourceTaskId=item.id;row.innerHTML=`<td class="cell-primary">${item.sourceName} · ${item.taskName}<span class="cell-secondary text-small">${item.id}</span></td><td>${item.taskName}</td><td>${item.sourceName}</td><td>当前用户</td><td>${item.startedAt}</td><td>${item.result}</td><td><span class="tag tag-status ${completed?'tag-status-lime':'tag-status-blue'}">${item.status}</span></td><td><a class="btn btn-dense btn-text" href="resource-tasks.html?task=${encodeURIComponent(item.id)}">查看</a></td>`;body.prepend(row)});const taskId=new URLSearchParams(location.search).get('task'),task=taskId&&getSourceTasks().find(item=>item.id===taskId),detail=document.querySelector('[data-source-task-detail]');if(!task||!detail)return;detail.hidden=false;detail.innerHTML=`<header><div><h2 class="text-medium-bold">${task.sourceName} · ${task.taskName}</h2><p class="text-small">${task.id}</p></div><span class="tag tag-status ${task.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${task.status}</span></header><div class="source-task-detail-grid"><div><span class="text-small">任务维度</span><strong>知识源</strong></div><div><span class="text-small">处理范围</span><strong>${task.fileCount} 个文件</strong></div><div><span class="text-small">开始时间</span><strong>${task.startedAt}</strong></div><div><span class="text-small">执行结果</span><strong>${task.result}</strong></div></div>${task.taskType==='classify'&&task.status==='已完成'?'<div class="asset-section-actions"><a class="btn btn-medium btn-primary" href="asset-catalogs.html?review=classification">查看并确认分类结果</a></div>':''}`;document.querySelector(`[data-source-task-id="${CSS.escape(taskId)}"]`)?.classList.add('is-highlighted')}
+renderSourceTaskNotices();renderSourceTasks();
 
-const directoryTreeForm = document.querySelector('[data-directory-tree-form]');
-document.querySelector('[data-new-directory-tree]')?.addEventListener('click', () => {
-  directoryForm.hidden = true;
-  directoryTreeForm.hidden = false;
-  directoryTreeForm.querySelector('input')?.focus();
+function startSourceTask(row, taskType) {
+  const sourceButton = row.querySelector('[data-knowledge-source]');
+  const sourceId = sourceButton.dataset.knowledgeSource;
+  const sourceName = sourceButton.querySelector('.source-label strong')?.textContent.trim() || '当前知识源';
+  const fileNames = sourceClassificationPaths[sourceId] || [];
+  const taskNames = { metadata: '元数据信息补全', classify: '自动分类', tag: '智能打标' };
+  const taskName = taskNames[taskType] || '知识源处理';
+  const taskId = `TASK-S-${Date.now()}`;
+  const startedAt = new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+  const savedTasks = getSourceTasks();
+  savedTasks.unshift({ id: taskId, taskType, taskName, sourceId, sourceName, fileCount: fileNames.length, startedAt, status: '执行中', result: '正在处理知识源下的全部文件' });
+  saveSourceTasks(savedTasks);
+  const taskList = document.querySelector('[data-catalog-task-list]');
+  document.querySelector('[data-catalog-empty]')?.remove();
+  const task = document.createElement('article');
+  task.className = 'task-notice';
+  task.innerHTML = `<div class="task-notice-head"><div><strong class="text-small-bold">${taskName}</strong><p class="text-small">${sourceName} · ${fileNames.length} 个文件</p></div><span class="tag tag-status tag-status-blue" data-catalog-status>执行中</span></div><a class="btn btn-dense btn-text task-notice-link" href="resource-tasks.html?task=${taskId}">进入任务中心查看</a>`;
+  taskList?.prepend(task);
+  notificationPanel.hidden = false;
+  notificationToggle?.setAttribute('aria-expanded', 'true');
+  document.querySelector('[data-task-filter="catalog"]')?.click();
+  updateTaskCenterSummary();
+  let progress = 0;
+  const timer = window.setInterval(() => {
+    progress = Math.min(100, progress + 20);
+    if (progress < 100) return;
+    window.clearInterval(timer);
+    task.classList.add('is-complete');
+    const status = task.querySelector('[data-catalog-status]');
+    status.className = 'tag tag-status tag-status-lime';
+    if (taskType === 'metadata') {
+      status.textContent = '已完成';
+      document.querySelectorAll(`#resource-table tr[data-knowledge-source-row="${sourceId}"] .metadata-completeness`).forEach(node => {
+        node.querySelector('.text-number').textContent = '10/10';
+        node.querySelector('[data-bar]').style.width = '100%';
+        node.querySelector('small').textContent = '100%';
+      });
+    } else if (taskType === 'classify') {
+      status.textContent = '已完成';
+      const current = getClassificationResults().filter(item => item.sourceId !== sourceId);
+      const results = fileNames.map((fileName, index) => ({ id: `${sourceId}-${Date.now()}-${index}`, sourceId, sourceName, fileName, path: suggestedCatalogPath(fileName), status: 'pending' }));
+      localStorage.setItem('kep-source-classification-results', JSON.stringify([...current, ...results]));
+    } else {
+      status.textContent = '已完成';
+    }
+    const tasks = getSourceTasks();
+    const savedTask = tasks.find(item => item.id === taskId);
+    if (savedTask) {
+      savedTask.status = '已完成';
+      savedTask.result = taskType === 'metadata'
+        ? `${fileNames.length} 个文件的元数据已补全`
+        : taskType === 'classify'
+          ? `已生成 ${fileNames.length} 项目录分类建议，等待用户确认`
+          : `${fileNames.length} 个文件已完成智能打标，共生成 ${fileNames.length * 3} 个标签关联`;
+      saveSourceTasks(tasks);
+    }
+    task.querySelector('.task-notice-link').textContent = '任务已完成，查看详情';
+    updateTaskCenterSummary();
+    showToast(`${sourceName}的${taskName}任务已完成`);
+  }, 240);
+}
+
+document.querySelector('[data-knowledge-source-tree]')?.addEventListener('click', event => {
+  const trigger = event.target.closest('[data-source-function]');
+  if (trigger) {
+    event.stopPropagation();
+    closeSourceFunctionMenus(trigger.getAttribute('aria-expanded') === 'true' ? null : trigger);
+    return;
+  }
+  const action = event.target.closest('[data-source-task]');
+  if (!action) return;
+  event.stopPropagation();
+  const row = action.closest('.source-tree-row');
+  closeSourceFunctionMenus();
+  startSourceTask(row, action.dataset.sourceTask);
 });
-document.querySelector('[data-cancel-directory-tree]')?.addEventListener('click', () => { directoryTreeForm.hidden = true; });
-directoryTreeForm?.addEventListener('submit', event => {
-  event.preventDefault();
-  const input = directoryTreeForm.querySelector('input');
-  const name = input.value.trim();
-  if (!name) return;
-  const typeSelect = directoryTreeForm.querySelector('[name="directoryTreeType"]');
-  const treeType = typeSelect.value;
-  const treeTypeLabel = typeSelect.options[typeSelect.selectedIndex].textContent;
-  const treeKey = `custom-tree-${Date.now()}`;
-  const tab = document.createElement('button');
-  tab.className = 'directory-tree-tab';
-  tab.type = 'button';
-  tab.setAttribute('role', 'tab');
-  tab.setAttribute('aria-selected', 'false');
-  tab.tabIndex = -1;
-  tab.dataset.directoryTreeTab = treeKey;
-  tab.dataset.directoryTreeType = treeType;
-  tab.title = `${treeTypeLabel} · ${name}`;
-  tab.textContent = name;
-  document.querySelector('.directory-tree-switcher')?.append(tab);
-  const tree = document.createElement('nav');
-  tree.className = 'directory-tree';
-  tree.hidden = true;
-  tree.dataset.directoryTree = treeKey;
-  tree.dataset.directoryTreeType = treeType;
-  tree.setAttribute('aria-label', `${treeTypeLabel}：${name}`);
-  tree.innerHTML = '<button class="directory-item is-active" type="button" data-directory-filter="all" aria-pressed="true"><span class="directory-caret" aria-hidden="true">›</span><span>全部资源</span><span class="source-count">126</span></button>';
-  directoryForm.before(tree);
-  const count = document.querySelector('[data-directory-tree-count]');
-  if (count) count.textContent = String(document.querySelectorAll('[data-directory-tree-tab]').length);
-  input.value = '';
-  directoryTreeForm.hidden = true;
-  activateDirectoryTree(treeKey);
-  showToast(`已创建${treeTypeLabel}“${name}”`);
+document.querySelector('[data-source-directory-search]')?.addEventListener('input', event => {
+  const query = event.currentTarget.value.trim().toLowerCase();
+  const tree = document.querySelector('[data-knowledge-source-tree]');
+  tree?.querySelectorAll(':scope > .source-tree-row').forEach(row => {
+    row.hidden = !row.textContent.toLowerCase().includes(query);
+  });
+  const allSources = tree?.querySelector(':scope > [data-knowledge-source="all"]');
+  if (allSources) allSources.hidden = Boolean(query);
 });
+document.addEventListener('click', event => { if (!event.target.closest('.source-tree-row')) closeSourceFunctionMenus(); });
 
 const attributeDialog = document.querySelector('[data-attribute-dialog]');
 const attributeTrigger = document.querySelector('[data-open-attributes]');
@@ -712,26 +730,10 @@ function appendDirectoryPlan() {
 function applyDirectoryPlan(button) {
   const directoryNames = ['制度规范', '业务指引', '产品知识', '问答知识', '培训与案例'];
   localStorage.setItem('kep-ai-directory-plan', JSON.stringify(directoryNames));
-  const tree = document.querySelector('[data-directory-tree="business"]');
   document.querySelector('[aria-controls="resource-panel"]')?.click();
-  if (tree) {
-    const existing = [...tree.querySelectorAll('.directory-item')].map(item => item.textContent.trim());
-    directoryNames.filter(name => !existing.some(label => label.includes(name))).forEach(name => {
-      const node = document.createElement('button');
-      node.className = 'directory-item';
-      node.type = 'button';
-      node.innerHTML = '<span class="directory-caret">›</span><span></span><span class="source-count">0</span>';
-      node.querySelector('span:nth-child(2)').textContent = name;
-      tree.append(node);
-    });
-    button.textContent = '已应用到资源目录';
-    button.disabled = true;
-    showToast('目录方案已应用，可在资源管理中继续调整');
-  } else {
-    button.textContent = '方案已保存';
-    button.disabled = true;
-    appendAiMessage('assistant', '目录方案已保存。进入“资源纳管 > 文档中心 > 资源管理”后即可继续调整。');
-  }
+  button.textContent = '已保存为知识源目录方案';
+  button.disabled = true;
+  appendAiMessage('assistant', '目录方案已保存，可进入企业空间后按知识源分别应用。');
 }
 
 function answerAiQuestion(question) {
@@ -1207,7 +1209,7 @@ fileActionForm?.addEventListener('submit', event => {
   if (pendingFileAction === 'rename') {
     const name = fileActionForm.querySelector('[name="fileName"]').value.trim();
     link.textContent = name;
-    link.href = `document-detail.html?file=${encodeURIComponent(name)}`;
+    link.href = `space-file-detail.html?file=${encodeURIComponent(name)}`;
     showToast(`已将“${oldName}”重命名为“${name}”`);
   } else if (pendingFileAction === 'move') {
     const select = fileActionForm.querySelector('[name="targetFolder"]');
@@ -1334,3 +1336,507 @@ document.querySelector('[data-save-user-grant]')?.addEventListener('click', () =
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && userGrantDialog && !userGrantDialog.hidden) setDialogState(userGrantDialog, false, '', userGrantTrigger);
 });
+
+// Knowledge source management: connector catalog, configuration and synchronization states.
+const sourceDialog = document.querySelector('[data-source-dialog]');
+const sourceDialogTrigger = document.querySelector('[data-open-source-dialog]');
+const sourceForm = document.querySelector('[data-source-form]');
+const sourceFields = document.querySelector('[data-source-fields]');
+const sourceSaveButton = document.querySelector('[data-save-source]');
+const sourceTestResult = document.querySelector('[data-source-test-result]');
+const sourceMoreMenu = document.querySelector('[data-source-more-menu]');
+let activeSourceType = 'confluence';
+let editingSourceRow = null;
+
+const sourceConnectorConfigs = {
+  confluence: { name: 'Confluence', mark: 'CF', description: '同步 Confluence 空间、页面与附件。', fields: [
+    ['name', '连接名称', '例如：制度文档空间', 'text', true, true], ['baseUrl', 'Wiki 基础地址', 'https://wiki.example.com', 'url', true, true],
+    ['username', 'Confluence 用户名', 'name@example.com', 'text', true], ['token', '访问令牌', '输入访问令牌', 'password', true],
+    ['spaceKey', '空间 Key', '可选；多个值用英文逗号分隔', 'text', false, true]
+  ]},
+  s3: { name: 'S3', mark: 'S3', description: '连接 AWS S3 或 S3 兼容对象存储。', fields: [
+    ['name', '连接名称', '例如：归档文件存储', 'text', true, true], ['endpoint', 'Endpoint', 'https://s3.example.com', 'url', true, true],
+    ['bucket', 'Bucket', '例如：bank-knowledge-prod', 'text', true], ['region', '区域', '例如：cn-north-1', 'text', true],
+    ['accessKey', 'Access Key', '输入 Access Key', 'text', true], ['secretKey', 'Secret Key', '输入 Secret Key', 'password', true],
+    ['prefix', '路径前缀', '可选，例如：policies/', 'text', false, true]
+  ]},
+  oracle: { name: 'Oracle', mark: 'OR', description: '连接 Oracle 数据库并同步表、视图与结构信息。', fields: [
+    ['name', '连接名称', '例如：核心业务库', 'text', true, true], ['host', '主机地址', '10.24.8.9', 'text', true],
+    ['port', '端口', '1521', 'number', true], ['service', 'Service Name / SID', '例如：ORCL', 'text', true],
+    ['schema', 'Schema', '例如：CREDIT', 'text', false], ['username', '用户名', '数据库用户', 'text', true],
+    ['password', '密码', '输入密码', 'password', true]
+  ]},
+  jira: { name: 'Jira', mark: 'JR', description: '同步 Jira 项目、问题、评论与附件。', fields: [
+    ['name', '连接名称', '例如：授信问题跟踪', 'text', true, true], ['baseUrl', 'Jira 基础地址', 'https://jira.example.com', 'url', true, true],
+    ['username', '邮箱或用户名', 'name@example.com', 'text', true], ['token', 'API Token', '输入 API Token', 'password', true],
+    ['projectKey', '项目 Key', '可选，例如：CREDIT', 'text', false], ['jql', 'JQL 范围', '可选，例如：project = CREDIT', 'text', false]
+  ]},
+  gitlab: { name: 'GitLab', mark: 'GL', description: '同步 GitLab 仓库、Issue、合并请求与 Wiki。', fields: [
+    ['name', '连接名称', '例如：研发协作空间', 'text', true, true], ['baseUrl', 'GitLab 地址', 'https://gitlab.example.com', 'url', true, true],
+    ['token', 'Personal Access Token', '输入访问令牌', 'password', true], ['project', '群组 / 项目路径', '例如：risk/credit-engine', 'text', true],
+    ['branch', '默认分支', 'main', 'text', false], ['scope', '同步范围', '仓库、Issue、Wiki', 'text', false]
+  ]},
+  github: { name: 'GitHub', mark: 'GH', description: '同步 GitHub 仓库、Issue 与项目文档。', fields: [
+    ['name', '连接名称', '例如：开源项目资料', 'text', true, true], ['baseUrl', 'GitHub 地址', 'https://github.com', 'url', true, true],
+    ['token', 'Personal Access Token', '输入访问令牌', 'password', true], ['repository', '仓库', 'owner/repository', 'text', true],
+    ['branch', '默认分支', 'main', 'text', false], ['scope', '同步范围', '代码、Issue、README', 'text', false]
+  ]},
+  mysql: { name: 'MySQL', mark: 'MY', description: '连接 MySQL 并同步表、视图与结构信息。', fields: [
+    ['name', '连接名称', '例如：营销业务库', 'text', true, true], ['host', '主机地址', '10.24.18.16', 'text', true],
+    ['port', '端口', '3306', 'number', true], ['database', '数据库', '数据库名称', 'text', true],
+    ['username', '用户名', '数据库用户', 'text', true], ['password', '密码', '输入密码', 'password', true]
+  ]},
+  postgresql: { name: 'PostgreSQL', mark: 'PG', description: '连接 PostgreSQL 并同步表、视图与结构信息。', fields: [
+    ['name', '连接名称', '例如：客户数据仓', 'text', true, true], ['host', '主机地址', '10.24.18.16', 'text', true],
+    ['port', '端口', '5432', 'number', true], ['database', '数据库', '数据库名称', 'text', true],
+    ['schema', 'Schema', 'public', 'text', false], ['username', '用户名', '数据库用户', 'text', true],
+    ['password', '密码', '输入密码', 'password', true]
+  ]},
+  hive: { name: 'Hive', mark: 'HV', description: '连接 HiveServer2 并同步库表与数据仓元数据。', fields: [
+    ['name', '连接名称', '例如：离线数据仓', 'text', true, true], ['host', 'HiveServer2 地址', 'hive.example.com', 'text', true],
+    ['port', '端口', '10000', 'number', true], ['database', '数据库', 'default', 'text', true],
+    ['auth', '认证方式', 'NONE / LDAP / KERBEROS', 'text', true], ['username', '用户名', '输入用户名', 'text', false],
+    ['password', '密码', '输入密码', 'password', false]
+  ]}
+};
+
+function sourceFieldMarkup(field) {
+  const [key, label, placeholder, type, required, wide] = field;
+  return `<label class="source-config-field ${wide ? 'is-wide' : ''}"><span class="field-label text-small-bold">${label}${required ? ' *' : ''}</span><span class="input-wrap input-middle"><input class="input" name="${key}" type="${type}" placeholder="${placeholder}" ${required ? 'required' : ''} autocomplete="off" /></span></label>`;
+}
+
+function escapeSourceText(value) {
+  return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+}
+
+function renderSourceConfig(type, values = {}) {
+  const config = sourceConnectorConfigs[type];
+  if (!config || !sourceFields) return;
+  activeSourceType = type;
+  document.querySelectorAll('[data-source-type]').forEach(item => item.classList.toggle('is-active', item.dataset.sourceType === type));
+  const title = document.querySelector('[data-config-title]');
+  const description = document.querySelector('[data-config-description]');
+  const mark = document.querySelector('[data-config-mark]');
+  if (title) title.textContent = `${editingSourceRow ? '编辑' : '配置'} ${config.name}`;
+  if (description) description.textContent = config.description;
+  if (mark) { mark.textContent = config.mark; mark.className = `connector-mark connector-${type}`; }
+  sourceFields.innerHTML = config.fields.map(sourceFieldMarkup).join('');
+  Object.entries(values).forEach(([key, value]) => { const input = sourceFields.querySelector(`[name="${key}"]`); if (input) input.value = value; });
+  if (sourceTestResult) { sourceTestResult.textContent = ''; sourceTestResult.className = 'source-test-result text-small'; }
+  if (sourceSaveButton) sourceSaveButton.disabled = true;
+}
+
+function openSourceDialog(type = 'confluence', row = null) {
+  editingSourceRow = row;
+  const config = sourceConnectorConfigs[type] || sourceConnectorConfigs.confluence;
+  const sourceTitle = row?.querySelector('.source-name-cell strong')?.textContent || '';
+  renderSourceConfig(type, sourceTitle ? { name: sourceTitle } : {});
+  const dialogTitle = document.querySelector('#source-dialog-title');
+  if (dialogTitle) dialogTitle.textContent = row ? '编辑知识源' : '新增知识源';
+  setDialogState(sourceDialog, true, '[data-source-fields] input');
+}
+
+sourceDialogTrigger?.addEventListener('click', () => openSourceDialog());
+document.querySelectorAll('[data-close-source-dialog]').forEach(button => button.addEventListener('click', () => setDialogState(sourceDialog, false, '', sourceDialogTrigger)));
+sourceDialog?.addEventListener('click', event => { if (event.target === sourceDialog) setDialogState(sourceDialog, false, '', sourceDialogTrigger); });
+document.querySelectorAll('[data-connector]').forEach(button => button.addEventListener('click', () => openSourceDialog(button.dataset.connector)));
+document.querySelector('[data-source-type-list]')?.addEventListener('click', event => {
+  const item = event.target.closest('[data-source-type]');
+  if (item) renderSourceConfig(item.dataset.sourceType);
+});
+document.querySelector('[data-connector-search]')?.addEventListener('input', event => {
+  const query = event.currentTarget.value.trim().toLowerCase();
+  document.querySelectorAll('[data-source-type]').forEach(item => { item.hidden = !item.textContent.toLowerCase().includes(query); });
+});
+
+document.querySelector('[data-test-source]')?.addEventListener('click', () => {
+  if (!sourceForm?.reportValidity()) return;
+  sourceTestResult.textContent = '正在测试连接…';
+  sourceTestResult.className = 'source-test-result text-small';
+  sourceSaveButton.disabled = true;
+  window.setTimeout(() => {
+    sourceTestResult.textContent = '连接成功，凭据与访问范围验证通过';
+    sourceTestResult.className = 'source-test-result text-small is-success';
+    sourceSaveButton.disabled = false;
+  }, 700);
+});
+
+sourceSaveButton?.addEventListener('click', () => {
+  if (!sourceForm?.reportValidity() || sourceSaveButton.disabled) return;
+  const data = new FormData(sourceForm);
+  const config = sourceConnectorConfigs[activeSourceType];
+  const name = String(data.get('name') || `${config.name} 知识源`).trim();
+  if (editingSourceRow) {
+    editingSourceRow.querySelector('.source-name-cell strong').textContent = name;
+    editingSourceRow.dataset.name = `${name} ${config.name}`;
+    showToast(`已保存“${name}”的连接配置`);
+  } else {
+    const row = document.createElement('tr');
+    row.dataset.sourceRow = '';
+    row.dataset.name = `${name} ${config.name}`;
+    row.dataset.status = 'normal';
+    row.innerHTML = `<td><div class="source-name-cell"><span class="connector-mark connector-${activeSourceType}">${config.mark}</span><span><strong>${escapeSourceText(name)}</strong><small>${config.name} · 新建连接</small></span></div></td><td><span class="tag tag-status tag-status-lime">已连接</span></td><td><span class="sync-state"><i class="sync-dot"></i>尚未同步</span></td><td>未关联</td><td>未设置</td><td>—</td><td>当前用户</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-sync-source>立即同步</button><button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td>`;
+    document.querySelector('[data-source-instance-list]')?.prepend(row);
+    const total = document.querySelector('[data-source-total]');
+    if (total) total.textContent = String(Number(total.textContent) + 1);
+    showToast(`已创建“${name}”，请到知识库配置同步范围`);
+  }
+  setDialogState(sourceDialog, false, '', sourceDialogTrigger);
+});
+
+let sourceStatusFilter = 'all';
+function filterSourceRows() {
+  const query = document.querySelector('[data-source-search]')?.value.trim().toLowerCase() || '';
+  let visible = 0;
+  document.querySelectorAll('[data-source-row]').forEach(row => {
+    const matchesQuery = (row.dataset.name || row.textContent).toLowerCase().includes(query);
+    const matchesStatus = sourceStatusFilter === 'all' || row.dataset.status === sourceStatusFilter;
+    row.hidden = !(matchesQuery && matchesStatus);
+    if (!row.hidden) visible += 1;
+  });
+  const empty = document.querySelector('[data-source-empty]');
+  if (empty) empty.hidden = visible > 0;
+}
+document.querySelector('[data-source-search]')?.addEventListener('input', filterSourceRows);
+document.querySelectorAll('[data-source-status]').forEach(button => button.addEventListener('click', () => {
+  sourceStatusFilter = button.dataset.sourceStatus;
+  document.querySelectorAll('[data-source-status]').forEach(item => { const active = item === button; item.classList.toggle('is-active', active); item.setAttribute('aria-pressed', String(active)); });
+  filterSourceRows();
+}));
+
+document.querySelector('[data-source-instance-list]')?.addEventListener('click', event => {
+  const syncButton = event.target.closest('[data-sync-source], [data-test-row]');
+  const editButton = event.target.closest('[data-edit-source]');
+  const moreButton = event.target.closest('[data-source-more]');
+  const row = event.target.closest('[data-source-row]');
+  if (syncButton && row) {
+    const name = row.querySelector('.source-name-cell strong')?.textContent;
+    syncButton.textContent = '同步中';
+    syncButton.disabled = true;
+    showToast(`“${name}”同步任务已加入任务中心`);
+    window.setTimeout(() => { syncButton.textContent = '立即同步'; syncButton.disabled = false; }, 1200);
+  }
+  if (editButton && row) {
+    const className = row.querySelector('.connector-mark')?.className || '';
+    const type = Object.keys(sourceConnectorConfigs).find(key => className.includes(`connector-${key}`)) || 'confluence';
+    openSourceDialog(type, row);
+  }
+  if (moreButton && sourceMoreMenu) {
+    const rect = moreButton.getBoundingClientRect();
+    sourceMoreMenu.hidden = false;
+    sourceMoreMenu.style.inset = `${Math.min(rect.bottom + 4, window.innerHeight - sourceMoreMenu.offsetHeight - 8)}px ${Math.max(8, window.innerWidth - rect.right)}px auto auto`;
+  }
+});
+document.addEventListener('click', event => {
+  if (!sourceMoreMenu || sourceMoreMenu.hidden || event.target.closest('[data-source-more], [data-source-more-menu]')) return;
+  sourceMoreMenu.hidden = true;
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && sourceDialog && !sourceDialog.hidden) setDialogState(sourceDialog, false, '', sourceDialogTrigger);
+  if (event.key === 'Escape' && sourceMoreMenu) sourceMoreMenu.hidden = true;
+});
+
+// 标签管理：三级业务分类树、分类筛选与分类增删改。
+const tagCategoryTree = document.querySelector('[data-category-tree]');
+const newTagDialog = document.querySelector('[data-tag-dialog]');
+const newTagDialogTrigger = document.querySelector('[data-open-tag-dialog]');
+const newTagForm = document.querySelector('[data-tag-form]');
+const tagCategoryDialog = document.querySelector('[data-category-dialog]');
+const tagCategoryDeleteDialog = document.querySelector('[data-category-delete-dialog]');
+const tagCategoryForm = document.querySelector('[data-category-form]');
+let activeTagCategory = 'all';
+let editingTagCategoryNode = null;
+let parentTagCategoryNode = null;
+let deletingTagCategoryNode = null;
+
+function filterTagRows() {
+  const query = document.querySelector('[data-tag-search]')?.value.trim().toLowerCase() || '';
+  let visible = 0;
+  document.querySelectorAll('[data-tag-rows] tr').forEach(row => {
+    const matchesCategory = activeTagCategory === 'all' || (row.dataset.tagCategoryPath || '').split(' ').includes(activeTagCategory);
+    const matchesQuery = row.textContent.toLowerCase().includes(query);
+    row.hidden = !(matchesCategory && matchesQuery);
+    if (!row.hidden) visible += 1;
+  });
+  const resultCount = document.querySelector('[data-tag-result-count]');
+  const empty = document.querySelector('[data-tag-empty]');
+  if (resultCount) resultCount.textContent = `共 ${visible} 个标签`;
+  if (empty) empty.hidden = visible > 0;
+}
+
+function selectTagCategory(node) {
+  activeTagCategory = node.dataset.categoryId;
+  document.querySelectorAll('[data-category-select]').forEach(button => {
+    const active = button.closest('[data-category-node]') === node;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  const title = document.querySelector('[data-tag-list-title]');
+  if (title) title.textContent = node.dataset.categoryName;
+  filterTagRows();
+}
+
+function openTagCategoryDialog({ parent = null, editing = null } = {}) {
+  parentTagCategoryNode = parent;
+  editingTagCategoryNode = editing;
+  const input = tagCategoryForm?.elements.categoryName;
+  const description = tagCategoryForm?.elements.categoryDescription;
+  const depth = editing ? Number(editing.dataset.categoryDepth) : parent ? Number(parent.dataset.categoryDepth) + 1 : 1;
+  const title = document.querySelector('[data-category-dialog-title]');
+  const parentName = document.querySelector('[data-category-parent-name]');
+  const level = document.querySelector('[data-category-level]');
+  if (title) title.textContent = editing ? '修改业务分类' : parent ? '新增子分类' : '新增一级分类';
+  if (parentName) parentName.textContent = parent?.dataset.categoryName || editing?.parentElement.closest('[data-category-node]')?.dataset.categoryName || '无（一级分类）';
+  if (level) level.textContent = `${['一', '二', '三'][depth - 1]}级目录`;
+  if (input) input.value = editing?.dataset.categoryName || '';
+  if (description) description.value = editing?.dataset.categoryDescription || '';
+  setDialogState(tagCategoryDialog, true, '[name="categoryName"]');
+}
+
+function escapeTagCategoryText(value) {
+  return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+}
+
+function createTagCategoryNode(name, description, depth) {
+  const node = document.createElement('div');
+  const id = `category-${Date.now()}`;
+  const addAction = depth < 3 ? `<button type="button" data-category-add aria-label="在${escapeTagCategoryText(name)}下新增子分类">＋</button>` : '';
+  node.className = 'tag-category-node';
+  node.setAttribute('role', 'treeitem');
+  node.setAttribute('aria-level', String(depth));
+  node.dataset.categoryNode = '';
+  node.dataset.categoryId = id;
+  node.dataset.categoryName = name;
+  node.dataset.categoryDescription = description;
+  node.dataset.categoryDepth = String(depth);
+  node.innerHTML = `<div class="tag-category-row"><button class="tag-category-item" type="button" data-category-select aria-pressed="false"><span class="tag-category-caret"></span><span data-category-label>${escapeTagCategoryText(name)}</span><small class="text-number" data-category-count>0</small></button><span class="tag-category-actions">${addAction}<button type="button" data-category-edit aria-label="修改${escapeTagCategoryText(name)}">✎</button><button type="button" data-category-delete aria-label="删除${escapeTagCategoryText(name)}">×</button></span></div>`;
+  return node;
+}
+
+document.querySelector('[data-category-create-root]')?.addEventListener('click', () => openTagCategoryDialog());
+newTagDialogTrigger?.addEventListener('click', () => {
+  newTagForm?.reset();
+  const category = document.querySelector(`[data-category-id="${activeTagCategory}"]`);
+  const categoryName = document.querySelector('[data-new-tag-category]');
+  if (categoryName) categoryName.textContent = activeTagCategory === 'all' ? '未分类' : category?.dataset.categoryName || '未分类';
+  setDialogState(newTagDialog, true, '[name="tagName"]', newTagDialogTrigger);
+});
+document.querySelectorAll('[data-tag-dialog-close]').forEach(button => button.addEventListener('click', () => setDialogState(newTagDialog, false, '', newTagDialogTrigger)));
+document.querySelectorAll('[data-category-dialog-close]').forEach(button => button.addEventListener('click', () => setDialogState(tagCategoryDialog, false)));
+document.querySelectorAll('[data-category-delete-close]').forEach(button => button.addEventListener('click', () => setDialogState(tagCategoryDeleteDialog, false)));
+document.querySelector('[data-tag-search]')?.addEventListener('input', filterTagRows);
+
+tagCategoryTree?.addEventListener('click', event => {
+  const node = event.target.closest('[data-category-node]');
+  if (!node) return;
+  if (event.target.closest('[data-category-select]')) selectTagCategory(node);
+  if (event.target.closest('[data-category-add]')) {
+    if (Number(node.dataset.categoryDepth) >= 3) return showToast('业务分类最多支持三级目录');
+    openTagCategoryDialog({ parent: node });
+  }
+  if (event.target.closest('[data-category-edit]')) openTagCategoryDialog({ editing: node });
+  if (event.target.closest('[data-category-delete]')) {
+    deletingTagCategoryNode = node;
+    const name = document.querySelector('[data-category-delete-name]');
+    if (name) name.textContent = node.dataset.categoryName;
+    setDialogState(tagCategoryDeleteDialog, true, '[data-category-delete-confirm]');
+  }
+});
+
+tagCategoryForm?.addEventListener('submit', event => {
+  event.preventDefault();
+  const formData = new FormData(tagCategoryForm);
+  const name = String(formData.get('categoryName') || '').trim();
+  const description = String(formData.get('categoryDescription') || '').trim();
+  if (!name || !description) return;
+  if (editingTagCategoryNode) {
+    editingTagCategoryNode.dataset.categoryName = name;
+    editingTagCategoryNode.dataset.categoryDescription = description;
+    editingTagCategoryNode.querySelector('[data-category-label]').textContent = name;
+    editingTagCategoryNode.querySelector('[data-category-edit]').setAttribute('aria-label', `修改${name}`);
+    editingTagCategoryNode.querySelector('[data-category-delete]').setAttribute('aria-label', `删除${name}`);
+    if (activeTagCategory === editingTagCategoryNode.dataset.categoryId) document.querySelector('[data-tag-list-title]').textContent = name;
+    showToast(`已将业务分类修改为“${name}”`);
+  } else {
+    const depth = parentTagCategoryNode ? Number(parentTagCategoryNode.dataset.categoryDepth) + 1 : 1;
+    const node = createTagCategoryNode(name, description, depth);
+    if (parentTagCategoryNode) {
+      let group = parentTagCategoryNode.querySelector(':scope > .tag-category-children');
+      if (!group) {
+        group = document.createElement('div');
+        group.className = 'tag-category-children';
+        group.setAttribute('role', 'group');
+        parentTagCategoryNode.append(group);
+      }
+      group.append(node);
+      parentTagCategoryNode.setAttribute('aria-expanded', 'true');
+      parentTagCategoryNode.querySelector('.tag-category-caret').textContent = '⌄';
+    } else {
+      tagCategoryTree.append(node);
+    }
+    selectTagCategory(node);
+    showToast(`已新增${depth}级业务分类“${name}”`);
+  }
+  setDialogState(tagCategoryDialog, false);
+});
+
+function getTagCategoryPath(node) {
+  const ids = [];
+  const names = [];
+  let current = node;
+  while (current && current.dataset.categoryId !== 'all') {
+    ids.unshift(current.dataset.categoryId);
+    names.unshift(current.dataset.categoryName);
+    current = current.parentElement?.closest('[data-category-node]');
+  }
+  return { ids, names };
+}
+
+newTagForm?.addEventListener('submit', event => {
+  event.preventDefault();
+  const formData = new FormData(newTagForm);
+  const name = String(formData.get('tagName') || '').trim();
+  const description = String(formData.get('tagDescription') || '').trim();
+  if (!name || !description) return;
+  const selectedNode = document.querySelector(`[data-category-id="${activeTagCategory}"]`);
+  const { ids, names } = getTagCategoryPath(selectedNode);
+  const row = document.createElement('tr');
+  row.dataset.tagCategoryPath = ids.join(' ');
+  const code = `TAG-${Date.now().toString().slice(-8)}`;
+  const time = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
+  row.innerHTML = `<td class="cell-primary">${escapeTagCategoryText(name)}</td><td>${escapeTagCategoryText(description)}</td><td class="text-number">${code}</td><td>${escapeTagCategoryText(names.join(' / ') || '未分类')}</td><td class="text-number">0</td><td>当前用户</td><td>${time}</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-toast="标签编辑功能已打开">编辑</button></td>`;
+  document.querySelector('[data-tag-rows]')?.prepend(row);
+  ['all', ...ids].forEach(id => {
+    const count = document.querySelector(`[data-category-id="${id}"] [data-category-count]`);
+    if (count) count.textContent = String(Number(count.textContent || 0) + 1);
+  });
+  filterTagRows();
+  setDialogState(newTagDialog, false, '', newTagDialogTrigger);
+  showToast(`已创建标签“${name}”`);
+});
+
+document.querySelector('[data-category-delete-confirm]')?.addEventListener('click', () => {
+  if (!deletingTagCategoryNode) return;
+  const name = deletingTagCategoryNode.dataset.categoryName;
+  const containsActive = deletingTagCategoryNode.dataset.categoryId === activeTagCategory || deletingTagCategoryNode.querySelector(`[data-category-id="${activeTagCategory}"]`);
+  deletingTagCategoryNode.remove();
+  deletingTagCategoryNode = null;
+  if (containsActive) selectTagCategory(document.querySelector('[data-category-id="all"]'));
+  setDialogState(tagCategoryDeleteDialog, false);
+  showToast(`已删除业务分类“${name}”`);
+});
+
+document.querySelector('[data-category-search]')?.addEventListener('input', event => {
+  const query = event.currentTarget.value.trim().toLowerCase();
+  tagCategoryTree?.querySelectorAll(':scope > [data-category-node]').forEach(node => {
+    node.hidden = node.dataset.categoryId !== 'all' && Boolean(query) && !node.textContent.toLowerCase().includes(query);
+  });
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key !== 'Escape') return;
+  if (newTagDialog && !newTagDialog.hidden) setDialogState(newTagDialog, false, '', newTagDialogTrigger);
+  if (tagCategoryDialog && !tagCategoryDialog.hidden) setDialogState(tagCategoryDialog, false);
+  if (tagCategoryDeleteDialog && !tagCategoryDeleteDialog.hidden) setDialogState(tagCategoryDeleteDialog, false);
+});
+
+// 资产目录：多目录树、三级目录与文件列表联动。
+const assetTreeNode = document.querySelector('[data-asset-directory-tree]');
+const assetTreeSelect = document.querySelector('[data-tree-switch]');
+const assetFileRows = document.querySelector('[data-asset-file-rows]');
+const assetTreeDialog = document.querySelector('[data-tree-dialog]');
+const assetFolderDialog = document.querySelector('[data-folder-dialog]');
+const assetTrees = {
+  business:{name:'业务分类目录',description:'按业务领域组织企业正式知识资产',folders:[{id:'finance',name:'金融业务',children:[{id:'credit',name:'信贷业务',children:[{id:'risk',name:'风险管理'},{id:'approval',name:'授信审批'}]},{id:'retail',name:'零售金融',children:[{id:'customer',name:'客户服务'}]}]},{id:'governance',name:'企业治理',children:[{id:'legal',name:'法律合规',children:[{id:'contract',name:'合同管理'}]},{id:'hr',name:'人力资源'}]},{id:'technology',name:'信息科技',children:[{id:'architecture',name:'系统架构'},{id:'security',name:'信息安全'}]}]},
+  organization:{name:'组织机构目录',description:'按资产责任部门与管理机构组织',folders:[{id:'head-office',name:'总行部门',children:[{id:'risk-dept',name:'风险管理部'},{id:'tech-dept',name:'金融科技部'}]},{id:'branches',name:'分支机构',children:[{id:'east-branch',name:'华东分行'},{id:'south-branch',name:'华南分行'}]}]},
+  topic:{name:'专题资产目录',description:'按重点项目与专题场景灵活编目',folders:[{id:'inclusive',name:'普惠金融专题',children:[{id:'small-business',name:'小微企业服务'}]},{id:'digital',name:'数字化转型专题',children:[{id:'ai',name:'人工智能应用'},{id:'data',name:'数据治理'}]}]}
+};
+const catalogAssets = [
+ ['对公授信审查办法','PDF',['finance','credit','approval','head-office','risk-dept'],'金融业务 / 信贷业务 / 授信审批','v3.2','王翠','2026-09-05 10:26'],['固定资产贷款管理办法','DOCX',['finance','credit','risk','head-office','risk-dept'],'金融业务 / 信贷业务 / 风险管理','v2.0','李程','2026-09-04 16:48'],['客户风险评级规则','规则集',['finance','credit','risk','head-office','risk-dept'],'金融业务 / 信贷业务 / 风险管理','v5.1','陈曦','2026-09-03 11:12'],['零售客户服务规范','PDF',['finance','retail','customer','branches','east-branch'],'金融业务 / 零售金融 / 客户服务','v1.8','赵楠','2026-09-02 14:30'],['标准采购合同模板','DOCX',['governance','legal','contract','head-office'],'企业治理 / 法律合规 / 合同管理','v4.0','刘敏','2026-09-01 09:18'],['数据安全分类分级指引','PDF',['technology','security','head-office','tech-dept','digital','data'],'信息科技 / 信息安全','v2.3','陈曦','2026-08-30 17:42'],['核心系统架构说明','Markdown',['technology','architecture','head-office','tech-dept','digital'],'信息科技 / 系统架构','v1.6','周明','2026-08-28 14:18'],['员工行为管理办法','PDF',['governance','hr','head-office'],'企业治理 / 人力资源','v2.1','何静','2026-08-25 10:05'],['华东区域客户运营报告','XLSX',['finance','retail','branches','east-branch'],'金融业务 / 零售金融','v1.2','赵楠','2026-08-21 16:35'],['小微企业授信知识手册','PDF',['finance','credit','inclusive','small-business'],'金融业务 / 信贷业务','v3.0','王翠','2026-08-18 11:26'],['智能客服知识图谱','知识图谱',['finance','retail','digital','ai'],'金融业务 / 零售金融','v2.5','周明','2026-08-15 15:08'],['南方区域合规检查清单','XLSX',['governance','legal','branches','south-branch'],'企业治理 / 法律合规','v1.4','刘敏','2026-08-12 09:30']
+];
+let activeAssetTree='business', activeAssetFolder=null, pendingAssetParent=null;
+const safeAssetText=value=>String(value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+function renderClassificationReview(){const panel=document.querySelector('[data-classification-review]'),list=document.querySelector('[data-classification-review-list]');if(!panel||!list)return;const pending=getClassificationResults().filter(item=>item.status==='pending');panel.hidden=pending.length===0;document.querySelector('[data-classification-review-count]').textContent=`${pending.length} 项待确认`;list.innerHTML=pending.map(item=>`<article class="classification-review-item" data-classification-result="${safeAssetText(item.id)}"><div class="classification-review-file"><strong class="text-normal-bold">${safeAssetText(item.fileName)}</strong><small class="text-small">来源：${safeAssetText(item.sourceName)}</small></div><div class="classification-review-path"><span class="classification-path-label text-small">建议业务目录</span><strong class="text-normal">${safeAssetText(item.path)}</strong></div><div class="classification-review-actions"><button class="btn btn-dense btn-secondary" type="button" data-classification-reject>不接受</button><button class="btn btn-dense btn-primary" type="button" data-classification-accept>接受分类</button></div></article>`).join('')}
+document.querySelector('[data-classification-review-list]')?.addEventListener('click',event=>{const action=event.target.closest('[data-classification-accept],[data-classification-reject]');if(!action)return;const row=action.closest('[data-classification-result]'),results=getClassificationResults(),result=results.find(item=>item.id===row.dataset.classificationResult);if(!result)return;result.status=action.hasAttribute('data-classification-accept')?'accepted':'rejected';localStorage.setItem('kep-source-classification-results',JSON.stringify(results));showToast(result.status==='accepted'?`已接受“${result.fileName}”的目录分类`:`已拒绝“${result.fileName}”的目录分类`);renderClassificationReview()});
+const allAssetFolders=(folders,result=[])=>{folders.forEach(folder=>{result.push(folder);allAssetFolders(folder.children||[],result)});return result};
+const assetCount=id=>catalogAssets.filter(asset=>asset[2].includes(id)).length;
+function assetFolderHtml(folder,depth=1){const children=folder.children||[];return `<div class="asset-folder-node" role="treeitem" aria-level="${depth}" data-asset-folder data-folder-id="${safeAssetText(folder.id)}" data-folder-name="${safeAssetText(folder.name)}" data-folder-depth="${depth}"><div class="asset-folder-row"><button class="asset-folder-select" type="button" data-asset-folder-select aria-pressed="false"><span class="asset-folder-caret">${children.length?'⌄':''}</span><span class="asset-folder-icon">▱</span><span class="asset-folder-label">${safeAssetText(folder.name)}</span><small class="asset-folder-count text-number">${assetCount(folder.id)}</small></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-asset-folder-function aria-label="${safeAssetText(folder.name)}功能组">⋮</button><div class="source-function-menu" role="menu" hidden>${depth<3?'<button type="button" role="menuitem" data-add-asset-folder>新建子目录</button>':''}<button type="button" role="menuitem" data-add-directory-file>添加文件</button><button type="button" role="menuitem" data-rename-asset-folder>修改目录</button><button class="is-danger" type="button" role="menuitem" data-delete-asset-folder>删除目录</button></div></div>${children.length?`<div class="asset-folder-children" role="group">${children.map(child=>assetFolderHtml(child,depth+1)).join('')}</div>`:''}</div>`}
+function renderAssetTree(){if(!assetTreeNode)return;const tree=assetTrees[activeAssetTree];assetTreeNode.setAttribute('aria-label',tree.name);assetTreeNode.innerHTML=tree.folders.map(folder=>assetFolderHtml(folder)).join('')||'<p class="source-empty-state text-small">尚无目录，请新建一级目录</p>'}
+function renderCatalogAssets(){if(!assetFileRows)return;const query=document.querySelector('[data-asset-file-search]')?.value.trim().toLowerCase()||'';const rows=catalogAssets.filter(asset=>(!activeAssetFolder||asset[2].includes(activeAssetFolder.id))&&asset.join(' ').toLowerCase().includes(query));assetFileRows.innerHTML=rows.map(asset=>`<tr><td class="cell-primary"><a class="document-link" href="resource-catalog-detail.html?file=${encodeURIComponent(asset[0])}">${safeAssetText(asset[0])}</a></td><td>${asset[1]}</td><td>${asset[3]}</td><td class="text-number">${asset[4]}</td><td>${asset[5]}</td><td>${asset[6]}</td><td><span class="tag tag-status tag-status-lime">已发布</span></td><td class="cell-actions"><a class="btn btn-dense btn-text" href="resource-catalog-detail.html?file=${encodeURIComponent(asset[0])}">查看</a></td></tr>`).join('');document.querySelector('[data-asset-empty]').hidden=rows.length>0;document.querySelector('[data-asset-result-count]').textContent=`${rows.length} 个文件`}
+function selectCatalogFolder(node){document.querySelectorAll('[data-asset-folder-select]').forEach(button=>{const chosen=button.closest('[data-asset-folder]')===node;button.classList.toggle('is-active',chosen);button.setAttribute('aria-pressed',String(chosen))});activeAssetFolder=node?{id:node.dataset.folderId,name:node.dataset.folderName}:null;const title=activeAssetFolder?.name||'全部资产';document.querySelector('[data-asset-file-title]').textContent=title;document.querySelector('[data-selected-path]').textContent=title;document.querySelector('[data-asset-file-summary]').textContent=`展示${activeAssetFolder?`“${title}”目录`:assetTrees[activeAssetTree].name}下的资产`;renderCatalogAssets()}
+function switchCatalogTree(id){activeAssetTree=id;activeAssetFolder=null;const tree=assetTrees[id];document.querySelector('[data-tree-description]').textContent=tree.description;document.querySelector('[data-select-tree-root]').textContent=tree.name;if(assetTreeSelect)assetTreeSelect.value=id;renderAssetTree();selectCatalogFolder(null)}
+assetTreeSelect?.addEventListener('change',event=>switchCatalogTree(event.currentTarget.value));document.querySelector('[data-select-tree-root]')?.addEventListener('click',()=>selectCatalogFolder(null));document.querySelector('[data-asset-file-search]')?.addEventListener('input',renderCatalogAssets);document.querySelector('[data-asset-tree-search]')?.addEventListener('input',event=>{const query=event.currentTarget.value.trim().toLowerCase();assetTreeNode.querySelectorAll('[data-asset-folder]').forEach(node=>node.hidden=Boolean(query)&&!node.textContent.toLowerCase().includes(query))});
+function openAssetFolderDialog(parent=null){pendingAssetParent=parent;const depth=parent?Number(parent.dataset.folderDepth)+1:1;document.querySelector('[data-folder-dialog-title]').textContent=parent?'新建子目录':'新建一级目录';document.querySelector('[data-folder-parent-name]').textContent=parent?.dataset.folderName||assetTrees[activeAssetTree].name;document.querySelector('[data-folder-level]').textContent=`${['一','二','三'][depth-1]}级目录`;document.querySelector('[data-folder-form]').reset();setDialogState(assetFolderDialog,true,'[name="folderName"]')}
+function closeAssetFolderMenus(except=null){document.querySelectorAll('[data-asset-folder-function]').forEach(trigger=>{const open=trigger===except;trigger.setAttribute('aria-expanded',String(open));const menu=trigger.parentElement.querySelector('.source-function-menu');if(menu)menu.hidden=!open})}
+document.querySelector('[data-open-folder-dialog]')?.addEventListener('click',()=>openAssetFolderDialog());assetTreeNode?.addEventListener('click',event=>{const node=event.target.closest('[data-asset-folder]');if(!node)return;const trigger=event.target.closest('[data-asset-folder-function]');if(trigger){const willOpen=trigger.getAttribute('aria-expanded')!=='true';closeAssetFolderMenus(willOpen?trigger:null);return}if(event.target.closest('[data-asset-folder-select]'))selectCatalogFolder(node);if(event.target.closest('[data-add-asset-folder]'))openAssetFolderDialog(node);if(event.target.closest('[data-rename-asset-folder]'))showToast(`已打开“${node.dataset.folderName}”修改面板`);if(event.target.closest('[data-add-directory-file]'))openDirectoryFilePicker(node);if(event.target.closest('[data-delete-asset-folder]')){const target=allAssetFolders(assetTrees[activeAssetTree].folders).find(folder=>folder.id===node.dataset.folderId);if((target?.children||[]).length||assetCount(node.dataset.folderId))return showToast('请先移走目录中的文件和子目录');const removeFrom=list=>{const index=list.findIndex(item=>item.id===node.dataset.folderId);if(index>=0){list.splice(index,1);return true}return list.some(item=>removeFrom(item.children||[]))};removeFrom(assetTrees[activeAssetTree].folders);renderAssetTree();selectCatalogFolder(null);showToast(`已删除目录“${node.dataset.folderName}”`)}closeAssetFolderMenus()});
+document.addEventListener('click',event=>{if(!event.target.closest('[data-asset-folder-function],.asset-folder-row .source-function-menu'))closeAssetFolderMenus()});
+document.querySelector('[data-folder-form]')?.addEventListener('submit',event=>{event.preventDefault();const formData=new FormData(event.currentTarget),name=String(formData.get('folderName')||'').trim(),description=String(formData.get('folderDescription')||'').trim();if(!name||!description)return;const parentData=pendingAssetParent?allAssetFolders(assetTrees[activeAssetTree].folders).find(folder=>folder.id===pendingAssetParent.dataset.folderId):null;const siblings=parentData?(parentData.children||(parentData.children=[])):assetTrees[activeAssetTree].folders;if(siblings.some(folder=>folder.name===name))return showToast('同级目录名称已存在');siblings.push({id:`folder-${Date.now()}`,name,description});renderAssetTree();setDialogState(assetFolderDialog,false);showToast(`已新建目录“${name}”`)});
+document.querySelector('[data-open-tree-dialog]')?.addEventListener('click',()=>{document.querySelector('[data-tree-form]').reset();setDialogState(assetTreeDialog,true,'[name="treeName"]')});document.querySelector('[data-tree-form]')?.addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget),name=String(data.get('treeName')||'').trim(),description=String(data.get('treeDescription')||'').trim();if(!name||!description)return;if(Object.values(assetTrees).some(tree=>tree.name===name))return showToast('目录树名称已存在');const id=`tree-${Date.now()}`;assetTrees[id]={name,description,folders:[]};const option=document.createElement('option');option.value=id;option.textContent=name;assetTreeSelect.append(option);document.querySelector('[data-catalog-tree-count]').textContent=String(Object.keys(assetTrees).length);setDialogState(assetTreeDialog,false);switchCatalogTree(id);showToast(`已创建并切换到“${name}”`)});
+document.querySelectorAll('[data-tree-dialog-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(assetTreeDialog,false)));document.querySelectorAll('[data-folder-dialog-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(assetFolderDialog,false)));
+const directoryFileDialog=document.querySelector('[data-add-file-dialog]'),sourceFiles=[['对公授信审查办法','PDF','confluence','2026-09-05'],['零售业务管理规范','DOCX','confluence','2026-09-03'],['监管政策汇编','PDF','confluence','2026-09-01'],['客户风险评级服务设计','Markdown','gitlab','2026-09-04'],['接口变更记录','Wiki','gitlab','2026-09-02'],['2025年授信档案','PDF','s3','2026-08-30'],['历史合同清单','XLSX','s3','2026-08-28'],['客户尽调影像索引','JSON','s3','2026-08-26']];let pickerSource='all',pickerTarget=null;
+function updatePickedFiles(){const count=document.querySelectorAll('[data-picker-file]:checked').length;document.querySelector('[data-picker-selected-count]').textContent=`已选 ${count} 个`;document.querySelector('[data-add-file-confirm]').disabled=count===0}function renderSourceFiles(){const query=document.querySelector('[data-picker-file-search]')?.value.trim().toLowerCase()||'',body=document.querySelector('[data-picker-file-rows]');if(!body)return;body.innerHTML=sourceFiles.filter(file=>(pickerSource==='all'||file[2]===pickerSource)&&file[0].toLowerCase().includes(query)).map(file=>`<tr><td><input class="checkbox" type="checkbox" data-picker-file value="${safeAssetText(file[0])}" aria-label="选择${safeAssetText(file[0])}" /></td><td class="cell-primary">${safeAssetText(file[0])}</td><td>${file[1]}</td><td>${file[3]}</td></tr>`).join('');updatePickedFiles()}function openDirectoryFilePicker(node){pickerTarget=node;pickerSource='all';document.querySelector('[data-add-file-target]').textContent=node.dataset.folderName;document.querySelectorAll('[data-source-filter]').forEach((button,index)=>button.classList.toggle('is-active',index===0));document.querySelector('[data-picker-file-search]').value='';renderSourceFiles();setDialogState(directoryFileDialog,true,'[data-picker-file-search]')}
+document.querySelector('[data-source-picker]')?.addEventListener('click',event=>{const button=event.target.closest('[data-source-filter]');if(!button)return;pickerSource=button.dataset.sourceFilter;document.querySelectorAll('[data-source-filter]').forEach(item=>item.classList.toggle('is-active',item===button));renderSourceFiles()});document.querySelector('[data-picker-file-search]')?.addEventListener('input',renderSourceFiles);document.querySelector('[data-picker-file-rows]')?.addEventListener('change',updatePickedFiles);document.querySelectorAll('[data-add-file-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(directoryFileDialog,false)));document.querySelector('[data-add-file-confirm]')?.addEventListener('click',()=>{const count=document.querySelectorAll('[data-picker-file]:checked').length;if(!count)return;setDialogState(directoryFileDialog,false);showToast(`已将 ${count} 个文件添加到“${pickerTarget.dataset.folderName}”`)});if(assetTreeNode){switchCatalogTree(activeAssetTree);renderClassificationReview()}
+const permissionAddDialog=document.querySelector('[data-permission-add-dialog]');document.querySelector('[data-open-permission-add]')?.addEventListener('click',event=>setDialogState(permissionAddDialog,true,'input',event.currentTarget));document.querySelectorAll('[data-permission-add-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(permissionAddDialog,false)));document.querySelectorAll('[data-query-file]').forEach(node=>{const file=new URLSearchParams(location.search).get('file');if(file)node.textContent=file});
+
+const sourceSpace = document.body.dataset.page === 'documents-personal' ? 'personal' : document.body.dataset.page === 'documents-team' ? 'team' : 'enterprise';
+document.querySelectorAll('a[href^="space-file-detail.html"]').forEach(link => {
+  const url = new URL(link.href, location.href);
+  if (!url.searchParams.has('space')) url.searchParams.set('space', sourceSpace);
+  link.href = `${url.pathname.split('/').pop()}?${url.searchParams.toString()}`;
+});
+
+const enterpriseAttributeSections = document.querySelectorAll('[data-enterprise-attributes]');
+if (enterpriseAttributeSections.length) {
+  const params = new URLSearchParams(location.search);
+  const space = params.get('space') || 'enterprise';
+  const spaces = {
+    enterprise: { name: '企业空间', page: 'documents.html', description: '企业空间文件的内容与属性信息' },
+    personal: { name: '个人空间', page: 'personal-documents.html', description: '个人空间文件的内容与基本信息' },
+    team: { name: '团队空间', page: 'team-documents.html', description: '团队空间文件的内容与基本信息' }
+  };
+  const context = spaces[space] || spaces.enterprise;
+  const enterprise = space === 'enterprise';
+  const back = document.querySelector('[data-space-back]');
+  if (back) { back.href = context.page; back.textContent = `‹ 返回${context.name}`; }
+  const description = document.querySelector('[data-space-description]');
+  if (description) description.textContent = context.description;
+  document.querySelectorAll('[data-space-name]').forEach(node => { node.textContent = context.name; });
+  enterpriseAttributeSections.forEach(section => { section.hidden = !enterprise; });
+  const standardInfo = document.querySelector('[data-standard-file-info]');
+  if (standardInfo) standardInfo.hidden = enterprise;
+  document.querySelectorAll('[data-edit-file-attributes]').forEach(button => { button.hidden = !enterprise; });
+
+  const attributeRows = [...document.querySelectorAll('[data-file-attribute]')];
+  const actions = document.querySelector('[data-file-attribute-actions]');
+  const storageKey = `kep-file-attributes:${params.get('file') || '默认文件'}`;
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    attributeRows.forEach((row, index) => {
+      if (!saved[index]) return;
+      row.querySelector('[data-attribute-value]').textContent = saved[index];
+      row.querySelector('input').value = saved[index];
+    });
+  } catch {}
+  const setAttributeEditing = editing => {
+    document.documentElement.classList.toggle('is-file-attribute-editing', editing);
+    enterpriseAttributeSections.forEach(section => section.classList.toggle('is-editing', editing));
+    attributeRows.forEach(row => {
+      row.querySelector('[data-attribute-value]').hidden = editing;
+      row.querySelector('.input-wrap').hidden = !editing;
+      if (!editing) row.querySelector('input').value = row.querySelector('[data-attribute-value]').textContent;
+    });
+    if (actions) actions.hidden = !editing;
+    document.querySelectorAll('[data-edit-file-attributes]').forEach(button => { button.disabled = editing; });
+    if (editing) attributeRows[0]?.querySelector('input')?.focus();
+  };
+  document.querySelectorAll('[data-edit-file-attributes]').forEach(button => button.addEventListener('click', () => setAttributeEditing(true)));
+  document.querySelector('[data-cancel-file-attributes]')?.addEventListener('click', () => setAttributeEditing(false));
+  document.querySelector('[data-save-file-attributes]')?.addEventListener('click', () => {
+    const values = attributeRows.map(row => row.querySelector('input').value.trim());
+    if (values.some(value => !value)) return showToast('请完整填写属性值');
+    attributeRows.forEach((row, index) => { row.querySelector('[data-attribute-value]').textContent = values[index]; });
+    localStorage.setItem(storageKey, JSON.stringify(values));
+    setAttributeEditing(false);
+    showToast('文件属性已保存');
+  });
+}
