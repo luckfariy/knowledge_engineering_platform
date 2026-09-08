@@ -6,7 +6,7 @@
 
 - 资源纳管
   - 资源概览
-  - 文档中心
+  - 文件中心
   - 任务中心
   - 数据表
   - 图数据
@@ -19,21 +19,21 @@
 - 知识管理
   - 知识资产
   - 资产目录管理
-- 知识服务
-  - 工作台
-  - 搜索界面
-  - 智能体对接
-  - SDK 服务
+- 知识应用
+  - 智能体构建
+  - 技能管理
+  - MCP管理
+  - SDK服务
 - 系统配置
   - 用户与组织
   - 角色管理
   - 操作日志
 
-当前阶段已细化资源纳管、知识生产、知识资产与知识服务的独立页面及导航路由。所有产品模块统一采用顶部一级 Tab、左侧当前模块二级菜单和右侧主内容区；系统配置通过用户头像进入，不占用产品一级 Tab。
+当前阶段已细化资源纳管、知识生产、知识资产与知识应用的独立页面及导航路由。所有产品模块统一采用顶部一级 Tab、左侧当前模块二级菜单和右侧主内容区；系统配置通过用户头像进入，不占用产品一级 Tab。
 
 ## 项目结构
 
-- `index.html`：平台首页，采用顶部生命周期导航与知识工作台布局
+- `index.html`：平台工作台，采用顶部生命周期导航与知识工作台布局
 - `pages/resource-overview.html`：资源概览
 - `pages/documents.html`：企业空间，知识源目录按非结构化数据与结构化数据 Tab 切换
 - `pages/resource-tasks.html`：资源接入与自动入目任务中心
@@ -44,17 +44,18 @@
 - `pages/processing-models.html`：加工模型
 - `pages/processing-flows.html`：流程加工
 - `pages/processing-tasks.html`：加工任务与新建任务流程
-- `pages/management-overview.html`：知识资产目录与卡片视图，可切换资源目录设计中的目录树及机构目录
+- `pages/management-overview.html`：知识资产目录与卡片视图，可切换资源目录设计中的目录树及机构目录，并支持新建、编辑和删除目录节点
 - `pages/knowledge-base-detail.html`：知识库详情占位页
 - `pages/unified-semantic-graph-detail.html`：统一语义知识图谱详情占位页
 - `pages/topic-knowledge-graph-detail.html`：专题知识图谱详情占位页
 - `pages/semantic-graphs.html`：语义知识图谱
 - `pages/knowledge-bases.html`：知识库
 - `pages/processing.html` 与 `pages/management.html`：兼容旧地址的跳转页
-- `pages/services.html`：知识服务工作台
 - `pages/knowledge-search.html`：全局知识搜索与 AI 搜索对话
-- `pages/agent-access.html`：智能体 Skill / MCP 对接页
-- `pages/sdk-services.html`：API 检索接口 / 虚拟文件系统服务页
+- `pages/agent-access.html`：智能体构建页
+- `pages/skill-management.html`：技能管理页
+- `pages/mcp-management.html`：MCP 管理页
+- `pages/sdk-services.html`：SDK 服务页
 - `pages/system-user-org.html`：组织机构、用户列表与产品功能权限管理
 - `pages/system-roles.html`：角色管理
 - `pages/system-logs.html`：操作日志

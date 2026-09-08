@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>元数据标准管理 - 知识工程平台</title>
+  <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
+  <link rel="stylesheet" href="../assets/design-system/components.css" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=34" />
+</head>
+<body data-page="metadata-standards">
+  <div data-shell></div>
+  <template data-page-template>
+    <header class="page-heading">
+      <div><h1 class="page-title text-x-big-bold">元数据标准管理</h1><p class="page-description text-normal">统一定义文件的业务属性和管理属性，作为属性补充、自动入目与文件详情展示的标准。</p></div>
+    </header>
+
+    <section class="panel metadata-standard-panel" data-tabs>
+      <div class="tabs metadata-standard-tabs" role="tablist" aria-label="属性类型">
+        <button class="tabs-item is-active" id="business-standard-tab" type="button" role="tab" aria-selected="true" aria-controls="business-standard-panel">业务属性</button>
+        <button class="tabs-item" id="management-standard-tab" type="button" role="tab" aria-selected="false" aria-controls="management-standard-panel">管理属性</button>
+      </div>
+
+      <div class="metadata-standard-content" id="business-standard-panel" role="tabpanel" aria-labelledby="business-standard-tab">
+        <div class="metadata-standard-heading"><div><h2 class="text-medium-bold">业务属性标准</h2><p class="text-small">描述文件所属业务、产品、客群和适用范围。</p></div><button class="btn btn-medium btn-primary" type="button" data-open-metadata-standard="business">新增业务属性</button></div>
+        <div class="toolbar"><label class="field metadata-standard-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索属性名称、编码或描述" data-table-search="#business-standard-table" /></span></label><span class="toolbar-spacer"></span><span class="text-small" data-standard-count="business">4 个属性</span></div>
+        <div class="table-wrap"><table class="table" id="business-standard-table"><thead><tr><th>属性名称</th><th>属性编码</th><th>数据类型</th><th>是否必填</th><th>属性说明</th><th>更新时间</th><th>操作</th></tr></thead><tbody data-metadata-standard-list="business"></tbody></table></div>
+      </div>
+
+      <div class="metadata-standard-content" id="management-standard-panel" role="tabpanel" aria-labelledby="management-standard-tab" hidden>
+        <div class="metadata-standard-heading"><div><h2 class="text-medium-bold">管理属性标准</h2><p class="text-small">描述文件责任、保密、保存期限和归档要求。</p></div><button class="btn btn-medium btn-primary" type="button" data-open-metadata-standard="management">新增管理属性</button></div>
+        <div class="toolbar"><label class="field metadata-standard-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索属性名称、编码或描述" data-table-search="#management-standard-table" /></span></label><span class="toolbar-spacer"></span><span class="text-small" data-standard-count="management">4 个属性</span></div>
+        <div class="table-wrap"><table class="table" id="management-standard-table"><thead><tr><th>属性名称</th><th>属性编码</th><th>数据类型</th><th>是否必填</th><th>属性说明</th><th>更新时间</th><th>操作</th></tr></thead><tbody data-metadata-standard-list="management"></tbody></table></div>
+      </div>
+    </section>
+
+    <div class="dialog-mask" data-metadata-standard-dialog hidden>
+      <section class="dialog dialog-form" role="dialog" aria-modal="true" aria-labelledby="metadata-standard-dialog-title">
+        <header class="dialog-header"><div><h2 class="dialog-title text-medium-bold" id="metadata-standard-dialog-title">新增业务属性</h2><p class="text-small" data-metadata-standard-subtitle>定义可复用的属性字段标准</p></div><button class="dialog-close" type="button" aria-label="关闭" data-close-metadata-standard></button></header>
+        <form data-metadata-standard-form>
+          <div class="dialog-body metadata-standard-form">
+            <label class="field"><span class="field-label text-small-bold">属性名称 *</span><span class="input-wrap input-middle"><input class="input" name="name" required placeholder="例如：业务领域" /></span></label>
+            <label class="field"><span class="field-label text-small-bold">属性编码 *</span><span class="input-wrap input-middle"><input class="input" name="code" required pattern="[a-z][a-z0-9_]*" placeholder="例如：business_domain" /></span><small class="field-help">使用小写字母、数字和下划线，以字母开头</small></label>
+            <label class="field"><span class="field-label text-small-bold">数据类型 *</span><span class="input-wrap input-middle"><select class="input" name="type" required><option value="文本">文本</option><option value="枚举">枚举</option><option value="日期">日期</option><option value="数字">数字</option><option value="人员">人员</option></select></span></label>
+            <label class="control metadata-standard-required"><span class="checkbox"><input type="checkbox" name="required" /><span class="checkbox-mark"></span></span><span class="control-label">设为必填属性</span></label>
+            <label class="field metadata-standard-description"><span class="field-label text-small-bold">属性说明 *</span><span class="input-wrap"><textarea class="input" name="description" required rows="3" placeholder="说明属性的业务含义和填写要求"></textarea></span></label>
+          </div>
+          <footer class="dialog-actions"><button class="btn btn-medium btn-secondary" type="button" data-close-metadata-standard>取消</button><button class="btn btn-medium btn-primary" type="submit">保存属性</button></footer>
+        </form>
+      </section>
+    </div>
+  </template>
+  <script type="module" src="../assets/js/app.js?v=40"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>新建语义知识图谱 · 图谱可视化</title>
+  <link rel="stylesheet" href="assets/design-system/design-tokens.css">
+  <link rel="stylesheet" href="assets/design-system/components.css">
+  <link rel="stylesheet" href="assets/graph-visualization.css">
+  <link rel="stylesheet" href="assets/graph-visualization-extended.css">
+  <link rel="stylesheet" href="assets/hertz-v6-theme.css">
+</head>
+<body>
+  <div class="kg-app">
+    <header class="kg-header">
+      <nav class="kg-nav" aria-label="图谱功能导航"><button>本体设计</button><button id="goGraphBuild">图谱构建</button><button class="active">图谱可视化</button><button>图谱查询</button><button>授权规则</button></nav>
+      <div class="header-actions"><button class="import-button" id="openImport">导入</button><button class="primary" id="saveGraph">保存</button></div>
+    </header>
+
+    <main class="kg-main">
+      <aside class="type-panel">
+        <div class="type-tabs" role="tablist"><button class="active" data-type-tab="entity">实体类型</button><button data-type-tab="relation">关系类型</button></div>
+        <label class="type-search"><img src="assets/figma-4840-7866/search.svg" alt=""><input id="typeSearch" aria-label="搜索类型" placeholder=""></label>
+        <div class="type-list" id="typeList"></div>
+      </aside>
+
+      <section class="graph-panel">
+        <header class="graph-actions"><div class="view-switch" role="tablist" aria-label="浏览视图"><button class="active" data-view="list" role="tab" aria-selected="true">列表</button><button data-view="graph" role="tab" aria-selected="false">图谱</button></div><label class="global-entity-search input-wrap input-middle"><img src="assets/figma-4840-7866/search.svg" alt=""><input class="input" id="globalEntitySearch" aria-label="全局搜索实体" placeholder="搜索全局实体"></label><span></span><button class="ai-button graph-only" id="aiRelation">✣ AI 构建关系</button><button class="add-button graph-only" id="addRelation">＋ 新建关系</button></header>
+        <div class="list-view active" data-view-panel="list">
+          <div class="entity-list-heading"><div><h2 id="entityListTitle">业务对象</h2><p id="entityListDescription">管理电力系统中的业务对象实体，支持新建和从数据源拉取</p></div><div class="entity-list-actions"><button class="btn btn-medium btn-primary" id="createCurrentEntity">＋ 新建</button></div></div>
+          <div class="result-meta"><input id="entityListSearch" class="input" placeholder="搜索当前列表" aria-label="搜索当前实体或关系列表"><b id="resultTitle" hidden>业务对象列表</b><span id="resultCount" hidden></span></div>
+          <div class="entity-table-wrap"><table class="entity-table table"><thead id="entityTableHead"><tr><th><input class="checkbox" id="selectAllEntities" type="checkbox" aria-label="全选当前实体"></th><th>名称</th><th>别名</th><th>描述</th><th>创建人</th><th>创建时间</th><th class="cell-actions">操作</th></tr></thead><tbody id="entityRows"></tbody></table></div>
+          <div class="table-pagination"><span id="pageInfo"></span><button id="prevPage">‹</button><span id="pageButtons"></span><button id="nextPage">›</button><select id="pageSize"><option value="8">8 条/页</option><option value="12">12 条/页</option></select></div>
+        </div>
+        <div class="canvas-wrap" id="canvasWrap" data-view-panel="graph">
+          <div class="canvas-tools">
+            <button id="undo"><img src="assets/figma-4840-7866/toolbar-undo.svg" alt="">撤销</button>
+            <button id="redo"><img src="assets/figma-4840-7866/toolbar-redo.svg" alt="">置后</button>
+            <button id="autoLayout"><img src="assets/figma-4840-7866/toolbar-layout.svg" alt="">自动布局</button><button id="selectMode"><img src="assets/figma-4840-7866/toolbar-select.svg" alt="">框选</button>
+          </div>
+          <div class="graph-stage" id="graphStage">
+            <svg class="edge-layer" id="edgeLayer" aria-hidden="true"></svg>
+            <div id="nodeLayer"></div>
+          </div>
+          <div class="zoom-control"><button id="zoomIn">＋</button><input id="zoomRange" type="range" min="60" max="140" value="100" aria-label="图谱缩放"><button id="zoomOut">－</button></div>
+          <div class="minimap" aria-label="图谱缩略图"><div class="mini-nodes" id="miniNodes"></div><button class="mini-close">×</button></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <div class="modal-mask" id="modalMask"></div>
+  <section class="relation-modal" id="relationModal" role="dialog" aria-modal="true" aria-labelledby="relationTitle">
+    <header><h2 id="relationTitle">新建关系</h2><button id="closeModal">×</button></header>
+    <div class="modal-body"><label>关系名称<input id="relationName" value="关联"></label><label>起点实体<select id="relationFrom"></select></label><label>终点实体<select id="relationTo"></select></label></div>
+    <footer><button id="cancelModal">取消</button><button class="primary" id="confirmRelation">确定</button></footer>
+  </section>
+  <section class="figma-dialog entity-dialog" id="entityDialog" role="dialog" aria-modal="true" aria-labelledby="entityDialogTitle">
+    <header><h2 id="entityDialogTitle">新建业务对象</h2><button class="dialog-close" data-close-dialog><img src="assets/figma-4840-7866/modal-close.svg" alt="关闭"></button></header>
+    <div class="entity-form"><label><span><i>*</i><b id="entityNameLabel">业务对象名称</b></span><input id="newEntityName" placeholder="请输入"></label><label><span><i>*</i><b id="entityAliasLabel">业务对象别名</b></span><input id="newEntityAlias" placeholder="请输入"></label><label class="textarea-field"><span><i>*</i><b id="entityDescLabel">业务术语</b></span><div><textarea id="newEntityDesc" maxlength="500" placeholder="请输入业务术语，如：用于转换电压等级的核心设备，通常位于变电站内"></textarea><small><em id="descCount">0</em>/500</small></div></label></div>
+    <footer><button data-close-dialog>取消</button><button class="primary" id="confirmEntity">确定</button></footer>
+  </section>
+  <section class="figma-dialog import-dialog" id="importDialog" role="dialog" aria-modal="true" aria-labelledby="importTitle">
+    <header><h2 id="importTitle">导入</h2><button class="dialog-close" data-close-dialog><img src="assets/figma-4840-7866/modal-close.svg" alt="关闭"></button></header>
+    <div class="import-content"><label class="upload-area" id="uploadArea"><img src="assets/figma-4840-7866/upload.svg" alt=""><b>点击或将文件拖拽到这里上传</b><span>支持扩展名：.xlsx、.xls、.csv，文件大小不超过 50M</span><span>没有数据表？请先 <a href="#" id="downloadTemplate">下载导入模板</a></span><input type="file" id="importFile" accept=".xlsx,.xls,.csv"></label><div class="upload-file" id="uploadFile"><img src="assets/figma-4840-7866/attachment.svg" alt=""><span>请选择文件</span></div></div>
+    <footer><button data-close-dialog>取消</button><button class="primary" id="confirmImport">确定</button></footer>
+  </section>
+  <section class="figma-dialog delete-entity-dialog" id="deleteEntityDialog" role="alertdialog" aria-modal="true" aria-labelledby="deleteEntityTitle">
+    <header><h2 id="deleteEntityTitle">确认删除实体</h2><button class="dialog-close" data-close-dialog><img src="assets/figma-4840-7866/modal-close.svg" alt="关闭"></button></header>
+    <div class="delete-entity-content"><p>删除后，该实体及其在图谱中的关联关系将一并删除，且无法恢复。</p><div>即将删除：<b id="deleteEntityName">—</b></div></div>
+    <footer><button class="btn btn-medium btn-secondary" data-close-dialog>取消</button><button class="btn btn-medium btn-danger" id="confirmDeleteEntity">确认删除</button></footer>
+  </section>
+  <script src="assets/graph-visualization.js"></script>
+  <script src="assets/platform-integration.js"></script>
+</body>
+</html>

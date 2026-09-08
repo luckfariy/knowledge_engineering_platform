@@ -1,4 +1,70 @@
-<!doctype html><html lang="zh-CN" data-theme="light" data-brand="ht"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>空间文件详情</title><link rel="stylesheet" href="../assets/design-system/design-tokens.css"/><link rel="stylesheet" href="../assets/design-system/components.css"/><link rel="stylesheet" href="../assets/css/platform.css?v=28"/></head><body data-page="documents-enterprise"><div data-shell></div><template data-page-template>
-<header class="page-heading document-detail-heading"><div><a class="back-link text-small" href="documents.html" data-space-back>‹ 返回企业空间</a><h1 class="page-title text-x-big-bold" data-query-file>空间文件详情</h1><p class="page-description text-normal" data-space-description>企业空间文件的内容与属性信息</p></div><div class="page-actions"><button class="btn btn-medium btn-secondary" type="button" data-edit-file-attributes>编辑属性</button><button class="btn btn-medium btn-secondary" data-toast="已开始下载">下载</button><button class="btn btn-medium btn-primary" data-toast="已打开新版本上传">更新版本</button></div></header>
-<section class="detail-grid"><div class="detail-main"><section class="panel asset-info-section"><div class="panel-header"><div><h2 class="panel-title text-medium-bold">文件预览</h2><p class="panel-description text-small">原始文件内容预览</p></div></div><div class="document-paper"><h3 class="text-big-bold" data-query-file>文件内容</h3><p class="text-normal">该页面聚焦空间文件的查看与版本更新，不承载资源目录治理权限。</p></div></section></div><aside class="detail-aside"><section class="panel asset-info-section enterprise-attribute-card" data-enterprise-attributes><div class="enterprise-attribute-heading"><h2 class="panel-title text-medium-bold">基本信息</h2><button class="btn btn-dense btn-secondary" type="button" data-edit-file-attributes>编辑属性</button></div><dl class="asset-property-list"><div><dt>所属空间</dt><dd data-space-name>企业空间</dd></div><div><dt>文件类型</dt><dd>PDF</dd></div><div><dt>当前版本</dt><dd class="text-number">v2.1</dd></div><div><dt>创建人</dt><dd>当前用户</dd></div><div><dt>更新时间</dt><dd>2026-09-05 10:26</dd></div></dl></section><section class="panel asset-info-section enterprise-attribute-card" data-enterprise-attributes><h2 class="panel-title text-medium-bold">业务属性</h2><div class="file-attribute-list"><label data-file-attribute><span class="text-small">业务领域</span><strong data-attribute-value>信贷业务</strong><span class="input-wrap input-middle" hidden><input class="input" value="信贷业务" aria-label="业务领域" /></span></label><label data-file-attribute><span class="text-small">产品线</span><strong data-attribute-value>对公授信</strong><span class="input-wrap input-middle" hidden><input class="input" value="对公授信" aria-label="产品线" /></span></label><label data-file-attribute><span class="text-small">适用客群</span><strong data-attribute-value>企业客户</strong><span class="input-wrap input-middle" hidden><input class="input" value="企业客户" aria-label="适用客群" /></span></label></div></section><section class="panel asset-info-section enterprise-attribute-card" data-enterprise-attributes><h2 class="panel-title text-medium-bold">管理属性</h2><div class="file-attribute-list"><label data-file-attribute><span class="text-small">资源负责人</span><strong data-attribute-value>王翠</strong><span class="input-wrap input-middle" hidden><input class="input" value="王翠" aria-label="资源负责人" /></span></label><label data-file-attribute><span class="text-small">保密等级</span><strong data-attribute-value>内部公开</strong><span class="input-wrap input-middle" hidden><input class="input" value="内部公开" aria-label="保密等级" /></span></label><label data-file-attribute><span class="text-small">保存期限</span><strong data-attribute-value>长期</strong><span class="input-wrap input-middle" hidden><input class="input" value="长期" aria-label="保存期限" /></span></label></div><div class="file-attribute-actions" data-file-attribute-actions hidden><button class="btn btn-medium btn-secondary" type="button" data-cancel-file-attributes>取消</button><button class="btn btn-medium btn-primary" type="button" data-save-file-attributes>保存</button></div></section><section class="panel asset-info-section" data-standard-file-info hidden><h2 class="panel-title text-medium-bold">基本信息</h2><dl class="asset-property-list"><div><dt>所属空间</dt><dd data-space-name>个人空间</dd></div><div><dt>文件类型</dt><dd>PDF</dd></div><div><dt>当前版本</dt><dd class="text-number">v2.1</dd></div><div><dt>创建人</dt><dd>当前用户</dd></div><div><dt>更新时间</dt><dd>2026-09-05 10:26</dd></div></dl></section></aside></section>
-</template><script type="module" src="../assets/js/app.js?v=28"></script></body></html>
+<!doctype html>
+<html lang="zh-CN" data-theme="light" data-brand="ht">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>文件详情 - 知识工程平台</title>
+  <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
+  <link rel="stylesheet" href="../assets/design-system/components.css" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=33" />
+</head>
+<body data-page="documents-enterprise">
+  <div data-shell></div>
+  <template data-page-template>
+    <header class="page-heading document-detail-heading">
+      <div><a class="back-link text-small" href="documents.html" data-space-back>‹ 返回文件中心</a><h1 class="page-title text-x-big-bold" data-query-file>文件详情</h1><p class="page-description text-normal" data-space-description>企业空间文件的信息与原文内容</p></div>
+      <div class="page-actions"><button class="btn btn-medium btn-secondary" type="button" data-edit-file-attributes>编辑属性</button><button class="btn btn-medium btn-secondary" type="button" data-toast="已开始下载">下载</button><button class="btn btn-medium btn-primary" type="button" data-toast="已打开新版本上传">更新版本</button></div>
+    </header>
+
+    <section class="file-detail-tabs" data-tabs>
+      <div class="tabs" role="tablist" aria-label="文件详情内容">
+        <button class="tabs-item is-active" id="file-info-tab" type="button" role="tab" aria-selected="true" aria-controls="file-info-panel">文件信息</button>
+        <button class="tabs-item" id="file-preview-tab" type="button" role="tab" aria-selected="false" aria-controls="file-preview-panel">文件预览</button>
+      </div>
+
+      <div class="file-detail-panel" id="file-info-panel" role="tabpanel" aria-labelledby="file-info-tab">
+        <section class="panel asset-info-section file-summary-card">
+          <div class="panel-header"><div><h2 class="panel-title text-medium-bold">文件摘要</h2><p class="panel-description text-small">基于文件原文自动生成</p></div><span class="tag tag-status tag-status-lime">已确认</span></div>
+          <p class="asset-summary">本文件说明对公授信业务的受理条件、审查职责、风险评价要求和审批流程，明确客户准入、财务分析、担保审查及贷后管理等关键控制点，适用于企业客户授信申请及存量授信复审场景。</p>
+        </section>
+
+        <div class="file-info-grid">
+          <section class="panel asset-info-section enterprise-attribute-card" data-enterprise-attributes>
+            <h2 class="panel-title text-medium-bold">基本信息</h2>
+            <dl class="asset-property-list"><div><dt>所属空间</dt><dd data-space-name>企业空间</dd></div><div><dt>知识源</dt><dd>制度文档空间</dd></div><div><dt>文件类型</dt><dd>PDF</dd></div><div><dt>文件大小</dt><dd class="text-number">2.8 MB</dd></div><div><dt>当前版本</dt><dd class="text-number">v3.2</dd></div><div><dt>创建人</dt><dd>王翠</dd></div><div><dt>创建时间</dt><dd>2026-08-12 09:30</dd></div><div><dt>更新时间</dt><dd>2026-09-08 09:30</dd></div></dl>
+          </section>
+
+          <section class="panel asset-info-section enterprise-attribute-card" data-enterprise-attributes>
+            <h2 class="panel-title text-medium-bold">业务属性</h2>
+            <div class="file-attribute-list"><label data-file-attribute><span class="text-small">业务领域</span><strong data-attribute-value>信贷业务</strong><span class="input-wrap input-middle" hidden><input class="input" value="信贷业务" aria-label="业务领域" /></span></label><label data-file-attribute><span class="text-small">产品线</span><strong data-attribute-value>对公授信</strong><span class="input-wrap input-middle" hidden><input class="input" value="对公授信" aria-label="产品线" /></span></label><label data-file-attribute><span class="text-small">适用客群</span><strong data-attribute-value>企业客户</strong><span class="input-wrap input-middle" hidden><input class="input" value="企业客户" aria-label="适用客群" /></span></label><label data-file-attribute><span class="text-small">适用机构</span><strong data-attribute-value>总行及一级分行</strong><span class="input-wrap input-middle" hidden><input class="input" value="总行及一级分行" aria-label="适用机构" /></span></label></div>
+          </section>
+
+          <section class="panel asset-info-section enterprise-attribute-card" data-enterprise-attributes>
+            <h2 class="panel-title text-medium-bold">管理属性</h2>
+            <div class="file-attribute-list"><label data-file-attribute><span class="text-small">资源负责人</span><strong data-attribute-value>王翠</strong><span class="input-wrap input-middle" hidden><input class="input" value="王翠" aria-label="资源负责人" /></span></label><label data-file-attribute><span class="text-small">保密等级</span><strong data-attribute-value>内部公开</strong><span class="input-wrap input-middle" hidden><input class="input" value="内部公开" aria-label="保密等级" /></span></label><label data-file-attribute><span class="text-small">保存期限</span><strong data-attribute-value>长期</strong><span class="input-wrap input-middle" hidden><input class="input" value="长期" aria-label="保存期限" /></span></label><label data-file-attribute><span class="text-small">归档状态</span><strong data-attribute-value>已归档</strong><span class="input-wrap input-middle" hidden><input class="input" value="已归档" aria-label="归档状态" /></span></label></div>
+            <div class="file-attribute-actions" data-file-attribute-actions hidden><button class="btn btn-medium btn-secondary" type="button" data-cancel-file-attributes>取消</button><button class="btn btn-medium btn-primary" type="button" data-save-file-attributes>保存</button></div>
+          </section>
+
+          <section class="panel asset-info-section file-tag-card">
+            <div class="panel-header"><div><h2 class="panel-title text-medium-bold">标签信息</h2><p class="panel-description text-small">自动打标并经业务确认</p></div></div>
+            <div class="catalog-tag-list" aria-label="文件标签"><span class="tag">对公授信</span><span class="tag">风险管理</span><span class="tag">制度办法</span><span class="tag">企业客户</span><span class="tag">授信审查</span><span class="tag">内部公开</span></div>
+          </section>
+
+          <section class="panel asset-info-section" data-standard-file-info hidden>
+            <h2 class="panel-title text-medium-bold">基本信息</h2>
+            <dl class="asset-property-list"><div><dt>所属空间</dt><dd data-space-name>个人空间</dd></div><div><dt>文件类型</dt><dd>PDF</dd></div><div><dt>当前版本</dt><dd class="text-number">v2.1</dd></div><div><dt>创建人</dt><dd>当前用户</dd></div><div><dt>更新时间</dt><dd>2026-09-05 10:26</dd></div></dl>
+          </section>
+        </div>
+      </div>
+
+      <div class="file-detail-panel" id="file-preview-panel" role="tabpanel" aria-labelledby="file-preview-tab" hidden>
+        <section class="panel file-preview-card">
+          <div class="panel-header"><div><h2 class="panel-title text-medium-bold">原文预览</h2><p class="panel-description text-small">第 1 页 / 共 28 页</p></div><div class="page-actions"><button class="btn btn-dense btn-secondary" type="button" data-toast="已缩小预览">缩小</button><button class="btn btn-dense btn-secondary" type="button" data-toast="已放大预览">放大</button></div></div>
+          <article class="document-paper"><div class="document-page-number text-small">第 1 页</div><h3 class="text-big-bold" data-query-file>对公授信审查办法</h3><h4 class="text-medium-bold">第一章 总则</h4><p>第一条 为规范本行对公授信业务审查工作，加强授信风险管理，提高授信决策质量，根据国家有关法律法规及本行风险管理制度，制定本办法。</p><p>第二条 本办法适用于境内各级机构办理的企业客户授信业务，包括流动资金贷款、固定资产贷款、贸易融资、票据承兑及其他表内外授信业务。</p><h4 class="text-medium-bold">第二章 审查职责</h4><p>第三条 授信审查应坚持独立、审慎、全面和客观原则，重点评价客户经营状况、偿债能力、资金用途、担保措施和行业风险。</p><p>第四条 业务发起机构负责资料真实性和完整性，审查部门负责对授信方案、风险因素及缓释措施提出独立审查意见。</p></article>
+        </section>
+      </div>
+    </section>
+  </template>
+  <script type="module" src="../assets/js/app.js?v=39"></script>
+</body>
+</html>

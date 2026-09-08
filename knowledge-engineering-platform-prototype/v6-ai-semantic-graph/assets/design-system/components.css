@@ -1,0 +1,1833 @@
+/* ==========================================================================
+   Hertz Design System v1.3.3 — 组件实现
+   数值全部来自 Figma 组件变体，改动前请先核对 COMPONENTS.md
+   依赖：../tokens/design-tokens.css
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Button
+   尺寸：dense 28px / medium 32px / large 36px
+   字体：14px / 16px 行高 / 600 字重
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-4);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--size-16);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+  background: transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 尺寸 */
+.btn-dense {
+  height: 28px;
+  padding: var(--space-6) var(--space-12);
+}
+
+.btn-medium {
+  height: 32px;
+  padding: var(--space-8) var(--space-16);
+}
+
+.btn-large {
+  height: 36px;
+  padding: var(--space-10) var(--space-18);
+}
+
+/* 主按钮：实心填充 */
+.btn-primary {
+  background: var(--color-primary-900);
+  color: var(--color-general-100);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-800);
+}
+
+.btn-primary:active:not(:disabled) {
+  background: var(--color-primary-700);
+}
+
+/* 次按钮：描边 */
+.btn-secondary {
+  border-color: var(--color-mono-a500);
+  color: var(--color-type-900);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--color-primary-900);
+}
+
+.btn-secondary:active:not(:disabled) {
+  border-color: var(--color-primary-700);
+}
+
+/* 文字按钮 · 主色 */
+.btn-text {
+  color: var(--color-primary-900);
+}
+
+.btn-text:hover:not(:disabled) {
+  background: var(--color-primary-a100);
+}
+
+.btn-text:active:not(:disabled) {
+  background: var(--color-primary-a200);
+}
+
+/* 文字按钮 · 中性色（用于表格操作、下拉触发器） */
+.btn-action {
+  color: var(--color-type-900);
+}
+
+.btn-action:hover:not(:disabled) {
+  background: var(--color-mono-a200);
+}
+
+.btn-action:active:not(:disabled) {
+  background: var(--color-mono-a300);
+}
+
+/* 危险按钮：沿用主按钮结构，替换为 red 色阶 */
+.btn-danger {
+  background: var(--color-red-900);
+  color: var(--color-general-100);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-red-900);
+  filter: brightness(1.08);
+}
+
+/* --------------------------------------------------------------------------
+   Input
+   尺寸：small 24px / normal 28px / middle 32px / large 40px
+   字体：14px / 20px 行高 / 400 字重
+   形态：填充式，上圆角 4px、下方平直，聚焦时底部出现 2px 主色下划线
+   -------------------------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field-label {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-xs);
+  color: var(--color-type-800);
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  padding: 0 var(--space-8);
+  background: var(--color-mono-a100);
+  border-radius: var(--radius-4) var(--radius-4) 0 0;
+  transition: background-color 0.15s ease;
+}
+
+/* 聚焦/错误下划线 */
+.input-wrap::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--color-primary-900);
+  transform: scaleX(0);
+  transition: transform 0.15s ease;
+}
+
+.input-wrap:hover {
+  background: var(--color-mono-a200);
+}
+
+.input-wrap:focus-within {
+  background: var(--color-mono-a300);
+}
+
+.input-wrap:focus-within::after {
+  transform: scaleX(1);
+}
+
+.input-wrap.is-error {
+  background: var(--color-red-a100);
+}
+
+.input-wrap.is-error::after {
+  background: var(--color-red-900);
+  transform: scaleX(1);
+}
+
+.input-wrap.is-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 尺寸 */
+.input-small {
+  height: 24px;
+}
+
+.input-normal {
+  height: 28px;
+}
+
+.input-middle {
+  height: 32px;
+}
+
+.input-large {
+  height: 40px;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-xs);
+  color: var(--color-type-900);
+}
+
+.input::placeholder {
+  color: var(--color-type-700);
+}
+
+.input-affix {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-type-700);
+  flex: none;
+}
+
+.field-error {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  color: var(--color-red-900);
+}
+
+/* --------------------------------------------------------------------------
+   Card / 容器
+   顶级容器圆角 8px，页面内元素 4px（见 COMPONENTS.md 圆角原则）
+   -------------------------------------------------------------------------- */
+
+/* background 色阶是表面层级：100 为页面基底，数字越大越"浮起"。
+   卡片用 400，亮色下为白、暗色下为浅灰，两套主题的层次方向一致。 */
+.card {
+  box-sizing: border-box;
+  padding: var(--space-24);
+  background: var(--color-background-400);
+  border-radius: var(--radius-8);
+  box-shadow: var(--shadow-c200);
+}
+
+.card-flat {
+  box-shadow: none;
+  border: 1px solid var(--color-mono-a300);
+}
+
+.card-title {
+  margin: 0 0 var(--space-16);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-900);
+}
+
+/* --------------------------------------------------------------------------
+   Table
+   行高：dense 40px / normal 48px / large 56px
+   表头 mono-200，分隔线 mono-a300 1px，左右内边距 16px
+   上下内边距随行高变化：9px / 13px / 17px
+   -------------------------------------------------------------------------- */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-type-900);
+}
+
+.table th {
+  background: var(--color-mono-200);
+  color: var(--color-type-800);
+  font-weight: var(--font-weight-semibold);
+  text-align: left;
+  white-space: nowrap;
+  padding: 13px var(--space-16);
+  border-bottom: 1px solid var(--color-mono-a300);
+}
+
+.table td {
+  padding: 13px var(--space-16);
+  border-bottom: 1px solid var(--color-mono-a300);
+  vertical-align: middle;
+}
+
+.table-dense th,
+.table-dense td {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.table-large th,
+.table-large td {
+  padding-top: 17px;
+  padding-bottom: 17px;
+}
+
+/* 行悬停：Figma 未定义此状态，取系统最浅的叠加色 mono-a100 */
+.table tbody tr:hover td {
+  background: var(--color-mono-a100);
+}
+
+.table .cell-number {
+  font-family: var(--font-family-number);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.table .cell-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* --------------------------------------------------------------------------
+   Tag
+   来源：Figma 12-tags（节点 3798:2677）
+   四类：Outlined（默认）/ Solid / Small / Status
+   Outlined：default 28 / dense 22，圆角 16（用 radius-full），文字恒 type-900
+   Solid：同尺寸药丸，无描边，背景 mono-a*
+   Small：高 20、圆角 4、无描边，背景 mono-a*
+   Status：高 24、圆角 4，描边与文字同色（normal/secondary/blue/lime/red）
+   -------------------------------------------------------------------------- */
+
+/* —— Outlined（默认 .tag） —— */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  box-sizing: border-box;
+  height: 28px;
+  padding: 0 var(--space-10);
+  border: 1px solid var(--color-mono-a500);
+  border-radius: var(--radius-full);
+  /* 亮色绑定名虽为 background/200，实际为白 → background-400；暗色见下方覆盖 */
+  background: var(--color-background-400);
+  color: var(--color-type-900);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-xs);
+  white-space: nowrap;
+}
+
+/* 暗色 Outlined 填充为 #191D25 = background-200 */
+[data-theme="dark"] .tag:not(.tag-solid):not(.tag-small):not(.tag-status) {
+  background: var(--color-background-200);
+}
+
+.tag-dense {
+  height: 22px;
+  padding: 0 7px;
+  font-size: var(--font-size-xs);
+}
+
+/* hover-01 / active 静态态：仅改描边，文字不变 */
+.tag:hover:not(.tag-solid):not(.tag-small):not(.tag-status):not(:disabled),
+.tag-primary {
+  border-color: var(--color-primary-900);
+}
+
+.tag:active:not(.tag-solid):not(.tag-small):not(.tag-status):not(:disabled),
+.tag-active,
+.tag-primary-soft {
+  border-color: var(--color-primary-700);
+}
+
+.tag:disabled,
+.tag-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 可删除：右侧 16×16 关闭区；外层左右仍约 6，内容区与图标间距 4 */
+.tag:has(.tag-close) {
+  padding-right: var(--space-6);
+}
+
+.tag-dense:has(.tag-close) {
+  padding-right: var(--space-4);
+}
+
+.tag-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* hover-02：关闭钮悬停，标签描边保持 normal */
+.tag-close:hover {
+  background: var(--color-mono-a200);
+}
+
+/* —— Solid（.tag-solid） —— */
+.tag-solid {
+  border-color: transparent;
+  background: var(--color-mono-a200);
+}
+
+.tag-solid:hover:not(:disabled),
+.tag-solid.tag-primary {
+  border-color: transparent;
+  background: var(--color-mono-a300);
+}
+
+.tag-solid:active:not(:disabled),
+.tag-solid.tag-active,
+.tag-solid.tag-primary-soft {
+  border-color: transparent;
+  background: var(--color-mono-a400);
+}
+
+[data-theme="dark"] .tag-solid {
+  background: var(--color-mono-a200);
+}
+
+/* —— Small（.tag-small） —— */
+.tag-small {
+  height: 20px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-4);
+  background: var(--color-mono-a200);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+}
+
+.tag-small:hover:not(:disabled),
+.tag-small.tag-primary {
+  border: none;
+  background: var(--color-mono-a300);
+}
+
+.tag-small:active:not(:disabled),
+.tag-small.tag-active {
+  border: none;
+  background: var(--color-mono-a400);
+}
+
+[data-theme="dark"] .tag-small {
+  background: var(--color-mono-a200);
+}
+
+/* —— Status（tags/status） —— */
+.tag-status {
+  height: 24px;
+  padding: 2px var(--space-6);
+  border-radius: var(--radius-4);
+  background: transparent;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  border-color: var(--color-type-600);
+  color: var(--color-type-800);
+}
+
+.tag-status:hover,
+.tag-status:active,
+.tag-status.tag-primary,
+.tag-status.tag-primary-soft,
+.tag-status.tag-active {
+  border-color: var(--color-type-600);
+  background: transparent;
+  color: var(--color-type-800);
+}
+
+.tag-status-secondary {
+  border-color: var(--color-mono-a400);
+  color: var(--color-type-800);
+}
+
+.tag-status-secondary:hover,
+.tag-status-secondary:active {
+  border-color: var(--color-mono-a400);
+  color: var(--color-type-800);
+}
+
+.tag-status-blue,
+.tag-status-primary {
+  border-color: var(--color-primary-900);
+  color: var(--color-primary-900);
+}
+
+.tag-status-blue:hover,
+.tag-status-blue:active,
+.tag-status-primary:hover,
+.tag-status-primary:active {
+  border-color: var(--color-primary-900);
+  color: var(--color-primary-900);
+}
+
+.tag-status-lime,
+.tag-status-success {
+  border-color: var(--color-lime-900);
+  color: var(--color-lime-900);
+}
+
+.tag-status-lime:hover,
+.tag-status-lime:active,
+.tag-status-success:hover,
+.tag-status-success:active {
+  border-color: var(--color-lime-900);
+  color: var(--color-lime-900);
+}
+
+.tag-status-red,
+.tag-status-danger {
+  border-color: var(--color-red-900);
+  color: var(--color-red-900);
+}
+
+.tag-status-red:hover,
+.tag-status-red:active,
+.tag-status-danger:hover,
+.tag-status-danger:active {
+  border-color: var(--color-red-900);
+  color: var(--color-red-900);
+}
+
+[data-theme="dark"] .tag-status {
+  background: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Dialog / Modal
+   来源：Figma 15-弹窗（节点 6960:28863）整页 Dev Mode 导出
+   默认确认框 454；表单 480；宽内容 810；选择器 716（壳色 mono-200）
+   Result：无标题栏、上内边距 24、居中插图+标题+说明
+   亮色面板 background-400；暗色为 background-300（#1F2430）
+   遮罩：--color-mono-m100
+   -------------------------------------------------------------------------- */
+
+.dialog-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-24);
+  background: var(--color-mono-m100);
+}
+
+.dialog {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 454px;
+  max-width: 100%;
+  padding: var(--space-8) 0 0;
+  gap: var(--space-16);
+  background: var(--color-background-400);
+  border-radius: var(--radius-8);
+  box-shadow: var(--shadow-c500);
+}
+
+/* 暗色确认/表单/宽弹窗面板：Figma dark/background/300 */
+[data-theme="dark"] .dialog:not(.dialog-picker) {
+  background: var(--color-background-300);
+}
+
+.dialog-form {
+  width: 480px;
+}
+
+.dialog-wide {
+  width: 810px;
+}
+
+.dialog-wide:not(:has(.dialog-actions)) {
+  padding-bottom: var(--space-24);
+}
+
+.dialog-picker {
+  width: 716px;
+  background: var(--color-mono-200);
+}
+
+/* Result：无 header，上内边距 24 */
+.dialog-result {
+  padding-top: var(--space-24);
+}
+
+.dialog-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-24);
+  padding: var(--space-4) var(--space-24);
+  min-height: 32px;
+}
+
+.dialog-title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-900);
+}
+
+/* 关闭：16×16，默认 CSS ×；有子节点（如图标字体）时用子节点 */
+.dialog-close {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-type-700);
+  font-size: 0;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.dialog-close::before,
+.dialog-close::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+.dialog-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.dialog-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.dialog-close:has(> *)::before,
+.dialog-close:has(> *)::after {
+  display: none;
+}
+
+.dialog-close:has(> *) {
+  font-size: var(--font-size-base);
+  line-height: 1;
+}
+
+.dialog-close:hover {
+  color: var(--color-type-900);
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-10);
+  padding: var(--space-8) var(--space-32);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-type-900);
+}
+
+/* Result 内容区：居中柱 */
+.dialog-result-body {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.dialog-result-title {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-900);
+  text-align: center;
+}
+
+.dialog-result-desc {
+  margin: 0;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-type-800);
+  text-align: center;
+}
+
+/* 结果插图位：外圈 108，光晕 88，状态标 56（装饰粒子不还原） */
+.dialog-illust {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 108px;
+  height: 108px;
+}
+
+.dialog-illust::before {
+  content: "";
+  position: absolute;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-full);
+  background: var(--color-lime-a100);
+}
+
+.dialog-illust-warning::before {
+  background: var(--color-orange-a100);
+}
+
+.dialog-illust-info::before {
+  background: var(--color-primary-a100);
+}
+
+.dialog-status-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--color-lime-900);
+  color: var(--color-general-100);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+}
+
+.dialog-illust-warning .dialog-status-icon {
+  background: var(--color-orange-900);
+}
+
+.dialog-illust-info .dialog-status-icon {
+  background: var(--color-primary-900);
+}
+
+.dialog-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-16) var(--space-16) var(--space-8);
+}
+
+/* 弹窗内横向表单项：标签固定语义色 type-700，间距 16 */
+.dialog-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-16);
+  width: 100%;
+}
+
+.dialog-field-label {
+  flex: none;
+  width: 78px;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-700);
+}
+
+.dialog-field .input-wrap,
+.dialog-field .field {
+  flex: 1;
+  min-width: 0;
+}
+
+.dialog-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   Pagination — Figma 07-Pagination (6947:15609)
+   normal 32 / dense 24；当前页 primary-a100 底 + primary-900 字（非实心主色）
+   -------------------------------------------------------------------------- */
+
+.pagination-bar {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-16);
+  flex-wrap: wrap;
+}
+
+.pagination {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+.pagination-dense {
+  gap: var(--space-4);
+}
+
+.pagination-item {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 11px;
+  margin: 0;
+  border: 1px solid var(--color-mono-a500);
+  border-radius: var(--radius-4);
+  background: transparent;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-800);
+  text-align: center;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.pagination-dense .pagination-item {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  font-family: var(--font-family-number);
+  /* Number_sm：与 .text-number 同为 500；token 仅声明 400/600 */
+  font-weight: 500;
+}
+
+.pagination-item:hover:not(:disabled):not(.is-active):not(.pagination-ellipsis) {
+  border-color: var(--color-primary-900);
+}
+
+.pagination-item.is-active {
+  border-color: transparent;
+  background: var(--color-primary-a100);
+  color: var(--color-primary-900);
+  cursor: default;
+}
+
+.pagination-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pagination-prev,
+.pagination-next,
+.pagination-more {
+  width: 32px;
+  min-width: 32px;
+  padding: 0 8px;
+  color: var(--color-type-800);
+}
+
+.pagination-dense .pagination-prev,
+.pagination-dense .pagination-next,
+.pagination-dense .pagination-more {
+  width: 24px;
+  min-width: 24px;
+  padding: 4px;
+}
+
+.pagination-ellipsis {
+  border-color: transparent;
+  color: var(--color-type-700);
+  cursor: default;
+}
+
+.pagination-dense .pagination-ellipsis {
+  padding: 0 5px;
+  color: var(--color-type-800);
+  font-family: var(--font-family-sans);
+  font-weight: var(--font-weight-regular);
+}
+
+.pagination-ellipsis:hover,
+.pagination-more {
+  border-color: var(--color-primary-900);
+  color: var(--color-type-800);
+  cursor: pointer;
+}
+
+.pagination-caret,
+.pagination-batch {
+  display: block;
+  flex: none;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.pagination-caret {
+  width: 6px;
+  height: 6px;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateX(1px) rotate(45deg);
+}
+
+.pagination-next .pagination-caret {
+  transform: translateX(-1px) rotate(-135deg);
+}
+
+.pagination-batch {
+  position: relative;
+  width: 10px;
+  height: 8px;
+}
+
+.pagination-batch::before,
+.pagination-batch::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid currentColor;
+  border-top: 1.5px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.pagination-batch::before {
+  left: 0;
+}
+
+.pagination-batch::after {
+  left: 4px;
+}
+
+.pagination-more-prev .pagination-batch {
+  transform: scaleX(-1);
+}
+
+.pagination-jump {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.pagination-jump-label {
+  flex: none;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-type-800);
+}
+
+.pagination-jump-field {
+  width: 40px;
+  flex: none;
+}
+
+.pagination-jump-field .input {
+  text-align: center;
+}
+
+.pagination-size {
+  flex: none;
+}
+
+/* --------------------------------------------------------------------------
+   Checkbox / Radio / Switch — Figma 11-checkbox (3791:540)
+   控件 16×16；勾选框可视约 13×13（Figma 圆角 3 → 用 radius-4）
+   -------------------------------------------------------------------------- */
+
+.control {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+  cursor: pointer;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-type-900);
+}
+
+.control-label {
+  user-select: none;
+}
+
+.checkbox,
+.radio {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  flex: none;
+  width: 13px;
+  height: 13px;
+  margin: 1.5px;
+  padding: 0;
+  border: 1px solid var(--color-type-700);
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+}
+
+.checkbox {
+  border-radius: var(--radius-4);
+}
+
+.radio {
+  width: 14px;
+  height: 14px;
+  margin: 1px;
+  border-radius: 50%;
+}
+
+.checkbox:hover,
+.radio:hover {
+  box-shadow: 0 0 0 7px var(--color-mono-a100);
+}
+
+.checkbox:checked,
+.checkbox:indeterminate,
+.radio:checked {
+  border-color: transparent;
+  background: var(--color-primary-900);
+  box-shadow: none;
+}
+
+.checkbox:checked:hover,
+.checkbox:indeterminate:hover,
+.radio:checked:hover {
+  box-shadow: 0 0 0 7px var(--color-primary-a100);
+}
+
+.checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 1px;
+  width: 5px;
+  height: 8px;
+  border-right: 1.5px solid var(--color-general-100);
+  border-bottom: 1.5px solid var(--color-general-100);
+  transform: rotate(40deg);
+}
+
+.checkbox:indeterminate::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  top: 50%;
+  height: 1.5px;
+  margin-top: -0.75px;
+  background: var(--color-general-100);
+}
+
+.radio:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-general-100);
+  transform: translate(-50%, -50%);
+}
+
+.checkbox:disabled,
+.radio:disabled,
+.switch-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.control:has(:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.control:has(:disabled) .checkbox,
+.control:has(:disabled) .radio,
+.control:has(:disabled) .switch-input {
+  opacity: 1;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 28px;
+  height: 16px;
+  flex: none;
+  cursor: pointer;
+}
+
+.switch-input {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch-track {
+  display: block;
+  width: 26px;
+  height: 10px;
+  margin: 0 1px;
+  border-radius: var(--radius-8);
+  background: var(--color-mono-a300);
+  transition: background 0.15s ease;
+}
+
+.switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-8);
+  background: var(--color-mono-500);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.switch-input:checked + .switch-track {
+  background: var(--color-primary-a300);
+}
+
+.switch-input:checked + .switch-track::after {
+  background: var(--color-primary-900);
+  transform: translateX(12px);
+}
+
+.switch-input:hover + .switch-track::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border-radius: 50%;
+  background: var(--color-mono-a100);
+  z-index: -1;
+}
+
+.switch-input:checked:hover + .switch-track::before {
+  background: var(--color-primary-a100);
+}
+
+/* --------------------------------------------------------------------------
+   Tabs — Figma 13-tabs (3969:0)
+   default 48 / dense 32 / large 56；底指示条；hover 底 mono-a200
+   -------------------------------------------------------------------------- */
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  border-bottom: 1px solid var(--color-mono-a300);
+}
+
+.tabs-item {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-10);
+  height: 48px;
+  padding: 0 var(--space-24);
+  margin: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-800);
+  cursor: pointer;
+}
+
+.tabs-item::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  border-radius: var(--radius-4) var(--radius-4) 0 0;
+  background: transparent;
+}
+
+.tabs-item:hover:not(:disabled):not(.is-active) {
+  background: var(--color-mono-a200);
+}
+
+.tabs-item.is-active {
+  color: var(--color-primary-900);
+}
+
+.tabs-item.is-active::after {
+  background: var(--color-primary-900);
+}
+
+.tabs-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tabs-dense .tabs-item {
+  height: 32px;
+  padding: 0 var(--space-16);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+}
+
+.tabs-dense .tabs-item::after {
+  height: 2px;
+}
+
+.tabs-large .tabs-item {
+  height: 56px;
+}
+
+.tabs-dot .tabs-item {
+  height: 32px;
+  padding: 0 var(--space-16);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+}
+
+.tabs-dot .tabs-item::after {
+  left: 50%;
+  right: auto;
+  width: 6px;
+  height: 3px;
+  margin-left: -3px;
+  border-radius: var(--radius-4);
+}
+
+.tabs-large.tabs-dot .tabs-item::after,
+.tabs-large .tabs-item.tabs-item-dot::after {
+  width: 16px;
+  margin-left: -8px;
+}
+
+/* --------------------------------------------------------------------------
+   List — Figma 14-list (4077:0)
+   menu / tree 行高 32、圆角 4；hover mono-a100；active/selected primary-a100
+   -------------------------------------------------------------------------- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 172px;
+}
+
+.list-item {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  min-height: 32px;
+  padding: var(--space-4) var(--space-16);
+  margin: 0;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-type-900);
+  text-align: left;
+  cursor: pointer;
+}
+
+.list-item:hover:not(:disabled):not(.is-active):not(.is-selected) {
+  background: var(--color-mono-a100);
+}
+
+.list-item.is-active,
+.list-item.is-selected {
+  background: var(--color-primary-a100);
+  color: var(--color-primary-900);
+}
+
+.list-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.list-tree-item {
+  position: relative;
+}
+
+.list-tree-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 2px;
+  height: 8px;
+  margin-top: -4px;
+  background: var(--color-primary-900);
+  border-radius: 1px;
+}
+
+.list-tree-toggle {
+  display: inline-flex;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-type-700);
+}
+
+.list-tree-toggle::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+.list-tree-item.is-open > .list-tree-toggle::before {
+  transform: rotate(45deg);
+}
+
+.list-tree-children {
+  display: none;
+  flex-direction: column;
+  padding-left: var(--space-16);
+}
+
+.list-tree-item.is-open + .list-tree-children,
+.list-tree-item.is-open > .list-tree-children {
+  display: flex;
+}
+
+/* --------------------------------------------------------------------------
+   Upload — Figma 16-Upload (6960:31796)
+   -------------------------------------------------------------------------- */
+
+.upload-file {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 32px;
+  border-radius: var(--radius-8);
+}
+
+.upload-file:hover,
+.upload-file.is-hover {
+  background: var(--color-mono-a100);
+}
+
+.upload-file-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--radius-4);
+  background: var(--color-mono-a100);
+  color: var(--color-type-800);
+}
+
+.upload-file-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-xs);
+  color: var(--color-type-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.upload-file-meta {
+  flex: none;
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  color: var(--color-type-700);
+}
+
+.upload-file.is-error .upload-file-name,
+.upload-file.is-error .upload-file-meta {
+  color: var(--color-red-900);
+}
+
+.upload-progress {
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-top: var(--space-2);
+  background: var(--color-mono-a300);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.upload-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary-900);
+}
+
+.upload-area {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  min-height: 126px;
+  padding: var(--space-32) var(--space-24);
+  border-radius: var(--radius-8);
+  background: var(--color-mono-a100);
+  color: var(--color-type-800);
+  text-align: center;
+  cursor: pointer;
+}
+
+.upload-area-sm {
+  width: 126px;
+  height: 126px;
+  min-height: 126px;
+  padding: var(--space-32) var(--space-32);
+  border-radius: var(--radius-4);
+  gap: var(--space-10);
+}
+
+.upload-area:hover,
+.upload-area.is-active {
+  background: var(--color-mono-a200);
+}
+
+.upload-area-title {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-type-900);
+}
+
+.upload-area-desc {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  color: var(--color-type-700);
+}
+
+/* --------------------------------------------------------------------------
+   Steps — Figma 20-steps (6950:15360 / Component 2)
+   medium 32 / small 24；current 实心主色；wait 描边 mono-a500 + type-600
+   -------------------------------------------------------------------------- */
+
+.steps {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+}
+
+.steps-item {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.steps-item:last-child {
+  flex: none;
+}
+
+.steps-marker {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-mono-a500);
+  background: transparent;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-base);
+  line-height: 1;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-600);
+}
+
+.steps-dense .steps-marker {
+  width: 24px;
+  height: 24px;
+  font-size: var(--font-size-xs);
+}
+
+.steps-item.is-current .steps-marker,
+.steps-item.is-process .steps-marker {
+  border-color: transparent;
+  background: var(--color-primary-900);
+  color: var(--color-general-100);
+}
+
+.steps-item.is-finish .steps-marker {
+  border-color: transparent;
+  background: var(--color-primary-900);
+  color: var(--color-general-100);
+}
+
+.steps-item.is-error .steps-marker {
+  border-color: transparent;
+  background: var(--color-red-900);
+  color: var(--color-general-100);
+}
+
+.steps-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding-top: var(--space-4);
+}
+
+.steps-title {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-900);
+}
+
+.steps-item.is-wait .steps-title {
+  color: var(--color-type-700);
+}
+
+.steps-desc {
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  color: var(--color-type-700);
+}
+
+.steps-tail {
+  flex: 1;
+  height: 1px;
+  margin: var(--space-16) var(--space-8) 0;
+  background: var(--color-mono-a300);
+  min-width: var(--space-16);
+}
+
+.steps-item.is-finish .steps-tail {
+  background: var(--color-primary-900);
+}
+
+.steps-vertical {
+  flex-direction: column;
+}
+
+.steps-vertical .steps-item {
+  flex: none;
+  width: 100%;
+}
+
+.steps-vertical .steps-tail {
+  width: 1px;
+  height: var(--space-24);
+  margin: var(--space-4) 0 var(--space-4) 15px;
+  min-width: 0;
+}
+
+.steps-dense.steps-vertical .steps-tail {
+  margin-left: 11px;
+}
+
+/* --------------------------------------------------------------------------
+   Transfer — Figma 21-transfer (6960:21193)
+   -------------------------------------------------------------------------- */
+
+.transfer {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.transfer-panel {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 230px;
+  height: 406px;
+  border-radius: var(--radius-8);
+  background: var(--color-background-400);
+  box-shadow: var(--shadow-c100);
+  overflow: hidden;
+}
+
+.transfer-header,
+.transfer-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 38px;
+  padding: var(--space-8) var(--space-16);
+}
+
+.transfer-header {
+  padding: var(--space-8) var(--space-24);
+  border-bottom: 1px solid var(--color-mono-a300);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-900);
+}
+
+.transfer-body {
+  flex: 1;
+  overflow: auto;
+}
+
+.transfer-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  color: var(--color-type-900);
+  text-align: left;
+  cursor: pointer;
+}
+
+.transfer-item:hover:not(:disabled) {
+  background: var(--color-mono-a100);
+}
+
+.transfer-item.is-selected {
+  background: var(--color-primary-a100);
+  color: var(--color-primary-900);
+}
+
+.transfer-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.transfer-footer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-10);
+  min-height: 48px;
+  padding: var(--space-10) var(--space-16) var(--space-10) var(--space-8);
+  border-top: 1px solid var(--color-mono-a300);
+  background: var(--color-background-400);
+}
+
+.transfer-actions {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.transfer-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  padding: 6px var(--space-8);
+  border: 0;
+  border-radius: var(--radius-6);
+  background: var(--color-primary-900);
+  color: var(--color-general-100);
+  cursor: pointer;
+}
+
+.transfer-btn:disabled {
+  background: var(--color-mono-a100);
+  border: 1px solid var(--color-mono-a500);
+  color: var(--color-type-700);
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Datepicker — Figma Datepicker (6922:15115)
+   触发器复用填充式 input 四档高度；面板 240、圆角 8、日格 32×24
+   -------------------------------------------------------------------------- */
+
+.datepicker {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 256px;
+}
+
+.datepicker-panel {
+  box-sizing: border-box;
+  width: 240px;
+  padding: var(--space-8);
+  border-radius: var(--radius-8);
+  background: var(--color-background-400);
+  box-shadow: var(--shadow-c300);
+}
+
+[data-theme="dark"] .datepicker-panel {
+  background: var(--color-background-300);
+}
+
+.datepicker-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 var(--space-4);
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-type-900);
+}
+
+.datepicker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 32px);
+  gap: var(--space-4) 0;
+  justify-content: center;
+}
+
+.datepicker-weekday,
+.datepicker-day {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  font-family: var(--font-family-number);
+  font-size: var(--font-size-xs);
+  line-height: var(--line-height-xs);
+  color: var(--color-type-900);
+}
+
+.datepicker-weekday {
+  color: var(--color-type-700);
+  font-family: var(--font-family-sans);
+}
+
+.datepicker-day {
+  cursor: pointer;
+}
+
+.datepicker-day:hover:not(:disabled):not(.is-selected) {
+  background: var(--color-mono-a100);
+}
+
+.datepicker-day.is-selected {
+  background: var(--color-primary-a100);
+  color: var(--color-primary-900);
+  font-weight: var(--font-weight-semibold);
+}
+
+.datepicker-day.is-outside {
+  color: var(--color-type-600);
+}
+
+.datepicker-day:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
