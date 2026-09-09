@@ -2051,6 +2051,10 @@ if (enterpriseAttributeSections.length) {
     setAttributeEditing(false);
     showToast('文件属性已保存');
   });
+  document.querySelectorAll('[data-show-file-evidence]').forEach(button => button.addEventListener('click', () => {
+    document.querySelector('#file-preview-tab')?.click();
+    document.querySelector('.document-paper')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }));
 }
 
 const knowledgeAssetTreeSelect = document.querySelector('[data-knowledge-asset-tree-select]');
