@@ -76,7 +76,7 @@ export function renderShell() {
     frontendEntry.href = document.body.dataset.root === 'true' ? 'pages/frontend-home.html' : 'frontend-home.html';
     frontendEntry.textContent = '前台页面';
     searchEntry.insertAdjacentElement('afterend', frontendEntry);
-    if (rawPage === 'management-overview' || rawPage === 'asset-catalogs') {
+    if ((rawPage === 'management-overview' || rawPage === 'asset-catalogs') && new URLSearchParams(location.search).get('context') !== 'directory') {
       const breadcrumbModule = document.querySelector('.breadcrumb a:nth-of-type(2)');
       if (breadcrumbModule) breadcrumbModule.textContent = '知识管理';
     }
@@ -89,12 +89,13 @@ export function renderShell() {
     'documents-personal': 'processing-resource-personal'
   };
   let page = shellParams.get('context') === 'processing' ? processingResourcePages[rawPage] || rawPage : rawPage;
+  if (rawPage === 'asset-catalogs' && shellParams.get('context') === 'directory') page = 'resource-catalog-detail';
   if (rawPage === 'documents-personal' && shellParams.get('context') === 'catalog') page = 'resource-directory-personal';
   if (rawPage === 'resource-catalog-design' && shellParams.has('space')) page = 'resource-team-spaces';
   if (page === 'documents' && shellParams.get('view') === 'enterprise') page = 'documents-enterprise';
   const root = document.body.dataset.root === 'true';
   const documentPages = new Set(['documents-enterprise', 'documents-team', 'documents-personal']);
-  const resourcePages = new Set(['resource-overview', 'resource-tasks', 'resource-task-detail', 'documents', ...documentPages, 'data-tables', 'graph-data', 'resource-team-spaces', 'resource-directory-personal', 'resource-catalog-design', 'metadata-standards', 'resource-tags', 'knowledge-sources']);
+  const resourcePages = new Set(['resource-overview', 'resource-tasks', 'resource-task-detail', 'documents', ...documentPages, 'data-tables', 'graph-data', 'resource-team-spaces', 'resource-directory-personal', 'resource-directory-personal-detail', 'resource-catalog-design', 'resource-catalog-detail', 'metadata-standards', 'resource-tags', 'knowledge-sources']);
   if (page === 'platform-home') {
     document.querySelector('[data-shell]').innerHTML = `<a class="skip-link" href="#main-content">跳到主内容</a><div class="home-shell"><header class="home-topbar"><a class="home-brand" href="index.html"><span class="brand-mark">${icon('graph')}</span><span><strong class="brand-title text-normal-bold">知识工程平台</strong><small class="brand-subtitle text-small">Knowledge Engineering</small></span></a><nav class="home-lifecycle-nav" aria-label="平台主导航"><a class="is-active" href="index.html" aria-current="page">${icon('workspace')}<span>工作台</span></a><a href="pages/resource-overview.html">资源纳管</a><a href="pages/processing-overview.html">知识生产</a><a href="pages/management-overview.html">知识资产</a><a href="pages/agent-access.html">知识服务</a></nav><div class="home-topbar-actions"><a class="icon-button" href="pages/knowledge-search.html" aria-label="全局搜索">${icon('search')}</a><button class="icon-button" type="button" aria-label="通知" data-toast="暂无新通知">${icon('bell')}</button><a class="user-avatar text-normal-bold" href="pages/system-user-org.html" aria-label="进入系统配置">知</a></div></header><main class="home-main" id="main-content" tabindex="-1"><div data-page-content></div></main></div><div class="toast" role="status" aria-live="polite" data-toast-node></div>`;
     return;
@@ -108,15 +109,17 @@ export function renderShell() {
     ];
     const documentNavigation = documentLinks.map(([, label, path, active]) => `<a class="resource-nav-child ${active ? 'is-active' : ''}" href="${path}" ${active ? 'aria-current="page"' : ''}>${label}</a>`).join('');
     const overviewNavigation = `<a class="resource-nav-item ${page === 'resource-overview' ? 'is-active' : ''}" href="resource-overview.html" ${page === 'resource-overview' ? 'aria-current="page"' : ''}>${icon('overview')}<span>资源概览</span></a>`;
-    const directorySpacePages = new Set(['resource-team-spaces', 'resource-directory-personal', 'resource-catalog-design']);
-    const directoryNavigation = `<div class="resource-nav-group resource-directory-nav-group ${directorySpacePages.has(page) ? 'is-active is-expanded' : ''}"><button class="resource-nav-item resource-nav-parent ${directorySpacePages.has(page) ? 'is-active' : ''}" type="button" aria-expanded="${directorySpacePages.has(page)}" data-resource-directory-nav-toggle>${icon('management')}<span>资源目录管理</span>${icon('chevron', 'resource-nav-chevron')}</button><div class="resource-nav-children"><a class="resource-nav-child ${page === 'resource-team-spaces' ? 'is-active' : ''}" href="resource-team-spaces.html" ${page === 'resource-team-spaces' ? 'aria-current="page"' : ''}>团队空间</a><a class="resource-nav-child ${page === 'resource-directory-personal' ? 'is-active' : ''}" href="personal-documents.html?context=catalog" ${page === 'resource-directory-personal' ? 'aria-current="page"' : ''}>个人空间</a></div></div>`;
+    const directorySpacePages = new Set(['resource-team-spaces', 'resource-directory-personal', 'resource-directory-personal-detail', 'resource-catalog-design', 'resource-catalog-detail']);
+    const teamDirectoryActive = ['resource-team-spaces', 'resource-catalog-design', 'resource-catalog-detail'].includes(page);
+    const personalDirectoryActive = ['resource-directory-personal', 'resource-directory-personal-detail'].includes(page);
+    const directoryNavigation = `<div class="resource-nav-group resource-directory-nav-group ${directorySpacePages.has(page) ? 'is-active is-expanded' : ''}"><button class="resource-nav-item resource-nav-parent ${directorySpacePages.has(page) ? 'is-active' : ''}" type="button" aria-expanded="${directorySpacePages.has(page)}" data-resource-directory-nav-toggle>${icon('management')}<span>资源目录管理</span>${icon('chevron', 'resource-nav-chevron')}</button><div class="resource-nav-children"><a class="resource-nav-child ${teamDirectoryActive ? 'is-active' : ''}" href="resource-team-spaces.html" ${teamDirectoryActive ? 'aria-current="page"' : ''}>团队空间</a><a class="resource-nav-child ${personalDirectoryActive ? 'is-active' : ''}" href="personal-documents.html?context=catalog" ${personalDirectoryActive ? 'aria-current="page"' : ''}>个人空间</a></div></div>`;
     const firstLevelLinks = [
       ['data-tables', '数据表', 'data-tables.html', 'table', page === 'data-tables'],
       ['graph-data', '图数据', 'graph-data.html', 'graph', page === 'graph-data'],
       ['resource-tags', '标签管理', 'resource-tags.html', 'tag', page === 'resource-tags'],
       ['resource-tasks', '任务中心', 'resource-tasks.html', 'processing', ['resource-tasks', 'resource-task-detail'].includes(page)]
     ].map(([, label, path, iconName, active]) => `<a class="resource-nav-item ${active ? 'is-active' : ''}" href="${path}" ${active ? 'aria-current="page"' : ''}>${icon(iconName)}<span>${label}</span></a>`).join('');
-    const firstLevelLabels = { 'resource-task-detail': '任务详情', 'resource-tasks': '任务中心', 'data-tables': '数据表', 'graph-data': '图数据', 'resource-team-spaces': '团队空间', 'resource-directory-personal': '个人空间', 'resource-catalog-design': '团队空间目录', 'metadata-standards': '元数据标准管理', 'resource-tags': '标签管理', 'knowledge-sources': '知识源管理' };
+    const firstLevelLabels = { 'resource-task-detail': '任务详情', 'resource-tasks': '任务中心', 'data-tables': '数据表', 'graph-data': '图数据', 'resource-team-spaces': '团队空间', 'resource-directory-personal': '个人空间', 'resource-directory-personal-detail': '个人空间文件详情', 'resource-catalog-design': '团队空间目录', 'resource-catalog-detail': '资源目录文件详情', 'metadata-standards': '元数据标准管理', 'resource-tags': '标签管理', 'knowledge-sources': '知识源管理' };
     const currentLabel = page === 'resource-overview'
       ? '资源概览'
       : documentPages.has(page)

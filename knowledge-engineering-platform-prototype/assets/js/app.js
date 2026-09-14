@@ -102,7 +102,7 @@ const personalFolderTitles = {
   'shared-project': '零售项目资料', 'shared-policy': '制度研究资料'
 };
 
-document.querySelectorAll('[data-personal-folder]').forEach(button => button.addEventListener('click', () => {
+function activatePersonalFolder(button) {
   const folder = button.dataset.personalFolder;
   document.querySelectorAll('[data-personal-folder]').forEach(item => {
     const active = item === button;
@@ -117,9 +117,33 @@ document.querySelectorAll('[data-personal-folder]').forEach(button => button.add
   });
   const title = document.querySelector('[data-personal-folder-title]');
   const count = document.querySelector('[data-file-count]');
-  if (title) title.textContent = personalFolderTitles[folder];
+  if (title) title.textContent = personalFolderTitles[folder] || button.querySelector('span')?.textContent || '文件夹';
   if (count) count.textContent = `${visible} 条结果`;
-}));
+}
+
+document.querySelector('.personal-folder-tree')?.addEventListener('click',event=>{
+  const button=event.target.closest('[data-personal-folder]');
+  if(button)activatePersonalFolder(button);
+});
+
+const personalOwnedFolderContainer=document.querySelector('.folder-root-group:first-child .folder-children');
+const personalFolderDialog=document.querySelector('[data-personal-folder-dialog]');
+const personalFolderForm=document.querySelector('[data-personal-folder-form]');
+const personalFolderStorageKey='kep-personal-folder-tree';
+let pendingPersonalFolderParent=null;
+let personalCustomFolders=[{id:'work',name:'工作资料',count:34,children:[]},{id:'study',name:'学习资料',count:27,children:[]},{id:'draft',name:'临时文件',count:12,children:[]}];
+try{const saved=JSON.parse(localStorage.getItem(personalFolderStorageKey)||'null');if(Array.isArray(saved))personalCustomFolders=saved}catch{}
+const escapePersonalFolder=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+function personalFolderNodeMarkup(folder){return `<div class="personal-folder-node" data-personal-folder-node="${folder.id}"><div class="personal-folder-row"><button class="personal-folder-item" type="button" data-personal-folder="${folder.id}" aria-pressed="false"><span>${escapePersonalFolder(folder.name)}</span><span class="source-count">${folder.count||0}</span></button><button class="personal-folder-add-child" type="button" data-add-personal-folder="${folder.id}" aria-label="在${escapePersonalFolder(folder.name)}下新建子文件夹">＋</button></div><div class="personal-folder-subtree">${(folder.children||[]).map(personalFolderNodeMarkup).join('')}</div></div>`}
+function renderPersonalCustomFolders(){if(!personalOwnedFolderContainer)return;personalOwnedFolderContainer.querySelectorAll('[data-personal-folder-node]').forEach(node=>node.remove());personalCustomFolders.forEach(folder=>personalOwnedFolderContainer.insertAdjacentHTML('beforeend',personalFolderNodeMarkup(folder)));const register=folders=>folders.forEach(folder=>{personalFolderTitles[folder.id]=folder.name;register(folder.children||[])});register(personalCustomFolders)}
+function findPersonalFolder(folders,id){for(const folder of folders){if(folder.id===id)return folder;const child=findPersonalFolder(folder.children||[],id);if(child)return child}return null}
+function openPersonalFolderDialog(parentId=null){pendingPersonalFolderParent=parentId;personalFolderForm.reset();const parent=parentId?findPersonalFolder(personalCustomFolders,parentId):null;document.querySelector('[data-personal-folder-dialog-title]').textContent=parent?'新建子文件夹':'新建文件夹';document.querySelector('[data-personal-folder-parent]').textContent=parent?.name||'我的文件夹';setDialogState(personalFolderDialog,true,'[name="personalFolderName"]')}
+document.querySelector('[data-open-personal-folder]')?.addEventListener('click',()=>openPersonalFolderDialog());
+personalOwnedFolderContainer?.addEventListener('click',event=>{const trigger=event.target.closest('[data-add-personal-folder]');if(trigger){event.stopPropagation();openPersonalFolderDialog(trigger.dataset.addPersonalFolder)}});
+document.querySelectorAll('[data-personal-folder-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(personalFolderDialog,false)));
+personalFolderDialog?.addEventListener('click',event=>{if(event.target===personalFolderDialog)setDialogState(personalFolderDialog,false)});
+personalFolderForm?.addEventListener('submit',event=>{event.preventDefault();if(!personalFolderForm.reportValidity())return;const name=String(new FormData(personalFolderForm).get('personalFolderName')||'').trim(),parent=pendingPersonalFolderParent?findPersonalFolder(personalCustomFolders,pendingPersonalFolderParent):null,siblings=parent?(parent.children||(parent.children=[])):personalCustomFolders;if(siblings.some(folder=>folder.name===name))return showToast('同级文件夹名称已存在');const folder={id:`personal-folder-${Date.now()}`,name,children:[]};siblings.push(folder);localStorage.setItem(personalFolderStorageKey,JSON.stringify(personalCustomFolders));renderPersonalCustomFolders();setDialogState(personalFolderDialog,false);const button=document.querySelector(`[data-personal-folder="${folder.id}"]`);if(button)activatePersonalFolder(button);showToast(`已创建文件夹“${name}”`)});
+renderPersonalCustomFolders();
 
 document.querySelectorAll('[data-folder-root]').forEach(button => button.addEventListener('click', () => {
   const expanded = button.classList.toggle('is-expanded');
@@ -128,7 +152,8 @@ document.querySelectorAll('[data-folder-root]').forEach(button => button.addEven
 
 document.querySelector('[data-folder-search]')?.addEventListener('input', event => {
   const query = event.currentTarget.value.trim().toLowerCase();
-  document.querySelectorAll('.personal-folder-item').forEach(item => { item.hidden = !item.textContent.toLowerCase().includes(query); });
+  document.querySelectorAll('.personal-folder-node').forEach(node=>{node.hidden=Boolean(query)&&!node.textContent.toLowerCase().includes(query)});
+  document.querySelectorAll('.personal-folder-item:not(.personal-folder-row .personal-folder-item)').forEach(item => { item.hidden = Boolean(query)&&!item.textContent.toLowerCase().includes(query); });
 });
 
 document.querySelectorAll('[data-bar]').forEach(bar => { bar.style.width = `${bar.dataset.bar}%`; });
@@ -346,7 +371,9 @@ function appendUploadedFile(file, targetSpace = 'enterprise') {
   row.innerHTML = `<td class="cell-primary"><a class="document-link" href="document-detail.html" data-uploaded-name></a><span class="cell-secondary text-small" data-uploaded-meta></span></td><td data-uploaded-type></td><td><span class="tag tag-status ${personalSpace ? 'tag-status-secondary' : 'tag-status-lime'}">${personalSpace ? '仅自己' : '已解析'}</span></td><td class="text-number">v1.0</td><td data-uploaded-created></td><td data-uploaded-time></td><td>当前用户</td><td class="cell-actions"><button class="btn btn-dense btn-text" ${personalSpace ? 'data-open-share-dialog' : 'data-toast="分享设置已打开"'}>分享</button><button class="btn btn-dense btn-text" data-update-file>更新</button></td>`;
   const nameLink = row.querySelector('[data-uploaded-name]');
   nameLink.textContent = file.name;
-  nameLink.href = `space-file-detail.html?file=${encodeURIComponent(file.name)}&space=${personalSpace ? 'personal' : 'enterprise'}`;
+  nameLink.href = personalSpace
+    ? `personal-file-detail.html?file=${encodeURIComponent(file.name)}`
+    : `space-file-detail.html?file=${encodeURIComponent(file.name)}&space=enterprise`;
   row.querySelector('[data-uploaded-meta]').textContent = `${extension} · ${formatFileSize(file.size)}`;
   row.querySelector('[data-uploaded-type]').textContent = extension;
   const time = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
@@ -972,6 +999,122 @@ const taskDialogTrigger = document.querySelector('[data-open-task-dialog]');
 const taskForm = document.querySelector('[data-task-form]');
 const processingModelSelect = taskForm?.querySelector('[name="processingModel"]');
 const processingTypeSelect = taskForm?.querySelector('[name="processingType"]');
+let scheduledTimeField;
+let scheduledTimeInput;
+if (taskForm) {
+  const schedulePicker = document.createElement('fieldset');
+  schedulePicker.className = 'task-schedule-picker task-form-full';
+  schedulePicker.innerHTML = `<legend class="field-label">任务执行时间</legend><div class="task-schedule-options"><label class="control"><input class="radio" type="radio" name="executionMode" value="now" checked/><span class="control-label"><strong>立即执行</strong><small>任务创建后立即进入队列</small></span></label><label class="control"><input class="radio" type="radio" name="executionMode" value="scheduled"/><span class="control-label"><strong>预约执行</strong><small>到达指定时间后自动开始</small></span></label></div><label class="field task-scheduled-time" data-scheduled-time hidden><span class="field-label">预约日期与时间</span><span class="input-wrap input-middle"><input class="input" type="datetime-local" name="scheduledAt"/></span><span class="field-hint">只能选择当前时间之后的时间</span></label>`;
+  taskForm.querySelector('.task-form-grid')?.append(schedulePicker);
+  scheduledTimeField = schedulePicker.querySelector('[data-scheduled-time]');
+  scheduledTimeInput = schedulePicker.querySelector('[name="scheduledAt"]');
+  const executionHeader = document.querySelector('#processing-task-table thead th:nth-child(6)');
+  if (executionHeader) executionHeader.textContent = '执行时间';
+}
+
+function localDateTimeValue(date) {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
+
+function updateExecutionSchedule() {
+  if (!taskForm || !scheduledTimeField || !scheduledTimeInput) return;
+  const scheduled = taskForm.elements.executionMode?.value === 'scheduled';
+  scheduledTimeField.hidden = !scheduled;
+  scheduledTimeInput.disabled = !scheduled;
+  scheduledTimeInput.required = scheduled;
+  const earliest = new Date(Date.now() + 5 * 60 * 1000);
+  scheduledTimeInput.min = localDateTimeValue(earliest);
+  if (scheduled && (!scheduledTimeInput.value || new Date(scheduledTimeInput.value) < earliest)) {
+    scheduledTimeInput.value = localDateTimeValue(new Date(Date.now() + 60 * 60 * 1000));
+  }
+}
+taskForm?.querySelectorAll('[name="executionMode"]').forEach(radio => radio.addEventListener('change', updateExecutionSchedule));
+
+const processingResourceSpaces = {
+  enterprise: { name: '企业空间', nodes: [{ id: 'enterprise-root', name: '企业共享资源', parentId: null }, { id: 'enterprise-policy', name: '制度规范', parentId: 'enterprise-root' }, { id: 'enterprise-product', name: '产品与服务', parentId: 'enterprise-root' }], files: [['enterprise-policy','信贷业务管理办法.pdf'],['enterprise-policy','合规审查操作指引.docx'],['enterprise-product','零售客户服务手册.docx']] },
+  team: { name: '团队空间', nodes: [{ id: 't-corporate', name: '公司金融', parentId: null }, { id: 't-credit', name: '对公授信', parentId: 't-corporate' }, { id: 't-retail', name: '零售金融', parentId: null }, { id: 't-risk', name: '风险管理', parentId: null }], files: [['t-credit','对公授信审查办法.pdf'],['t-retail','零售客户分层方案.pptx'],['t-risk','客户风险评级规则.xlsx']] },
+  personal: { name: '个人空间', nodes: [{ id: 'p-work', name: '工作资料', parentId: null }, { id: 'p-plan', name: '产品规划', parentId: 'p-work' }, { id: 'p-study', name: '学习资料', parentId: null }], files: [['p-work','客户需求调研记录.docx'],['p-plan','知识工程产品规划.pptx'],['p-study','知识图谱学习笔记.pdf']] }
+};
+try {
+  const savedSpaces = JSON.parse(localStorage.getItem('kep-resource-directory-spaces') || 'null');
+  if (savedSpaces?.team?.nodes) processingResourceSpaces.team.nodes = savedSpaces.team.nodes.filter(node => !node.permissions || Object.values(node.permissions).some(subjects => subjects.length));
+  if (savedSpaces?.personal?.nodes) processingResourceSpaces.personal.nodes = savedSpaces.personal.nodes;
+  const savedMounts = JSON.parse(localStorage.getItem('kep-resource-directory-mounts') || 'null');
+  if (Array.isArray(savedMounts)) {
+    ['team', 'personal'].forEach(spaceId => {
+      processingResourceSpaces[spaceId].files = savedMounts.filter(item => item[0] === spaceId && item[5] !== 'table').map(item => [item[1], item[2]]);
+    });
+  }
+} catch {}
+let activeProcessingSpace = 'enterprise';
+let activeProcessingDirectory = 'enterprise-policy';
+const originalResourcePicker = taskForm?.querySelector('.task-picker');
+if (originalResourcePicker) {
+  originalResourcePicker.innerHTML = `<legend class="field-label">选择加工资源 <span class="field-hint">仅展示当前用户有权限的空间和目录</span></legend><div class="processing-resource-mode"><label class="control"><input class="radio" type="radio" name="resourceSelectionType" value="files" checked/><span class="control-label">选择文件</span></label><label class="control"><input class="radio" type="radio" name="resourceSelectionType" value="directory"/><span class="control-label">选择目录节点</span></label></div><div class="processing-resource-browser"><aside><div class="processing-space-tabs" data-processing-space-tabs></div><nav class="processing-directory-tree" data-processing-directory-tree></nav></aside><section><div class="processing-resource-context"><div><span class="text-small">当前目录</span><strong class="text-normal-bold" data-processing-directory-name></strong></div><span class="tag tag-status tag-status-lime">已授权</span></div><div class="task-choice-list processing-file-list" data-processing-file-list></div><div class="processing-directory-selection" data-processing-directory-selection hidden><span class="processing-directory-icon" aria-hidden="true">▱</span><strong class="text-medium-bold" data-processing-selected-directory></strong><p class="text-normal">将加工当前目录及其子目录中已有文件，并持续感知后续文件变化。</p><label class="control"><input class="checkbox" type="checkbox" name="watchDirectory" checked/><span class="control-label">自动感知新增、更新和删除的文件</span></label><input type="hidden" name="directorySelection" data-directory-selection-input/></div></section></div><span class="field-error" data-resource-error hidden>请选择文件或目录节点</span>`;
+}
+
+function processingDirectoryDescendants(space, directoryId) {
+  const ids = new Set([directoryId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    space.nodes.forEach(node => { if (node.parentId && ids.has(node.parentId) && !ids.has(node.id)) { ids.add(node.id); changed = true; } });
+  }
+  return ids;
+}
+function escapeProcessingResourceText(value) {
+  return String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+}
+function renderProcessingResourceBrowser() {
+  if (!taskForm || !originalResourcePicker) return;
+  const space = processingResourceSpaces[activeProcessingSpace];
+  originalResourcePicker.querySelector('[data-processing-space-tabs]').innerHTML = Object.entries(processingResourceSpaces).map(([id, item]) => `<button class="${id === activeProcessingSpace ? 'is-active' : ''}" type="button" data-processing-space="${id}">${escapeProcessingResourceText(item.name)}</button>`).join('');
+  originalResourcePicker.querySelector('[data-processing-directory-tree]').innerHTML = space.nodes.map(node => `<button class="${node.id === activeProcessingDirectory ? 'is-active' : ''} ${node.parentId ? 'is-child' : ''}" type="button" data-processing-directory="${escapeProcessingResourceText(node.id)}"><span>▱</span><strong>${escapeProcessingResourceText(node.name)}</strong><small>${space.files.filter(([directoryId]) => directoryId === node.id).length}</small></button>`).join('');
+  const directory = space.nodes.find(node => node.id === activeProcessingDirectory) || space.nodes[0];
+  originalResourcePicker.querySelector('[data-processing-directory-name]').textContent = `${space.name} / ${directory.name}`;
+  originalResourcePicker.querySelector('[data-processing-selected-directory]').textContent = `${space.name} / ${directory.name}`;
+  const directoryInput = originalResourcePicker.querySelector('[data-directory-selection-input]');
+  directoryInput.value = `${activeProcessingSpace}:${directory.id}`;
+  directoryInput.dataset.label = `${space.name} / ${directory.name}`;
+  const descendants = processingDirectoryDescendants(space, directory.id);
+  const files = space.files.filter(([directoryId]) => descendants.has(directoryId));
+  originalResourcePicker.querySelector('[data-processing-file-list]').innerHTML = files.length ? files.map(([, name]) => `<label class="task-choice"><input class="checkbox" type="checkbox" name="resource" value="${escapeProcessingResourceText(name)}"/><span><strong class="text-normal-bold">${escapeProcessingResourceText(name)}</strong><small class="text-small">${escapeProcessingResourceText(space.name)} · ${escapeProcessingResourceText(directory.name)}</small></span></label>`).join('') : '<p class="processing-resource-empty text-small">当前目录暂无文件</p>';
+}
+function updateProcessingResourceMode() {
+  if (!taskForm || !originalResourcePicker) return;
+  const directoryMode = taskForm.elements.resourceSelectionType?.value === 'directory';
+  originalResourcePicker.querySelector('[data-processing-file-list]').hidden = directoryMode;
+  originalResourcePicker.querySelector('[data-processing-directory-selection]').hidden = !directoryMode;
+  originalResourcePicker.querySelectorAll('[name="resource"]').forEach(input => { input.disabled = directoryMode; if (directoryMode) input.checked = false; });
+  originalResourcePicker.querySelector('[name="directorySelection"]').disabled = !directoryMode;
+  originalResourcePicker.querySelector('[name="watchDirectory"]').disabled = !directoryMode;
+  const error = originalResourcePicker.querySelector('[data-resource-error]');
+  if (error) error.hidden = true;
+}
+originalResourcePicker?.addEventListener('click', event => {
+  const spaceButton = event.target.closest('[data-processing-space]');
+  if (spaceButton) { activeProcessingSpace = spaceButton.dataset.processingSpace; activeProcessingDirectory = processingResourceSpaces[activeProcessingSpace].nodes[0].id; renderProcessingResourceBrowser(); updateProcessingResourceMode(); return; }
+  const directoryButton = event.target.closest('[data-processing-directory]');
+  if (directoryButton) { activeProcessingDirectory = directoryButton.dataset.processingDirectory; renderProcessingResourceBrowser(); updateProcessingResourceMode(); }
+});
+originalResourcePicker?.addEventListener('change', event => {
+  if (event.target.matches('[name="resource"]')) originalResourcePicker.querySelector('[data-resource-error]').hidden = true;
+});
+taskForm?.querySelectorAll('[name="resourceSelectionType"]').forEach(radio => radio.addEventListener('change', updateProcessingResourceMode));
+renderProcessingResourceBrowser();
+updateProcessingResourceMode();
+window.addEventListener('storage', event => {
+  if (event.key !== 'kep-resource-directory-mounts') return;
+  let subscriptions = [];
+  try { subscriptions = JSON.parse(localStorage.getItem('kep-processing-directory-subscriptions') || '[]'); } catch {}
+  if (!Array.isArray(subscriptions)) return;
+  const activeSubscriptions = subscriptions.filter(subscription => subscription.watch);
+  if (!activeSubscriptions.length) return;
+  activeSubscriptions.forEach(subscription => { subscription.lastChangeDetectedAt = new Date().toISOString(); subscription.pendingIncrementalProcessing = true; });
+  localStorage.setItem('kep-processing-directory-subscriptions', JSON.stringify(subscriptions));
+  showToast(`已感知目录文件变化，${activeSubscriptions.length} 个持续加工任务将自动增量执行`);
+});
 getCustomModels().forEach(model => {
   const option = document.createElement('option');
   option.textContent = model.name;
@@ -1007,6 +1150,9 @@ function taskIdentity() {
 function openTaskDialog() {
   taskForm?.reset();
   updateProcessingTarget();
+  updateExecutionSchedule();
+  renderProcessingResourceBrowser();
+  updateProcessingResourceMode();
   const identity = taskIdentity();
   const name = document.querySelector('[data-task-name]');
   if (name) name.value = identity.name;
@@ -1025,31 +1171,55 @@ taskForm?.querySelectorAll('[name="resource"]').forEach(checkbox => checkbox.add
 
 taskForm?.addEventListener('submit', event => {
   event.preventDefault();
+  const directoryMode = taskForm.elements.resourceSelectionType?.value === 'directory';
   const resources = [...taskForm.querySelectorAll('[name="resource"]:checked')];
+  const directoryInput = taskForm.querySelector('[name="directorySelection"]');
   const error = document.querySelector('[data-resource-error]');
-  if (!resources.length) {
+  if ((!directoryMode && !resources.length) || (directoryMode && !directoryInput?.value)) {
     if (error) error.hidden = false;
-    taskForm.querySelector('[name="resource"]')?.focus();
+    taskForm.querySelector(directoryMode ? '[data-processing-directory]' : '[name="resource"]')?.focus();
     return;
   }
   if (!taskForm.reportValidity()) return;
   const data = new FormData(taskForm);
   const identity = taskIdentity();
   const row = document.createElement('tr');
-  row.innerHTML = '<td class="cell-primary"><span data-new-task-name></span><span class="cell-secondary text-small" data-new-task-id></span></td><td data-new-task-resource></td><td data-new-task-type></td><td data-new-task-config></td><td data-new-large-model></td><td data-new-task-time></td><td><span class="tag tag-status tag-status-blue">排队中</span></td><td><button class="btn btn-dense btn-text" data-toast="已打开任务详情">查看</button></td>';
+  row.innerHTML = '<td class="cell-primary"><span data-new-task-name></span><span class="cell-secondary text-small" data-new-task-id></span></td><td data-new-task-resource></td><td data-new-task-type></td><td data-new-task-config></td><td data-new-large-model></td><td data-new-task-time></td><td><span class="tag tag-status" data-new-task-status></span></td><td><button class="btn btn-dense btn-text" data-toast="已打开任务详情">查看</button></td>';
   row.querySelector('[data-new-task-name]').textContent = data.get('taskName');
   row.querySelector('[data-new-task-id]').textContent = identity.id;
-  row.querySelector('[data-new-task-resource]').textContent = resources.length === 1 ? resources[0].value : `${resources[0].value} 等 ${resources.length} 个文件`;
+  const resourceCell = row.querySelector('[data-new-task-resource]');
+  resourceCell.textContent = directoryMode ? directoryInput.dataset.label : resources.length === 1 ? resources[0].value : `${resources[0].value} 等 ${resources.length} 个文件`;
+  if (directoryMode) {
+    const modeLabel = document.createElement('span');
+    modeLabel.className = 'cell-secondary text-small';
+    modeLabel.textContent = data.get('watchDirectory') ? '目录持续加工 · 自动感知变化' : '目录批量加工';
+    resourceCell.append(modeLabel);
+  }
   const processingType = data.get('processingType');
   row.querySelector('[data-new-task-type]').textContent = processingType === 'flow' ? '流程加工' : '模型加工';
   row.querySelector('[data-new-task-config]').textContent = processingType === 'flow' ? data.get('processingFlow') : data.get('processingModel');
   row.querySelector('[data-new-large-model]').textContent = data.get('largeModel');
-  row.querySelector('[data-new-task-time]').textContent = new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
+  const scheduled = data.get('executionMode') === 'scheduled';
+  const executionDate = scheduled ? new Date(data.get('scheduledAt')) : new Date();
+  row.querySelector('[data-new-task-time]').textContent = scheduled
+    ? new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(executionDate)
+    : '立即执行';
+  const status = row.querySelector('[data-new-task-status]');
+  const watchingDirectory = directoryMode && data.get('watchDirectory');
+  status.textContent = scheduled ? '待执行' : watchingDirectory ? '监听中' : '排队中';
+  status.classList.add(scheduled ? 'tag-status-secondary' : watchingDirectory ? 'tag-status-lime' : 'tag-status-blue');
+  if (directoryMode) {
+    let subscriptions = [];
+    try { subscriptions = JSON.parse(localStorage.getItem('kep-processing-directory-subscriptions') || '[]'); } catch {}
+    if (!Array.isArray(subscriptions)) subscriptions = [];
+    subscriptions.unshift({ taskId: identity.id, taskName: data.get('taskName'), spaceId: activeProcessingSpace, directoryId: activeProcessingDirectory, directoryLabel: directoryInput.dataset.label, watch: Boolean(data.get('watchDirectory')), processingType, processingConfig: processingType === 'flow' ? data.get('processingFlow') : data.get('processingModel'), largeModel: data.get('largeModel'), scheduledAt: scheduled ? data.get('scheduledAt') : null, lastSynchronizedAt: new Date().toISOString() });
+    localStorage.setItem('kep-processing-directory-subscriptions', JSON.stringify(subscriptions));
+  }
   document.querySelector('[data-task-rows]')?.prepend(row);
   const total = document.querySelector('[data-task-total]');
   if (total) total.textContent = String(Number(total.textContent.replaceAll(',', '')) + 1);
   setDialogState(taskDialog, false, '', taskDialogTrigger);
-  showToast(`加工任务“${data.get('taskName')}”已创建`);
+  showToast(scheduled ? `加工任务“${data.get('taskName')}”已预约` : watchingDirectory ? `目录加工任务已创建，将自动感知文件变化` : `加工任务“${data.get('taskName')}”已创建`);
 });
 
 document.addEventListener('keydown', event => {
@@ -1335,7 +1505,8 @@ function ensureFileMoreMenu(row) {
   if (!actions || actions.querySelector('[data-file-more]')) return;
   const wrap = document.createElement('span');
   wrap.className = 'file-more-wrap';
-  wrap.innerHTML = '<button class="btn btn-dense btn-text" type="button" aria-haspopup="menu" aria-expanded="false" data-file-more>更多</button><span class="file-more-menu" role="menu" hidden><button class="file-more-item" type="button" role="menuitem" data-file-action="rename">重命名</button><button class="file-more-item" type="button" role="menuitem" data-file-action="move">移动</button><button class="file-more-item" type="button" role="menuitem" data-file-action="favorite">收藏</button><button class="file-more-item file-more-item-danger" type="button" role="menuitem" data-file-action="delete">删除</button></span>';
+  const favoriteAction=row.matches('[data-personal-folder-row]')?'':'<button class="file-more-item" type="button" role="menuitem" data-file-action="favorite">收藏</button>';
+  wrap.innerHTML = `<button class="btn btn-dense btn-text" type="button" aria-haspopup="menu" aria-expanded="false" data-file-more>更多</button><span class="file-more-menu" role="menu" hidden><button class="file-more-item" type="button" role="menuitem" data-file-action="rename">重命名</button><button class="file-more-item" type="button" role="menuitem" data-file-action="move">移动</button>${favoriteAction}<button class="file-more-item file-more-item-danger" type="button" role="menuitem" data-file-action="delete">删除</button></span>`;
   actions.append(wrap);
 }
 
@@ -1447,7 +1618,9 @@ fileActionForm?.addEventListener('submit', event => {
   if (pendingFileAction === 'rename') {
     const name = fileActionForm.querySelector('[name="fileName"]').value.trim();
     link.textContent = name;
-    link.href = `space-file-detail.html?file=${encodeURIComponent(name)}`;
+    link.href = fileActionTarget.closest('#personal-document-table')
+      ? `personal-file-detail.html?file=${encodeURIComponent(name)}`
+      : `space-file-detail.html?file=${encodeURIComponent(name)}`;
     showToast(`已将“${oldName}”重命名为“${name}”`);
   } else if (pendingFileAction === 'move') {
     const select = fileActionForm.querySelector('[name="targetFolder"]');
@@ -2165,6 +2338,7 @@ const directoryFileDialog=document.querySelector('[data-add-file-dialog]'),sourc
 function updatePickedFiles(){const count=document.querySelectorAll('[data-picker-file]:checked').length;document.querySelector('[data-picker-selected-count]').textContent=`已选 ${count} 个`;document.querySelector('[data-add-file-confirm]').disabled=count===0}function renderSourceFiles(){const query=document.querySelector('[data-picker-file-search]')?.value.trim().toLowerCase()||'',body=document.querySelector('[data-picker-file-rows]');if(!body)return;body.innerHTML=sourceFiles.filter(file=>(pickerSource==='all'||file[2]===pickerSource)&&file[0].toLowerCase().includes(query)).map(file=>`<tr><td><input class="checkbox" type="checkbox" data-picker-file value="${safeAssetText(file[0])}" aria-label="选择${safeAssetText(file[0])}" /></td><td class="cell-primary">${safeAssetText(file[0])}</td><td>${file[1]}</td><td>${file[3]}</td></tr>`).join('');updatePickedFiles()}function openDirectoryFilePicker(node){pickerTarget=node;pickerSource='all';document.querySelector('[data-add-file-target]').textContent=node.dataset.folderName;document.querySelectorAll('[data-source-filter]').forEach((button,index)=>button.classList.toggle('is-active',index===0));document.querySelector('[data-picker-file-search]').value='';renderSourceFiles();setDialogState(directoryFileDialog,true,'[data-picker-file-search]')}
 document.querySelector('[data-source-picker]')?.addEventListener('click',event=>{const button=event.target.closest('[data-source-filter]');if(!button)return;pickerSource=button.dataset.sourceFilter;document.querySelectorAll('[data-source-filter]').forEach(item=>item.classList.toggle('is-active',item===button));renderSourceFiles()});document.querySelector('[data-picker-file-search]')?.addEventListener('input',renderSourceFiles);document.querySelector('[data-picker-file-rows]')?.addEventListener('change',updatePickedFiles);document.querySelectorAll('[data-add-file-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(directoryFileDialog,false)));document.querySelector('[data-add-file-confirm]')?.addEventListener('click',()=>{const count=document.querySelectorAll('[data-picker-file]:checked').length;if(!count)return;setDialogState(directoryFileDialog,false);showToast(`已将 ${count} 个文件添加到“${pickerTarget.dataset.folderName}”`)});if(assetTreeNode){switchCatalogTree(activeAssetTree);renderClassificationReview()}
 const permissionAddDialog=document.querySelector('[data-permission-add-dialog]');document.querySelector('[data-open-permission-add]')?.addEventListener('click',event=>setDialogState(permissionAddDialog,true,'input',event.currentTarget));document.querySelectorAll('[data-permission-add-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(permissionAddDialog,false)));document.querySelectorAll('[data-query-file]').forEach(node=>{const file=new URLSearchParams(location.search).get('file');if(file)node.textContent=file});
+const resourceCatalogBack=document.querySelector('[data-resource-catalog-back]');if(resourceCatalogBack){const params=new URLSearchParams(location.search);if(params.get('context')==='directory'){const selectedSpace=params.get('space')||'all';resourceCatalogBack.href=`resource-catalog-design.html?space=${encodeURIComponent(selectedSpace)}`}}
 
 // 资源目录设计：文档分类体系与分类专属抽取属性。
 const catalogDesignSelect=document.querySelector('[data-design-tree-select]'),catalogCategoryList=document.querySelector('[data-document-category-list]'),catalogPropertyRows=document.querySelector('[data-category-property-rows]');
@@ -2558,10 +2732,11 @@ const directoryResourceCandidates={file:[{id:'f-credit-policy',name:'对公授�
 const defaultPermissionEntries={team:[{kind:'user',name:'王浩杰',path:'总行 / 产品部',level:'manage'},{kind:'user',name:'陈曦',path:'总行 / 公司金融部',level:'edit'},{kind:'group',name:'公司金融产品组',path:'总行 / 产品中心',level:'edit'},{kind:'group',name:'团队全员',path:'当前团队',level:'view'},{kind:'org',name:'风险管理部',path:'总行 / 风险管理部',level:'view'}],personal:[{kind:'user',name:'当前用户',path:'我的空间',level:'manage'}]},permissionEntries={};
 const permissionCandidates={user:[{id:'u-liudan',name:'刘丹',account:'liudan',detail:'liu.dan@haizhi.com',path:'总行 / 产品部'},{id:'u-liuhuan',name:'刘焕',account:'liuhuan',detail:'liu.huan@haizhi.com',path:'总行 / 公司金融部'},{id:'u-wanghaojie',name:'王浩杰',account:'wanghaojie',detail:'wang.haojie@haizhi.com',path:'总行 / 产品部'},{id:'u-liujie',name:'刘捷',account:'liujie',detail:'liu.jie@haizhi.com',path:'总行 / 风险管理部'},{id:'u-liuyize',name:'刘漪泽',account:'liuyize',detail:'liu.yize@haizhi.com',path:'总行 / 数据中心'},{id:'u-liuxianglong',name:'刘翔龙',account:'liuxianglong',detail:'liu.xianglong@haizhi.com',path:'分行 / 信息科技部'}],group:[{id:'g-product',name:'产品经理组',account:'12 名成员',detail:'用户组',path:'总行 / 产品部'},{id:'g-corporate',name:'公司金融产品组',account:'18 名成员',detail:'用户组',path:'总行 / 公司金融部'},{id:'g-risk',name:'风险策略组',account:'9 名成员',detail:'用户组',path:'总行 / 风险管理部'},{id:'g-data',name:'数据治理组',account:'15 名成员',detail:'用户组',path:'总行 / 数据中心'}],org:[{id:'o-product',name:'产品部',account:'一级部门',detail:'36 人',path:'总行 / 产品部'},{id:'o-corporate',name:'公司金融部',account:'一级部门',detail:'52 人',path:'总行 / 公司金融部'},{id:'o-risk',name:'风险管理部',account:'一级部门',detail:'41 人',path:'总行 / 风险管理部'},{id:'o-data',name:'数据中心',account:'一级部门',detail:'68 人',path:'总行 / 数据中心'}]};
 let activeSpace='team',activeId=null,pendingParent=null,activePermissionKind='user',permissionDraft=[];const dialog=document.querySelector('[data-resource-directory-dialog]'),form=document.querySelector('[data-resource-directory-form]'),permissionDialog=document.querySelector('[data-directory-permission-dialog]'),permissionForm=document.querySelector('[data-directory-permission-form]'),esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),space=()=>spaces[activeSpace],node=id=>space().nodes.find(item=>item.id===id),children=id=>space().nodes.filter(item=>item.parentId===id),save=()=>localStorage.setItem(directoryKey,JSON.stringify(spaces));
-const permissionList=()=>{const key=`${activeSpace}:${activeId||'root'}`;return permissionEntries[key]||(permissionEntries[key]=JSON.parse(JSON.stringify(defaultPermissionEntries[activeSpace])))};
-function nodeMarkup(item){const subs=children(item.id),count=files.filter(file=>file[0]===activeSpace&&file[1]===item.id).length;return `<div class="resource-directory-node" role="treeitem" aria-level="${item.depth}"><div class="resource-directory-row"><button class="resource-directory-select ${activeId===item.id?'is-active':''}" type="button" data-resource-directory-id="${item.id}"><span class="resource-directory-caret">${subs.length?'⌄':'›'}</span><span class="asset-folder-icon">□</span><span>${esc(item.name)}</span><span class="resource-directory-count text-number">${count}</span></button><button class="resource-directory-add-child" type="button" data-resource-directory-child="${item.id}" aria-label="在${esc(item.name)}下新建子目录">+</button></div>${subs.length?`<div class="resource-directory-children" role="group">${subs.map(nodeMarkup).join('')}</div>`:''}</div>`}
+const permissionList=()=>{const key=`${activeSpace}:${activeId||'root'}`;if(permissionEntries[key])return permissionEntries[key];const current=node(activeId),levels=['manage','edit','view'],subjectKind=name=>name.endsWith('部')?'org':/(组|全员)$/.test(name)?'group':'user';permissionEntries[key]=activeSpace==='team'&&current?.permissions?levels.flatMap(level=>(current.permissions[level]||[]).map(name=>({kind:subjectKind(name),name,path:current.inherit?'继承父目录':'当前目录',level}))):JSON.parse(JSON.stringify(defaultPermissionEntries[activeSpace]));return permissionEntries[key]};
+function syncNodePermissions(){const current=node(activeId);if(activeSpace!=='team'||!current)return;const list=permissionList();current.permissions={manage:list.filter(item=>item.level==='manage').map(item=>item.name),edit:list.filter(item=>item.level==='edit').map(item=>item.name),view:list.filter(item=>item.level==='view').map(item=>item.name)};current.inherit=false;save();renderTree();renderFiles()}
+function nodeMarkup(item){const subs=children(item.id),count=files.filter(file=>file[0]===activeSpace&&file[1]===item.id).length,permissions=item.permissions||{manage:[],edit:[],view:[]},permissionSummary=activeSpace==='team'?`<small class="resource-directory-permission-meta"><span class="tag tag-small">${item.inherit?'继承':'独立'}</span><span>管 ${permissions.manage.length}</span><span>编 ${permissions.edit.length}</span><span>看 ${permissions.view.length}</span></small>`:'';return `<div class="resource-directory-node" role="treeitem" aria-level="${item.depth}"><div class="resource-directory-row"><button class="resource-directory-select ${activeId===item.id?'is-active':''}" type="button" data-resource-directory-id="${item.id}"><span class="resource-directory-caret">${subs.length?'⌄':'›'}</span><span class="asset-folder-icon">□</span><span class="resource-directory-node-main"><span>${esc(item.name)}</span>${permissionSummary}</span><span class="resource-directory-count text-number">${count}</span></button><button class="resource-directory-add-child" type="button" data-resource-directory-child="${item.id}" aria-label="在${esc(item.name)}下新建子目录">+</button></div>${subs.length?`<div class="resource-directory-children" role="group">${subs.map(nodeMarkup).join('')}</div>`:''}</div>`}
 function renderTree(){resourceDirectoryTreeNode.innerHTML=children(null).map(nodeMarkup).join('')||'<p class="source-empty-state text-small">暂无目录，请新建一级目录</p>'}
-function renderFiles(){const selected=activeId?node(activeId):null,query=document.querySelector('[data-resource-directory-file-search]').value.trim().toLowerCase(),folderRows=children(selected?.id||null).map(item=>({name:item.name,type:'文件夹',owner:activeSpace==='team'?'目录管理员':'当前用户',kind:'folder',id:item.id})),resourceRows=files.filter(file=>file[0]===activeSpace&&file[1]===(selected?.id||null)).map(file=>({name:file[2],type:file[3],owner:file[4],kind:file[5]})),visible=[...folderRows,...resourceRows].filter(item=>`${item.name} ${item.type} ${item.owner}`.toLowerCase().includes(query)),rows=document.querySelector('[data-resource-directory-file-rows]');rows.innerHTML=visible.map(item=>{const name=item.kind==='folder'?`<button class="document-link resource-folder-link" type="button" data-open-directory-node="${item.id}">${esc(item.name)}</button>`:`<a class="document-link" href="resource-catalog-detail.html?file=${encodeURIComponent(item.name)}">${esc(item.name)}</a>`,action=item.kind==='folder'?`<button class="btn btn-dense btn-text" type="button" data-open-directory-node="${item.id}">进入</button>`:`<a class="btn btn-dense btn-text" href="resource-catalog-detail.html?file=${encodeURIComponent(item.name)}">查看</a>`;return `<tr><td class="cell-primary">${name}</td><td><span class="resource-kind-badge resource-kind-${item.kind}">${esc(item.type)}</span></td><td>${esc(selected?.name||space().name)}</td><td>${esc(item.owner)}</td><td>2026-09-08 16:42</td><td class="cell-actions">${action}</td></tr>`}).join('');document.querySelector('[data-resource-directory-empty]').hidden=visible.length>0;document.querySelector('[data-resource-directory-file-count]').textContent=`${visible.length} 项资源`;document.querySelector('[data-resource-directory-path]').textContent=selected?.name||'全部资源';document.querySelector('[data-resource-directory-title]').textContent=selected?.name||'全部资源';document.querySelector('[data-resource-directory-description]').textContent=selected?.description||`展示${space().name}的顶级目录`;const summary=document.querySelector('[data-directory-permission-summary]');summary.hidden=activeSpace!=='team'||!selected;if(activeSpace==='team'&&selected){document.querySelector('[data-directory-manage-count]').textContent=selected.permissions?.manage?.length||0;document.querySelector('[data-directory-edit-count]').textContent=selected.permissions?.edit?.length||0;document.querySelector('[data-directory-view-count]').textContent=selected.permissions?.view?.length||0}}
+function renderFiles(){const selected=activeId?node(activeId):null,query=document.querySelector('[data-resource-directory-file-search]').value.trim().toLowerCase(),folderRows=children(selected?.id||null).map(item=>({name:item.name,type:'文件夹',owner:activeSpace==='team'?'目录管理员':'当前用户',kind:'folder',id:item.id})),resourceRows=files.filter(file=>file[0]===activeSpace&&file[1]===(selected?.id||null)).map(file=>({name:file[2],type:file[3],owner:file[4],kind:file[5]})),visible=[...folderRows,...resourceRows].filter(item=>`${item.name} ${item.type} ${item.owner}`.toLowerCase().includes(query)),rows=document.querySelector('[data-resource-directory-file-rows]');rows.innerHTML=visible.map(item=>{const detailHref=`resource-catalog-detail.html?context=directory&space=${encodeURIComponent(new URLSearchParams(location.search).get('space')||activeSpace)}&file=${encodeURIComponent(item.name)}`,name=item.kind==='folder'?`<button class="document-link resource-folder-link" type="button" data-open-directory-node="${item.id}">${esc(item.name)}</button>`:`<a class="document-link" href="${detailHref}">${esc(item.name)}</a>`,action=item.kind==='folder'?`<button class="btn btn-dense btn-text" type="button" data-open-directory-node="${item.id}">进入</button>`:`<a class="btn btn-dense btn-text" href="${detailHref}">查看</a>`;return `<tr><td class="cell-primary">${name}</td><td><span class="resource-kind-badge resource-kind-${item.kind}">${esc(item.type)}</span></td><td>${esc(selected?.name||space().name)}</td><td>${esc(item.owner)}</td><td>2026-09-08 16:42</td><td class="cell-actions">${action}</td></tr>`}).join('');document.querySelector('[data-resource-directory-empty]').hidden=visible.length>0;document.querySelector('[data-resource-directory-file-count]').textContent=`${visible.length} 项资源`;document.querySelector('[data-resource-directory-path]').textContent=selected?.name||'全部资源';document.querySelector('[data-resource-directory-title]').textContent=selected?.name||'全部资源';document.querySelector('[data-resource-directory-description]').textContent=selected?.description||`展示${space().name}的顶级目录`;const summary=document.querySelector('[data-directory-permission-summary]');summary.hidden=activeSpace!=='team'||!selected;if(activeSpace==='team'&&selected){document.querySelector('[data-directory-manage-count]').textContent=selected.permissions?.manage?.length||0;document.querySelector('[data-directory-edit-count]').textContent=selected.permissions?.edit?.length||0;document.querySelector('[data-directory-view-count]').textContent=selected.permissions?.view?.length||0}}
 function renderPermissions(){const query=document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase(),labels={user:'用户',group:'用户组',org:'组织机构'},entries=permissionList().filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(query)),rows=document.querySelector('[data-directory-permission-rows]');rows.innerHTML=entries.map((item,index)=>`<tr><td class="cell-primary"><span class="permission-subject"><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><strong>${esc(item.name)}</strong></span></td><td>${labels[item.kind]}</td><td>${esc(item.path)}</td><td><select class="select select-small" aria-label="设置${esc(item.name)}的权限" data-permission-entry="${index}"><option value="view" ${item.level==='view'?'selected':''}>查看权限</option><option value="edit" ${item.level==='edit'?'selected':''}>编辑权限</option><option value="manage" ${item.level==='manage'?'selected':''}>管理权限</option></select></td><td><span class="tag tag-status tag-status-secondary">${node(activeId)?.inherit?'继承父目录':'当前目录'}</span></td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-remove-permission="${index}" aria-label="移除${esc(item.name)}">移除</button></td></tr>`).join('');document.querySelector('[data-directory-permission-empty]').hidden=entries.length>0}
 function renderPermissionPicker(){const query=document.querySelector('[data-permission-candidate-search]').value.trim().toLowerCase(),candidates=permissionCandidates[activePermissionKind].filter(item=>`${item.name} ${item.account} ${item.detail} ${item.path}`.toLowerCase().includes(query)),selectedIds=new Set(permissionDraft.map(item=>item.id)),candidateNode=document.querySelector('[data-permission-candidates]'),selectedNode=document.querySelector('[data-permission-selected]'),typeLabels={user:'用户',group:'用户组',org:'组织机构'};candidateNode.innerHTML=candidates.map(item=>`<label class="permission-candidate-item ${selectedIds.has(item.id)?'is-selected':''}"><input class="checkbox" type="checkbox" value="${item.id}" data-permission-candidate ${selectedIds.has(item.id)?'checked':''}/><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><span class="permission-candidate-main"><strong>${esc(item.name)}</strong><small>${esc(item.path)}</small></span><span class="permission-candidate-meta"><span>${esc(item.account)}</span><small>${esc(item.detail)}</small></span></label>`).join('')||'<div class="source-empty-state text-small">未找到匹配对象</div>';selectedNode.innerHTML=permissionDraft.map(item=>`<div class="permission-selected-item"><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><span class="permission-selected-main"><strong>${esc(item.name)}</strong><small>${typeLabels[activePermissionKind]} · ${esc(item.path)}</small></span><select class="select select-small" aria-label="设置${esc(item.name)}的权限" data-draft-permission="${item.id}"><option value="view" ${item.level==='view'?'selected':''}>查看权限</option><option value="edit" ${item.level==='edit'?'selected':''}>编辑权限</option><option value="manage" ${item.level==='manage'?'selected':''}>管理权限</option></select><button class="permission-selected-remove" type="button" data-remove-draft-permission="${item.id}" aria-label="取消选择${esc(item.name)}">×</button></div>`).join('')||'<div class="permission-picker-empty"><strong>尚未选择对象</strong><span class="text-small">在左侧勾选后，可在此逐个设置权限。</span></div>';document.querySelector('[data-permission-candidate-count]').textContent=`${candidates.length} 个结果`;document.querySelector('[data-permission-selected-count]').textContent=`${permissionDraft.length} 个对象`;document.querySelector('[data-confirm-directory-permission]').disabled=permissionDraft.length===0;document.querySelector('[data-permission-picker-note]').textContent=permissionDraft.length?`将添加 ${permissionDraft.length} 个权限对象`:'请至少选择一个权限对象'}
 const resourceDialog=document.querySelector('[data-directory-resource-dialog]'),resourceForm=document.querySelector('[data-directory-resource-form]');
@@ -2583,9 +2758,9 @@ function openResourcePicker(){
   document.querySelectorAll('[data-directory-resource-type]').forEach(button=>{const on=button.dataset.directoryResourceType==='file';button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});
   renderResourcePicker();setDialogState(resourceDialog,true,'[data-directory-resource-search]');
 }
-function activateSpace(id){activeSpace=id;activeId=children(null)[0]?.id||null;document.querySelectorAll('[data-directory-space]').forEach(button=>{const on=button.dataset.directorySpace===id;button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});document.querySelector('[data-directory-space-summary]').textContent=space().summary;document.querySelector('[data-directory-space-note]').textContent=space().note;document.querySelector('[data-resource-directory-root]').textContent=space().name;document.querySelector('[data-open-resource-directory]').textContent=id==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-search]').value='';document.querySelector('[data-resource-directory-file-search]').value='';document.querySelector('[data-directory-permission-search]').value='';renderTree();renderFiles();renderPermissions()}
+function activateSpace(id){activeSpace=id;activeId=children(null)[0]?.id||null;document.querySelectorAll('[data-directory-space]').forEach(button=>{const on=button.dataset.directorySpace===id;button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});const permissionTab=document.querySelector('[data-team-permission-tab]');permissionTab.hidden=id!=='team';if(id!=='team'){document.querySelectorAll('[data-directory-content-tab]').forEach(button=>{const on=button.dataset.directoryContentTab==='resources';button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});document.querySelectorAll('[data-directory-content-panel]').forEach(panel=>panel.hidden=panel.dataset.directoryContentPanel!=='resources')}document.querySelector('[data-directory-space-summary]').textContent=space().summary;document.querySelector('[data-directory-space-note]').textContent=space().note;document.querySelector('[data-resource-directory-root]').textContent=space().name;document.querySelector('[data-open-resource-directory]').textContent=id==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-search]').value='';document.querySelector('[data-resource-directory-file-search]').value='';document.querySelector('[data-directory-permission-search]').value='';renderTree();renderFiles();renderPermissions()}
 function disablePermissions(disabled){['managePermission','editPermission','viewPermission'].forEach(name=>{form.elements[name].disabled=disabled;form.elements[name].required=activeSpace==='team'&&!disabled})}
-function openDirectory(parentId=null){pendingParent=parentId;const parent=parentId?node(parentId):null,depth=parent?parent.depth+1:1;form.reset();document.querySelector('[data-resource-directory-dialog-title]').textContent=activeSpace==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-dialog-subtitle]').textContent=activeSpace==='personal'?'在个人空间中创建自有文件夹':'创建业务目录，权限自动沿用当前团队空间';document.querySelector('[data-resource-directory-parent]').textContent=parent?.name||space().name;document.querySelector('[data-resource-directory-level]').textContent=`${['一','二','三','四','五'][depth-1]||depth}级目录`;document.querySelector('[data-team-directory-permissions]').hidden=true;document.querySelector('.resource-directory-inherit').hidden=true;const inherit=document.querySelector('[data-inherit-directory-permissions]');inherit.checked=Boolean(parent);const permissions=parent?.permissions||{manage:[],edit:[],view:[]};form.elements.managePermission.value=permissions.manage.join('，');form.elements.editPermission.value=permissions.edit.join('，');form.elements.viewPermission.value=permissions.view.join('，');disablePermissions(activeSpace==='team');setDialogState(dialog,true,'[name="directoryName"]')}
+function openDirectory(parentId=null){pendingParent=parentId;const parent=parentId?node(parentId):null,depth=parent?parent.depth+1:1;form.reset();document.querySelector('[data-resource-directory-dialog-title]').textContent=activeSpace==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-dialog-subtitle]').textContent=activeSpace==='personal'?'在个人空间中创建自有文件夹':'创建业务目录并配置目录授权';document.querySelector('[data-resource-directory-parent]').textContent=parent?.name||space().name;document.querySelector('[data-resource-directory-level]').textContent=`${['一','二','三','四','五'][depth-1]||depth}级目录`;document.querySelector('[data-team-directory-permissions]').hidden=activeSpace!=='team';document.querySelector('.resource-directory-inherit').hidden=activeSpace!=='team'||!parent;const inherit=document.querySelector('[data-inherit-directory-permissions]');inherit.checked=Boolean(parent);const permissions=parent?.permissions||{manage:[],edit:[],view:[]};form.elements.managePermission.value=permissions.manage.join('，');form.elements.editPermission.value=permissions.edit.join('，');form.elements.viewPermission.value=permissions.view.join('，');disablePermissions(activeSpace==='team'&&Boolean(parent));setDialogState(dialog,true,'[name="directoryName"]')}
 document.querySelectorAll('[data-directory-space]').forEach(button=>button.addEventListener('click',()=>activateSpace(button.dataset.directorySpace)));
 document.querySelectorAll('[data-directory-content-tab]').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.directoryContentTab;document.querySelectorAll('[data-directory-content-tab]').forEach(item=>{const on=item===button;item.classList.toggle('is-active',on);item.setAttribute('aria-selected',String(on))});document.querySelectorAll('[data-directory-content-panel]').forEach(panel=>panel.hidden=panel.dataset.directoryContentPanel!==target);if(target==='permissions')renderPermissions()}));
 document.querySelectorAll('[data-permission-subject-tab]').forEach(button=>button.addEventListener('click',()=>{activePermissionKind=button.dataset.permissionSubjectTab;document.querySelectorAll('[data-permission-subject-tab]').forEach(item=>{const on=item===button;item.classList.toggle('is-active',on);item.setAttribute('aria-selected',String(on))});renderPermissions()}));
@@ -2603,8 +2778,8 @@ document.querySelector('[data-directory-resource-search]').addEventListener('inp
 document.querySelector('[data-directory-resource-candidates]').addEventListener('change',event=>{const checkbox=event.target.closest('[data-directory-resource-candidate]');if(!checkbox)return;if(checkbox.checked)selectedResourceIds.add(checkbox.value);else selectedResourceIds.delete(checkbox.value);renderResourcePicker()});
 resourceForm.addEventListener('submit',event=>{event.preventDefault();if(!selectedResourceIds.size||!activeId)return;const candidates=directoryResourceCandidates[activeResourceType],selected=candidates.filter(item=>selectedResourceIds.has(item.id));selected.forEach(item=>{if(!files.some(file=>file[0]===activeSpace&&file[1]===activeId&&file[2]===item.name&&file[5]===activeResourceType))files.push([activeSpace,activeId,item.name,item.type,'当前用户',activeResourceType])});saveFiles();setDialogState(resourceDialog,false);renderTree();renderFiles();showToast(`已向“${node(activeId)?.name}”添加 ${selected.length} 项资源`)});
 document.querySelector('[data-directory-permission-search]').addEventListener('input',renderPermissions);
-document.querySelector('[data-directory-permission-rows]').addEventListener('change',event=>{const select=event.target.closest('[data-permission-entry]');if(!select)return;const visible=permissionList().filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase()));if(visible[Number(select.dataset.permissionEntry)])visible[Number(select.dataset.permissionEntry)].level=select.value;showToast('权限已更新')});
-document.querySelector('[data-directory-permission-rows]').addEventListener('click',event=>{const remove=event.target.closest('[data-remove-permission]');if(!remove)return;const list=permissionList(),visible=list.filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase())),target=visible[Number(remove.dataset.removePermission)];if(target){list.splice(list.indexOf(target),1);renderPermissions();showToast(`已移除“${target.name}”的权限`)}});
+document.querySelector('[data-directory-permission-rows]').addEventListener('change',event=>{const select=event.target.closest('[data-permission-entry]');if(!select)return;const visible=permissionList().filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase()));if(visible[Number(select.dataset.permissionEntry)]){visible[Number(select.dataset.permissionEntry)].level=select.value;syncNodePermissions()}showToast('权限已更新')});
+document.querySelector('[data-directory-permission-rows]').addEventListener('click',event=>{const remove=event.target.closest('[data-remove-permission]');if(!remove)return;const list=permissionList(),visible=list.filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase())),target=visible[Number(remove.dataset.removePermission)];if(target){list.splice(list.indexOf(target),1);syncNodePermissions();renderPermissions();showToast(`已移除“${target.name}”的权限`)}});
 document.querySelector('[data-open-directory-permission]').addEventListener('click',()=>{permissionForm.reset();permissionDraft=[];const labels={user:'用户',group:'用户组',org:'组织机构'};document.querySelector('[data-permission-picker-title]').textContent=`添加${labels[activePermissionKind]}`;document.querySelector('[data-permission-candidate-search]').value='';renderPermissionPicker();setDialogState(permissionDialog,true,'[data-permission-candidate-search]')});
 document.querySelectorAll('[data-directory-permission-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(permissionDialog,false)));
 permissionDialog.addEventListener('click',event=>{if(event.target===permissionDialog)setDialogState(permissionDialog,false)});
@@ -2612,7 +2787,7 @@ document.querySelector('[data-permission-candidate-search]').addEventListener('i
 document.querySelector('[data-permission-candidates]').addEventListener('change',event=>{const checkbox=event.target.closest('[data-permission-candidate]');if(!checkbox)return;const candidate=permissionCandidates[activePermissionKind].find(item=>item.id===checkbox.value);if(!candidate)return;if(checkbox.checked&&!permissionDraft.some(item=>item.id===candidate.id))permissionDraft.push({...candidate,level:'view'});if(!checkbox.checked)permissionDraft=permissionDraft.filter(item=>item.id!==candidate.id);renderPermissionPicker()});
 document.querySelector('[data-permission-selected]').addEventListener('change',event=>{const select=event.target.closest('[data-draft-permission]'),item=permissionDraft.find(entry=>entry.id===select?.dataset.draftPermission);if(item)item.level=select.value});
 document.querySelector('[data-permission-selected]').addEventListener('click',event=>{const remove=event.target.closest('[data-remove-draft-permission]');if(remove){permissionDraft=permissionDraft.filter(item=>item.id!==remove.dataset.removeDraftPermission);renderPermissionPicker()}});
-permissionForm.addEventListener('submit',event=>{event.preventDefault();if(!permissionDraft.length)return;const list=permissionList();permissionDraft.forEach(item=>{const entry={kind:activePermissionKind,name:item.name,path:item.path,level:item.level},matched=list.find(current=>current.kind===entry.kind&&current.name===entry.name);if(matched)matched.level=entry.level;else list.push(entry)});const count=permissionDraft.length;setDialogState(permissionDialog,false);renderPermissions();showToast(`已添加 ${count} 个权限对象`)});
+permissionForm.addEventListener('submit',event=>{event.preventDefault();if(!permissionDraft.length)return;const list=permissionList();permissionDraft.forEach(item=>{const entry={kind:activePermissionKind,name:item.name,path:item.path,level:item.level},matched=list.find(current=>current.kind===entry.kind&&current.name===entry.name);if(matched)matched.level=entry.level;else list.push(entry)});const count=permissionDraft.length;syncNodePermissions();setDialogState(permissionDialog,false);renderPermissions();showToast(`已添加 ${count} 个权限对象`)});
 document.querySelector('[data-inherit-directory-permissions]').addEventListener('change',event=>disablePermissions(event.currentTarget.checked));document.querySelectorAll('[data-resource-directory-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(dialog,false)));dialog.addEventListener('click',event=>{if(event.target===dialog)setDialogState(dialog,false)});
 form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form),parent=pendingParent?node(pendingParent):null,inherit=activeSpace==='team'&&Boolean(parent)&&document.querySelector('[data-inherit-directory-permissions]').checked,list=value=>String(value||'').split(/[,，]/).map(item=>item.trim()).filter(Boolean),name=String(data.get('directoryName')).trim();if(space().nodes.some(item=>item.parentId===pendingParent&&item.name===name))return showToast('同级目录名称已存在');const item={id:`${activeSpace}-${Date.now()}`,name,description:String(data.get('directoryDescription')).trim(),parentId:pendingParent,depth:parent?parent.depth+1:1};if(activeSpace==='team'){item.inherit=inherit;item.permissions=inherit?JSON.parse(JSON.stringify(parent.permissions)):{manage:list(data.get('managePermission')),edit:list(data.get('editPermission')),view:list(data.get('viewPermission'))}}space().nodes.push(item);activeId=item.id;save();setDialogState(dialog,false);renderTree();renderFiles();showToast(`已创建目录“${name}”`)});const selectedTeamSpace=new URLSearchParams(location.search).get('space');if(selectedTeamSpace){document.querySelector('.page-title').textContent=selectedTeamSpace==='all'?'全员空间':selectedTeamSpace==='finance'?'金融空间':selectedTeamSpace==='risk'?'风险管理空间':selectedTeamSpace;document.querySelector('.page-description').textContent='管理当前团队空间的目录、资源与继承权限。'}activateSpace(selectedTeamSpace?'team':document.body.dataset.directoryDefaultSpace||'team');
 }
