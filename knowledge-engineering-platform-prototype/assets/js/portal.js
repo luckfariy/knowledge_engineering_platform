@@ -2,15 +2,21 @@ const toastNode = document.querySelector('[data-portal-toast]');
 let toastTimer;
 const portalPage = document.body.dataset.portalPage;
 const portalNavigation = document.querySelector('.portal-nav');
-if (portalNavigation && !portalNavigation.querySelector('[href="frontend-apps.html"]')) {
-  const applicationLink = document.createElement('a');
-  applicationLink.href = 'frontend-apps.html';
-  applicationLink.textContent = '应用中心';
-  if (portalPage === 'apps') {
-    applicationLink.classList.add('is-active');
-    applicationLink.setAttribute('aria-current', 'page');
-  }
-  portalNavigation.append(applicationLink);
+if (portalNavigation) {
+  [
+    ['frontend-apps.html', '应用中心', 'apps'],
+    ['frontend-profile.html', '个人中心', 'profile']
+  ].forEach(([href, label, page]) => {
+    if (portalNavigation.querySelector(`[href="${href}"]`)) return;
+    const link = document.createElement('a');
+    link.href = href;
+    link.textContent = label;
+    if (portalPage === page) {
+      link.classList.add('is-active');
+      link.setAttribute('aria-current', 'page');
+    }
+    portalNavigation.append(link);
+  });
 }
 const portalSearchButton = document.querySelector('[data-portal-search-toggle]');
 if (portalSearchButton) {
@@ -26,19 +32,80 @@ function showToast(message) {
 }
 
 const searchLayer = document.querySelector('[data-portal-search-layer]');
+const homeSearchInput = document.querySelector('[data-portal-home-search-input]');
 document.querySelector('[data-portal-search-toggle]')?.addEventListener('click', () => {
+  if (homeSearchInput) {
+    homeSearchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    homeSearchInput.focus();
+    return;
+  }
+  if (!searchLayer) return;
   searchLayer.hidden = false;
   searchLayer.querySelector('input')?.focus();
 });
-document.querySelector('[data-portal-search-close]')?.addEventListener('click', () => { searchLayer.hidden = true; });
+document.querySelector('[data-portal-search-close]')?.addEventListener('click', () => { if (searchLayer) searchLayer.hidden = true; });
 searchLayer?.addEventListener('click', event => { if (event.target === searchLayer) searchLayer.hidden = true; });
 searchLayer?.querySelector('form')?.addEventListener('submit', event => {
   event.preventDefault();
   const query = new FormData(event.currentTarget).get('query')?.trim();
   if (!query) return;
-  searchLayer.hidden = true;
-  showToast(`正在全局搜索“${query}”`);
+  location.href = `frontend-home.html?q=${encodeURIComponent(query)}`;
 });
+
+const homeSearchForm = document.querySelector('[data-portal-home-search]');
+const homeSearchResults = [...document.querySelectorAll('[data-home-search-result]')];
+let activeHomeSearchType = 'all';
+function updateHomeSearch(submitted = false) {
+  if (!homeSearchInput) return;
+  const query = homeSearchInput.value.trim().toLowerCase();
+  const terms = query.split(/\s+/).filter(Boolean);
+  let visibleCount = 0;
+  homeSearchResults.forEach(result => {
+    const typeMatches = activeHomeSearchType === 'all' || result.dataset.searchType === activeHomeSearchType;
+    const searchableText = `${result.textContent} ${result.dataset.searchKeywords || ''}`.toLowerCase();
+    const queryMatches = terms.length === 0 || terms.every(term => searchableText.includes(term));
+    result.hidden = !(typeMatches && queryMatches);
+    if (!result.hidden) visibleCount += 1;
+  });
+  const typeLabels = { all: '全部类型', kb: '知识库', kg: '语义知识图谱', file: '文件', faq: 'FAQ', table: '数据表' };
+  const title = document.querySelector('[data-home-search-title]');
+  const context = document.querySelector('[data-home-search-context]');
+  if (title) title.textContent = query ? `“${homeSearchInput.value.trim()}”的搜索结果` : '推荐结果';
+  if (context) context.textContent = query ? `正在检索${typeLabels[activeHomeSearchType]}` : '为你推荐可访问的企业知识';
+  const count = document.querySelector('[data-home-search-count]');
+  if (count) count.textContent = `${visibleCount} 条结果`;
+  const empty = document.querySelector('[data-home-search-empty]');
+  if (empty) empty.hidden = visibleCount > 0;
+  if (submitted && query) {
+    const url = new URL(location.href);
+    url.searchParams.set('q', homeSearchInput.value.trim());
+    history.replaceState(null, '', url);
+  }
+}
+homeSearchForm?.addEventListener('submit', event => {
+  event.preventDefault();
+  updateHomeSearch(true);
+});
+homeSearchInput?.addEventListener('input', () => updateHomeSearch(false));
+document.querySelectorAll('[data-home-search-type]').forEach(button => button.addEventListener('click', () => {
+  activeHomeSearchType = button.dataset.homeSearchType;
+  document.querySelectorAll('[data-home-search-type]').forEach(typeButton => {
+    const active = typeButton === button;
+    typeButton.classList.toggle('is-active', active);
+    typeButton.setAttribute('aria-selected', String(active));
+  });
+  updateHomeSearch(false);
+}));
+document.querySelectorAll('[data-home-search-suggestion]').forEach(button => button.addEventListener('click', () => {
+  homeSearchInput.value = button.dataset.homeSearchSuggestion;
+  updateHomeSearch(true);
+  document.querySelector('[data-home-search-results]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}));
+if (homeSearchInput) {
+  const initialQuery = new URLSearchParams(location.search).get('q');
+  if (initialQuery) homeSearchInput.value = initialQuery;
+  updateHomeSearch(Boolean(initialQuery));
+}
 
 const historyList = document.querySelector('[data-chat-history-list]');
 const selectedAgent = new URLSearchParams(location.search).get('agent');

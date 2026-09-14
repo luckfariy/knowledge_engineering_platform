@@ -56,7 +56,9 @@
 - `pages/system-user-org.html`：组织机构、用户列表与产品功能权限管理
 - `pages/system-roles.html`：角色管理
 - `pages/system-logs.html`：操作日志
-- `pages/frontend-home.html`、`pages/frontend-assets.html`、`pages/frontend-chat.html`、`pages/frontend-apps.html`：业务门户、资产浏览、聊天与场景助手页面
+- `pages/frontend-home.html`：前台首页，统一检索知识库、语义知识图谱、文件、FAQ 与数据表
+- `pages/frontend-profile.html`：个人中心，承接原首页的个人指标、待办、关注知识与热门专题
+- `pages/frontend-assets.html`、`pages/frontend-chat.html`、`pages/frontend-apps.html`：资产浏览、聊天与场景助手页面
 - `assets/js/publishing.js`：当前发布与目录挂载交互
 - `assets/js/shell.js`：新版共享导航与平台框架
 - `assets/js/app.js`：新版共享交互

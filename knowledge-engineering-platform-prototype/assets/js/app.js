@@ -1,12 +1,22 @@
-import { renderShell } from './shell.js?v=40';
+import { createTaskFileResult } from './task-file-results.js?v=1';
+import { renderShell } from './shell.js?v=43';
 
-const platformStylesheet = document.querySelector('link[href$="platform.css"]');
-if (platformStylesheet) platformStylesheet.href = `${platformStylesheet.href}?v=2`;
+const platformStylesheet = document.querySelector('link[href*="platform.css"]');
+if (platformStylesheet) {
+  const stylesheetUrl = new URL(platformStylesheet.href);
+  stylesheetUrl.searchParams.set('v', '44');
+  platformStylesheet.href = stylesheetUrl.href;
+}
 
 renderShell();
+document.querySelector('[data-resource-directory-nav-toggle]')?.addEventListener('click',event=>{
+  const group=event.currentTarget.closest('.resource-directory-nav-group');
+  const expanded=group.classList.toggle('is-expanded');
+  event.currentTarget.setAttribute('aria-expanded',String(expanded));
+});
 const template = document.querySelector('template[data-page-template]');
 if (template) document.querySelector('[data-page-content]').append(template.content.cloneNode(true));
-import('./publishing.js?v=1');
+import('./publishing.js?v=2');
 
 document.querySelectorAll('[data-ai-chat-open], [data-ai-chat-dialog]').forEach(node => node.remove());
 const aiAssistant = document.createElement('div');
@@ -53,6 +63,10 @@ document.addEventListener('click', event => {
 
 document.querySelectorAll('[data-table-search]').forEach(input => input.addEventListener('input', () => {
   const table = document.querySelector(input.dataset.tableSearch);
+  if (table?.id === 'resource-table') {
+    applyResourceFileFilters();
+    return;
+  }
   const query = input.value.trim().toLowerCase();
   table?.querySelectorAll('tbody tr').forEach(row => { row.hidden = !row.textContent.toLowerCase().includes(query); });
 }));
@@ -358,12 +372,7 @@ function filterKnowledgeSource(button) {
     item.classList.toggle('is-active', active);
     item.setAttribute('aria-pressed', String(active));
   });
-  let visibleCount = 0;
-  document.querySelectorAll('#resource-table tbody tr[data-knowledge-source-row]').forEach(row => {
-    const visible = row.dataset.sourceKind === sourceKind && (sourceId === 'all' || row.dataset.knowledgeSourceRow === sourceId);
-    row.hidden = !visible;
-    if (visible) visibleCount += 1;
-  });
+  const visibleCount = applyResourceFileFilters();
   const titleNode = document.querySelector('[data-resource-title]');
   const summaryNode = document.querySelector('[data-resource-summary]');
   const countNode = document.querySelector('[data-resource-count]');
@@ -377,6 +386,63 @@ function filterKnowledgeSource(button) {
   if (emptyNode) emptyNode.hidden = visibleCount !== 0;
   if (emptyMessage && sourceId === 'oracle') emptyMessage.textContent = '该知识源尚未完成认证，完成连接并同步后将在此展示内容。';
 }
+
+function applyResourceFileFilters() {
+  const table = document.querySelector('#resource-table');
+  if (!table) return 0;
+  const activeSource = document.querySelector('[data-knowledge-source-tree] [data-knowledge-source].is-active');
+  const sourceId = activeSource?.dataset.knowledgeSource || 'all';
+  const sourceKind = activeSource?.dataset.sourceKind || activeSource?.closest('[data-source-kind]')?.dataset.sourceKind || 'unstructured';
+  const fileType = document.querySelector('[data-file-type-filter]')?.value || 'all';
+  const query = document.querySelector('[data-table-search="#resource-table"]')?.value.trim().toLowerCase() || '';
+  let visibleCount = 0;
+  table.querySelectorAll('tbody tr[data-knowledge-source-row]').forEach(row => {
+    const sourceMatches = row.dataset.sourceKind === sourceKind && (sourceId === 'all' || row.dataset.knowledgeSourceRow === sourceId);
+    const typeMatches = fileType === 'all' || row.dataset.fileType === fileType;
+    const queryMatches = !query || row.textContent.toLowerCase().includes(query);
+    const visible = sourceMatches && typeMatches && queryMatches;
+    row.hidden = !visible;
+    if (visible) visibleCount += 1;
+  });
+  const countNode = document.querySelector('[data-resource-count]');
+  if (countNode) countNode.textContent = `${visibleCount} 条结果`;
+  return visibleCount;
+}
+
+function setupDocumentFileTypes() {
+  const rows = [...document.querySelectorAll('#resource-table tbody tr[data-knowledge-source-row]')];
+  if (!rows.length) return;
+  const examples = [
+    ['对公授信审查办法.pdf', 'PDF'],
+    ['固定资产贷款管理办法.docx', 'Word'],
+    ['客户风险评级服务设计.txt', 'TXT'],
+    ['征信接口流程图.png', '图片'],
+    ['授信规则培训视频.mp4', '视频'],
+    ['2025年授信档案汇编.pdf', 'PDF'],
+    ['历史合同扫描件.jpg', '图片'],
+    ['风险模型说明.txt', 'TXT']
+  ];
+  rows.forEach((row, index) => {
+    const [name, type] = examples[index] || [row.querySelector('.document-link')?.textContent.trim(), row.children[1]?.textContent.trim()];
+    const link = row.querySelector('.document-link');
+    if (link && name) {
+      link.textContent = name;
+      link.href = `space-file-detail.html?file=${encodeURIComponent(name)}`;
+    }
+    row.dataset.fileType = type;
+    if (row.children[1]) row.children[1].innerHTML = `<span class="tag tag-small">${type}</span>`;
+  });
+  const toolbar = document.querySelector('.source-content-panel .personal-file-toolbar');
+  const spacer = toolbar?.querySelector('.toolbar-spacer');
+  if (!toolbar || !spacer || toolbar.querySelector('[data-file-type-filter]')) return;
+  const field = document.createElement('label');
+  field.className = 'field file-type-filter';
+  field.innerHTML = '<span class="input-wrap input-middle"><select class="input" data-file-type-filter aria-label="按文件类型筛选"><option value="all">全部类型</option><option value="PDF">PDF</option><option value="Word">Word</option><option value="TXT">TXT</option><option value="图片">图片</option><option value="视频">视频</option></select></span>';
+  toolbar.insertBefore(field, spacer);
+  field.querySelector('[data-file-type-filter]').addEventListener('change', applyResourceFileFilters);
+}
+
+setupDocumentFileTypes();
 
 const sourceKindTabs = document.querySelector('[data-source-kind-tabs]');
 
@@ -438,10 +504,17 @@ const sourceClassificationPaths = {
   's3-videos': ['授信业务审查培训视频']
 };
 const suggestedCatalogPath = name => /风险|征信|授信/.test(name) ? '金融业务 / 信贷业务 / 风险管理' : /合同|档案/.test(name) ? '企业治理 / 法律合规 / 合同管理' : /customer|客户/.test(name) ? '金融业务 / 零售金融 / 客户服务' : '信息科技 / 数据治理';
-function getSourceTasks(){try{const tasks=JSON.parse(localStorage.getItem('kep-source-processing-tasks')||'[]');return Array.isArray(tasks)?tasks:[]}catch{return[]}}
+// Keep historical tagging tasks in the merged metadata task category.
+function normalizeSourceTask(task) {
+  const taskName = task.taskName === '自动打标' || task.taskType === 'tag'
+    ? '元数据补充'
+    : task.taskName === '连接器同步' ? '知识源同步' : task.taskName;
+  return { ...task, taskName };
+}
+function getSourceTasks(){try{const tasks=JSON.parse(localStorage.getItem('kep-source-processing-tasks')||'[]');return Array.isArray(tasks)?tasks.map(normalizeSourceTask):[]}catch{return[]}}
 function saveSourceTasks(tasks){localStorage.setItem('kep-source-processing-tasks',JSON.stringify(tasks))}
-function renderSourceTaskNotices(){const list=document.querySelector('[data-catalog-task-list]'),tasks=getSourceTasks().slice(0,5);if(!list||!tasks.length)return;document.querySelector('[data-catalog-empty]')?.remove();list.innerHTML=tasks.map(item=>`<article class="task-notice ${item.status==='已完成'?'is-complete':''}"><div class="task-notice-head"><div><strong class="text-small-bold">${item.taskName}</strong><p class="text-small">${item.sourceName} · ${item.fileCount} 个文件</p></div><span class="tag tag-status ${item.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${item.status}</span></div><a class="btn btn-dense btn-text task-notice-link" href="resource-tasks.html?task=${encodeURIComponent(item.id)}">${item.status==='已完成'?'任务已完成，查看详情':'进入任务中心查看'}</a></article>`).join('');updateTaskCenterSummary()}
-function renderSourceTasks(){const body=document.querySelector('[data-resource-task-rows]');if(!body)return;getSourceTasks().slice().reverse().forEach(item=>{const row=document.createElement('tr'),completed=item.status==='已完成';row.dataset.sourceTaskId=item.id;row.dataset.resourceTaskRow=item.taskName;row.innerHTML=`<td class="cell-primary">${item.sourceName} · ${item.taskName}<span class="cell-secondary text-small">${item.id}</span></td><td>${item.taskName}</td><td>${item.sourceName}</td><td>当前用户</td><td>${item.startedAt}</td><td>${item.result}</td><td><span class="tag tag-status ${completed?'tag-status-lime':'tag-status-blue'}">${item.status}</span></td><td><a class="btn btn-dense btn-text" href="resource-tasks.html?task=${encodeURIComponent(item.id)}">查看</a></td>`;body.prepend(row)});const taskId=new URLSearchParams(location.search).get('task'),task=taskId&&getSourceTasks().find(item=>item.id===taskId),detail=document.querySelector('[data-source-task-detail]');if(!task||!detail)return;detail.hidden=false;detail.innerHTML=`<header><div><h2 class="text-medium-bold">${task.sourceName} · ${task.taskName}</h2><p class="text-small">${task.id}</p></div><span class="tag tag-status ${task.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${task.status}</span></header><div class="source-task-detail-grid"><div><span class="text-small">任务维度</span><strong>知识源</strong></div><div><span class="text-small">处理范围</span><strong>${task.fileCount} 个文件</strong></div><div><span class="text-small">开始时间</span><strong>${task.startedAt}</strong></div><div><span class="text-small">执行结果</span><strong>${task.result}</strong></div></div>${task.taskType==='catalog'&&task.status==='已完成'?'<div class="asset-section-actions"><a class="btn btn-medium btn-primary" href="asset-catalogs.html?review=classification">查看并确认分类结果</a></div>':''}`;document.querySelector(`[data-source-task-id="${CSS.escape(taskId)}"]`)?.classList.add('is-highlighted')}
+function renderSourceTaskNotices(){const list=document.querySelector('[data-catalog-task-list]'),tasks=getSourceTasks().slice(0,5);if(!list||!tasks.length)return;document.querySelector('[data-catalog-empty]')?.remove();list.innerHTML=tasks.map(item=>`<article class="task-notice ${item.status==='已完成'?'is-complete':''}"><div class="task-notice-head"><div><strong class="text-small-bold">${item.taskName}</strong><p class="text-small">${item.sourceName} · ${item.fileCount} 个文件</p></div><span class="tag tag-status ${item.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${item.status}</span></div><a class="btn btn-dense btn-text task-notice-link" href="resource-task-detail.html?task=${encodeURIComponent(item.id)}">${item.status==='已完成'?'任务已完成，查看详情':'进入任务中心查看'}</a></article>`).join('');updateTaskCenterSummary()}
+function renderSourceTasks(){const body=document.querySelector('[data-resource-task-rows]');if(!body)return;getSourceTasks().slice().reverse().forEach(item=>{const row=document.createElement('tr'),completed=item.status==='已完成';row.dataset.sourceTaskId=item.id;row.dataset.resourceTaskRow=item.taskName;row.innerHTML=`<td class="cell-primary">${item.sourceName} · ${item.taskName}<span class="cell-secondary text-small">${item.id}</span></td><td>${item.taskName}</td><td>${item.sourceName}</td><td>当前用户</td><td>${item.startedAt}</td><td>${item.result}</td><td><span class="tag tag-status ${completed?'tag-status-lime':'tag-status-blue'}">${item.status}</span></td><td><a class="btn btn-dense btn-text" href="resource-task-detail.html?task=${encodeURIComponent(item.id)}">查看</a></td>`;body.prepend(row)});const taskId=new URLSearchParams(location.search).get('task'),task=taskId&&getSourceTasks().find(item=>item.id===taskId),detail=document.querySelector('[data-source-task-detail]');if(!task||!detail)return;detail.hidden=false;detail.innerHTML=`<header><div><h2 class="text-medium-bold">${task.sourceName} · ${task.taskName}</h2><p class="text-small">${task.id}</p></div><span class="tag tag-status ${task.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${task.status}</span></header><div class="source-task-detail-grid"><div><span class="text-small">任务维度</span><strong>知识源</strong></div><div><span class="text-small">处理范围</span><strong>${task.fileCount} 个文件</strong></div><div><span class="text-small">开始时间</span><strong>${task.startedAt}</strong></div><div><span class="text-small">执行结果</span><strong>${task.result}</strong></div></div>${task.taskType==='catalog'&&task.status==='已完成'?'<div class="asset-section-actions"><a class="btn btn-medium btn-primary" href="asset-catalogs.html?review=classification">查看并确认分类结果</a></div>':''}`;document.querySelector(`[data-source-task-id="${CSS.escape(taskId)}"]`)?.classList.add('is-highlighted')}
 renderSourceTaskNotices();renderSourceTasks();
 
 document.querySelectorAll('[data-resource-task-type]').forEach(button => button.addEventListener('click', () => {
@@ -461,18 +534,18 @@ function startSourceTask(row, taskType) {
   const sourceId = sourceButton.dataset.knowledgeSource;
   const sourceName = sourceButton.querySelector('.source-label strong')?.textContent.trim() || '当前知识源';
   const fileNames = sourceClassificationPaths[sourceId] || [];
-  const taskNames = { metadata: '元数据补充', tag: '自动打标', catalog: '自动入目' };
+  const taskNames = { metadata: '元数据补充', tag: '元数据补充', catalog: '自动入目' };
   const taskName = taskNames[taskType] || '知识源处理';
   const taskId = `TASK-S-${Date.now()}`;
   const startedAt = new Intl.DateTimeFormat('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date());
   const savedTasks = getSourceTasks();
-  savedTasks.unshift({ id: taskId, taskType, taskName, sourceId, sourceName, fileCount: fileNames.length, startedAt, status: '执行中', result: '正在处理知识源下的全部文件' });
+  savedTasks.unshift({ id: taskId, taskType, taskName, sourceId, sourceName, fileNames: [...fileNames], fileCount: fileNames.length, startedAt, status: '执行中', result: '正在处理知识源下的全部文件' });
   saveSourceTasks(savedTasks);
   const taskList = document.querySelector('[data-catalog-task-list]');
   document.querySelector('[data-catalog-empty]')?.remove();
   const task = document.createElement('article');
   task.className = 'task-notice';
-  task.innerHTML = `<div class="task-notice-head"><div><strong class="text-small-bold">${taskName}</strong><p class="text-small">${sourceName} · ${fileNames.length} 个文件</p></div><span class="tag tag-status tag-status-blue" data-catalog-status>执行中</span></div><a class="btn btn-dense btn-text task-notice-link" href="resource-tasks.html?task=${taskId}">进入任务中心查看</a>`;
+  task.innerHTML = `<div class="task-notice-head"><div><strong class="text-small-bold">${taskName}</strong><p class="text-small">${sourceName} · ${fileNames.length} 个文件</p></div><span class="tag tag-status tag-status-blue" data-catalog-status>执行中</span></div><a class="btn btn-dense btn-text task-notice-link" href="resource-task-detail.html?task=${taskId}">进入任务中心查看</a>`;
   taskList?.prepend(task);
   notificationPanel.hidden = false;
   notificationToggle?.setAttribute('aria-expanded', 'true');
@@ -486,7 +559,7 @@ function startSourceTask(row, taskType) {
     task.classList.add('is-complete');
     const status = task.querySelector('[data-catalog-status]');
     status.className = 'tag tag-status tag-status-lime';
-    if (taskType === 'metadata') {
+    if (taskType === 'metadata' || taskType === 'tag') {
       status.textContent = '已完成';
       document.querySelectorAll(`#resource-table tr[data-knowledge-source-row="${sourceId}"] .metadata-completeness`).forEach(node => {
         node.querySelector('.text-number').textContent = '10/10';
@@ -505,8 +578,11 @@ function startSourceTask(row, taskType) {
     const savedTask = tasks.find(item => item.id === taskId);
     if (savedTask) {
       savedTask.status = '已完成';
-      savedTask.result = taskType === 'metadata'
-        ? `${fileNames.length} 个文件的元数据已补全`
+      if (taskType === 'metadata' || taskType === 'tag') {
+        savedTask.fileResults = fileNames.map(createTaskFileResult);
+      }
+      savedTask.result = (taskType === 'metadata' || taskType === 'tag')
+        ? `${fileNames.length} 个文件已处理，请核对元数据与标签结果`
         : taskType === 'catalog'
           ? `已生成 ${fileNames.length} 项目录分类建议，等待用户确认`
           : `${fileNames.length} 个文件已完成自动打标，共生成 ${fileNames.length * 3} 个标签关联`;
@@ -1507,6 +1583,7 @@ const sourceFields = document.querySelector('[data-source-fields]');
 const sourceSaveButton = document.querySelector('[data-save-source]');
 const sourceTestResult = document.querySelector('[data-source-test-result]');
 const sourceMoreMenu = document.querySelector('[data-source-more-menu]');
+const sourceIsFileCenter = document.body.dataset.page === 'documents';
 let activeSourceType = 'confluence';
 let editingSourceRow = null;
 
@@ -1584,6 +1661,26 @@ function escapeSourceText(value) {
   return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 }
 
+function setSourceAccessMode(mode = 'sync') {
+  const normalized = mode === 'direct' ? 'direct' : 'sync';
+  document.querySelectorAll('[data-source-access-mode] input[name="accessMode"]').forEach(input => {
+    input.checked = input.value === normalized;
+    input.closest('.source-access-mode-option')?.classList.toggle('is-active', input.checked);
+  });
+  const title = document.querySelector('[data-source-mode-note-title]');
+  const description = document.querySelector('[data-source-mode-note-description]');
+  if (title) title.textContent = normalized === 'direct' ? '直连远端知识源' : '同步并保存内容';
+  if (description) description.textContent = normalized === 'direct'
+    ? '系统通过网络协议实时访问远端内容，不保存文件副本；内容可用性依赖远端服务和网络状态。'
+    : '连接成功后，可配置同步范围和同步频率；远端文件将复制到本系统。';
+  const syncFrequencyField = document.querySelector('[data-source-sync-frequency]');
+  if (syncFrequencyField) {
+    syncFrequencyField.hidden = normalized !== 'sync';
+    const select = syncFrequencyField.querySelector('[name="syncFrequency"]');
+    if (select) select.disabled = normalized !== 'sync';
+  }
+}
+
 function renderSourceConfig(type, values = {}) {
   const config = sourceConnectorConfigs[type];
   if (!config || !sourceFields) return;
@@ -1595,8 +1692,12 @@ function renderSourceConfig(type, values = {}) {
   if (title) title.textContent = `${editingSourceRow ? '编辑' : '配置'} ${config.name}`;
   if (description) description.textContent = config.description;
   if (mark) { mark.textContent = config.mark; mark.className = `connector-mark connector-${type}`; }
-  sourceFields.innerHTML = config.fields.map(sourceFieldMarkup).join('');
+  const fileCenterFields = sourceIsFileCenter ? `
+    <label class="source-config-field is-wide"><span class="field-label text-small-bold">所属业务系统 *</span><span class="input-wrap input-middle"><input class="input" name="businessSystem" type="text" placeholder="例如：信贷管理系统" required autocomplete="off" /></span></label>
+    <label class="source-config-field is-wide" data-source-sync-frequency><span class="field-label text-small-bold">同步频率 *</span><span class="input-wrap input-middle"><select class="input" name="syncFrequency" required><option value="">请选择同步频率</option><option value="manual">仅手动同步</option><option value="15m">每 15 分钟</option><option value="hourly">每小时</option><option value="daily">每天</option><option value="weekly">每周</option></select></span></label>` : '';
+  sourceFields.innerHTML = config.fields.map(sourceFieldMarkup).join('') + fileCenterFields;
   Object.entries(values).forEach(([key, value]) => { const input = sourceFields.querySelector(`[name="${key}"]`); if (input) input.value = value; });
+  setSourceAccessMode(values.accessMode || sourceForm?.querySelector('input[name="accessMode"]:checked')?.value || 'sync');
   if (sourceTestResult) { sourceTestResult.textContent = ''; sourceTestResult.className = 'source-test-result text-small'; }
   if (sourceSaveButton) sourceSaveButton.disabled = true;
 }
@@ -1606,7 +1707,7 @@ function openSourceDialog(type = null, row = null) {
   type = type || document.querySelector('[data-source-type]')?.dataset.sourceType || 'confluence';
   const config = sourceConnectorConfigs[type] || sourceConnectorConfigs.confluence;
   const sourceTitle = row?.querySelector('.source-name-cell strong')?.textContent || '';
-  renderSourceConfig(type, sourceTitle ? { name: sourceTitle } : {});
+  renderSourceConfig(type, sourceTitle ? { name: sourceTitle, accessMode: row?.dataset.accessMode || 'sync', businessSystem: row?.dataset.businessSystem || '', syncFrequency: row?.dataset.syncFrequency || '' } : { accessMode: 'sync' });
   const dialogTitle = document.querySelector('#source-dialog-title');
   if (dialogTitle) dialogTitle.textContent = row ? '编辑知识源' : '新增知识源';
   setDialogState(sourceDialog, true, '[data-source-fields] input');
@@ -1620,6 +1721,13 @@ document.querySelector('[data-source-type-list]')?.addEventListener('click', eve
   const item = event.target.closest('[data-source-type]');
   if (item) renderSourceConfig(item.dataset.sourceType);
 });
+document.querySelector('[data-source-access-mode]')?.addEventListener('change', event => {
+  if (event.target.matches('input[name="accessMode"]')) {
+    setSourceAccessMode(event.target.value);
+    if (sourceTestResult) { sourceTestResult.textContent = ''; sourceTestResult.className = 'source-test-result text-small'; }
+    if (sourceSaveButton) sourceSaveButton.disabled = true;
+  }
+});
 document.querySelector('[data-connector-search]')?.addEventListener('input', event => {
   const query = event.currentTarget.value.trim().toLowerCase();
   document.querySelectorAll('[data-source-type]').forEach(item => { item.hidden = !item.textContent.toLowerCase().includes(query); });
@@ -1631,7 +1739,8 @@ document.querySelector('[data-test-source]')?.addEventListener('click', () => {
   sourceTestResult.className = 'source-test-result text-small';
   sourceSaveButton.disabled = true;
   window.setTimeout(() => {
-    sourceTestResult.textContent = '连接成功，凭据与访问范围验证通过';
+    const accessMode = sourceForm.querySelector('input[name="accessMode"]:checked')?.value || 'sync';
+    sourceTestResult.textContent = accessMode === 'direct' ? '直连成功，远端服务可访问' : '连接成功，可以同步并保存远端内容';
     sourceTestResult.className = 'source-test-result text-small is-success';
     sourceSaveButton.disabled = false;
   }, 700);
@@ -1642,16 +1751,30 @@ sourceSaveButton?.addEventListener('click', () => {
   const data = new FormData(sourceForm);
   const config = sourceConnectorConfigs[activeSourceType];
   const name = String(data.get('name') || `${config.name} 知识源`).trim();
+  const accessMode = String(data.get('accessMode') || 'sync');
+  const accessModeLabel = accessMode === 'direct' ? '直连' : '同步';
+  const businessSystem = String(data.get('businessSystem') || '').trim();
+  const syncFrequency = accessMode === 'sync' ? String(data.get('syncFrequency') || '') : '';
   if (editingSourceRow) {
     editingSourceRow.querySelector('.source-name-cell strong').textContent = name;
     editingSourceRow.dataset.name = `${name} ${config.name}`;
+    editingSourceRow.dataset.accessMode = accessMode;
+    if (sourceIsFileCenter) {
+      editingSourceRow.dataset.businessSystem = businessSystem;
+      editingSourceRow.dataset.syncFrequency = syncFrequency;
+    }
     showToast(`已保存“${name}”的连接配置`);
   } else {
     const row = document.createElement('tr');
     row.dataset.sourceRow = '';
     row.dataset.name = `${name} ${config.name}`;
     row.dataset.status = 'normal';
-    row.innerHTML = `<td><div class="source-name-cell"><span class="connector-mark connector-${activeSourceType}">${config.mark}</span><span><strong>${escapeSourceText(name)}</strong><small>${config.name} · 新建连接</small></span></div></td><td><span class="tag tag-status tag-status-lime">已连接</span></td><td><span class="sync-state"><i class="sync-dot"></i>尚未同步</span></td><td>未关联</td><td>未设置</td><td>—</td><td>当前用户</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-sync-source>立即同步</button><button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td>`;
+    row.dataset.accessMode = accessMode;
+    if (sourceIsFileCenter) {
+      row.dataset.businessSystem = businessSystem;
+      row.dataset.syncFrequency = syncFrequency;
+    }
+    row.innerHTML = `<td><div class="source-name-cell"><span class="connector-mark connector-${activeSourceType}">${config.mark}</span><span><strong>${escapeSourceText(name)}</strong><small>${config.name} · ${accessModeLabel}</small></span></div></td><td><span class="tag tag-status tag-status-lime">已连接</span></td><td><span class="sync-state"><i class="sync-dot"></i>${accessMode === 'direct' ? '实时访问' : '尚未同步'}</span></td><td>未关联</td><td>${accessModeLabel}</td><td>—</td><td>当前用户</td><td class="cell-actions">${accessMode === 'sync' ? '<button class="btn btn-dense btn-text" type="button" data-sync-source>立即同步</button>' : ''}<button class="btn btn-dense btn-text" type="button" data-edit-source>编辑</button><button class="btn btn-dense btn-text" type="button" data-source-more>更多</button></td>`;
     document.querySelector('[data-source-instance-list]')?.prepend(row);
     const sidebar = document.querySelector('[data-knowledge-source-tree]');
     const isContentCenter = sidebar && !document.querySelector('[data-source-instance-list]');
@@ -1663,13 +1786,15 @@ sourceSaveButton?.addEventListener('click', () => {
       item.type = 'button';
       item.dataset.knowledgeSource = `${activeSourceType}-${Date.now()}`;
       item.dataset.sourceKind = kind;
+      item.dataset.businessSystem = businessSystem;
+      item.dataset.syncFrequency = syncFrequency;
       item.setAttribute('aria-pressed', 'false');
-      item.innerHTML = `<span class="connector-mark connector-${activeSourceType}">${config.mark}</span><span class="source-label"><strong>${escapeSourceText(name)}</strong><small>${config.name} · 尚未同步</small></span><span class="source-count">0</span>`;
+      item.innerHTML = `<span class="connector-mark connector-${activeSourceType}">${config.mark}</span><span class="source-label"><strong>${escapeSourceText(name)}</strong><small>${config.name} · ${accessMode === 'direct' ? '直连' : '尚未同步'}</small></span><span class="source-count">0</span>`;
       sidebar.append(item);
     }
     const total = document.querySelector('[data-source-total]');
     if (total) total.textContent = String(Number(total.textContent) + 1);
-    showToast(isContentCenter ? `已创建“${name}”，同步后将在右侧展示内容` : `已创建“${name}”，请到知识库配置同步范围`);
+    showToast(isContentCenter ? `已创建“${name}”（${accessModeLabel}方式）` : `已创建“${name}”（${accessModeLabel}方式）`);
   }
   setDialogState(sourceDialog, false, '', sourceDialogTrigger);
 });
@@ -1726,7 +1851,80 @@ document.addEventListener('keydown', event => {
   if (event.key === 'Escape' && sourceMoreMenu) sourceMoreMenu.hidden = true;
 });
 
-// 标签管理：三级业务分类树、分类筛选与分类增删改。
+// 文件标签：AI 自动标签与文件详情人工补充使用同一份聚合数据。
+const fileTagStorageKey='kep-file-manual-tags';
+const fileAnalysisStatusStorageKey='kep-file-analysis-statuses';
+const defaultFileTagRecords=[
+  {name:'对公授信审查办法.pdf',aliases:['对公授信审查办法'],type:'PDF',source:'制度文档空间',status:'已确认',updatedAt:'2026-09-08 09:30',autoTags:['对公授信','风险管理','制度办法','企业客户','授信审查','内部公开']},
+  {name:'固定资产贷款管理办法.docx',aliases:['固定资产贷款管理办法'],type:'Word',source:'制度文档空间',status:'解析失败',updatedAt:'2026-09-07 10:18',autoTags:['固定资产贷款','制度办法','风险管理']},
+  {name:'客户风险评级服务设计.txt',aliases:['客户风险评级服务设计'],type:'TXT',source:'研发协作空间',status:'元数据补充中',updatedAt:'2026-09-08 08:18',autoTags:['客户评级','风险管理','服务设计']},
+  {name:'征信接口流程图.png',aliases:['征信接口变更记录'],type:'图片',source:'研发协作空间',status:'元数据补充失败',updatedAt:'2026-09-08 08:12',autoTags:['征信接口','流程设计','研发资料']},
+  {name:'授信规则培训视频.mp4',aliases:['CREDIT-2841'],type:'视频',source:'授信问题跟踪',status:'元数据补充中',updatedAt:'2026-09-08 07:10',autoTags:['授信规则','业务培训','风险管理']},
+  {name:'2025年授信档案汇编.pdf',aliases:['2025年授信档案汇编'],type:'PDF',source:'归档文档库',status:'元数据补充失败',updatedAt:'2026-09-07 06:02',autoTags:['授信档案','年度汇编','企业客户']},
+  {name:'历史合同扫描件.jpg',aliases:['历史合同归档'],type:'图片',source:'归档文档库',status:'待确认',updatedAt:'2026-09-06 16:20',autoTags:['合同管理','历史档案','扫描件']},
+  {name:'风险模型说明.txt',aliases:['风险模型说明'],type:'TXT',source:'开源项目资料',status:'已确认',updatedAt:'2026-09-06 14:20',autoTags:['风险模型','模型说明','研发资料']}
+];
+const readManualFileTags=()=>{try{const value=JSON.parse(localStorage.getItem(fileTagStorageKey)||'{}');return value&&typeof value==='object'?value:{}}catch{return {}}};
+const saveManualFileTags=value=>localStorage.setItem(fileTagStorageKey,JSON.stringify(value));
+const findFileTagRecord=name=>defaultFileTagRecords.find(item=>item.name===name||item.aliases.includes(name));
+const readFileAnalysisStatuses=()=>{try{const value=JSON.parse(localStorage.getItem(fileAnalysisStatusStorageKey)||'{}');return value&&typeof value==='object'?value:{}}catch{return {}}};
+const getFileAnalysisStatus=record=>readFileAnalysisStatuses()[record?.name]||record?.status||'已确认';
+const confirmFileAnalysis=record=>{if(!record)return;const statuses=readFileAnalysisStatuses();statuses[record.name]='已确认';localStorage.setItem(fileAnalysisStatusStorageKey,JSON.stringify(statuses))};
+const allFileTagRecords=()=>{const manual=readManualFileTags();return defaultFileTagRecords.map(item=>({...item,status:getFileAnalysisStatus(item),manualTags:manual[item.name]||[]}))};
+function renderDocumentListTags(){
+  const table=document.querySelector('#resource-table');
+  if(!table||table.querySelector('[data-file-tag-column]'))return;
+  const heading=document.createElement('th');heading.dataset.fileTagColumn='';heading.textContent='标签';table.querySelector('thead tr')?.children[4]?.before(heading);
+  table.querySelectorAll('tbody tr[data-knowledge-source-row]').forEach(row=>{const name=row.querySelector('.document-link')?.textContent.trim()||'',record=findFileTagRecord(name),manual=readManualFileTags()[record?.name]||[],tags=[...new Set([...(record?.autoTags||[]),...manual])],cell=document.createElement('td');cell.dataset.fileTagColumn='';cell.innerHTML=tags.length?`<div class="file-list-tag-summary">${tags.slice(0,2).map(tag=>`<span class="tag tag-small">${escapeTagCategoryText(tag)}</span>`).join('')}${tags.length>2?`<span class="text-small">+${tags.length-2}</span>`:''}</div>`:'<span class="text-small">待自动打标</span>';row.children[4]?.before(cell);const status=getFileAnalysisStatus(record),statusNode=row.querySelector('.tag-status'),actionCell=row.lastElementChild;if(statusNode&&record){statusNode.textContent=status;statusNode.className=`tag tag-status ${status==='已确认'?'tag-status-lime':'tag-status-secondary'}`}if(actionCell&&status==='待确认'){actionCell.innerHTML=`<button class="btn btn-dense btn-primary" type="button" data-confirm-file-analysis-row>确认</button><a class="btn btn-dense btn-text" href="space-file-detail.html?file=${encodeURIComponent(name)}&space=${sourceSpace}">查看并修改</a>`;actionCell.querySelector('[data-confirm-file-analysis-row]')?.addEventListener('click',()=>{confirmFileAnalysis(record);statusNode.textContent='已确认';statusNode.className='tag tag-status tag-status-lime';actionCell.innerHTML='<span class="text-small">已确认</span>';showToast('已确认当前文件的元数据和标签')})}});
+}
+renderDocumentListTags();
+
+const fileDetailTagList=document.querySelector('[data-file-detail-tags]');
+if(fileDetailTagList){
+  const queryName=new URLSearchParams(location.search).get('file')||document.querySelector('[data-query-file]')?.textContent.trim()||'文件详情';
+  const baseRecord=findFileTagRecord(queryName)||{name:queryName,aliases:[],type:'文件',source:'文件中心',status:'已确认',updatedAt:'2026-09-08 09:30',autoTags:['待分类']};
+  const canonicalName=baseRecord.name;
+  const analysisStatusNode=document.querySelector('[data-file-analysis-status]'),confirmAnalysisButton=document.querySelector('[data-confirm-file-analysis]'),confirmHint=document.querySelector('[data-file-confirm-hint]');
+  const renderFileAnalysisStatus=()=>{const status=getFileAnalysisStatus(baseRecord),pending=status==='待确认';if(analysisStatusNode){analysisStatusNode.textContent=status;analysisStatusNode.className=`tag tag-status ${pending?'tag-status-secondary':'tag-status-lime'}`}if(confirmAnalysisButton)confirmAnalysisButton.hidden=!pending;if(confirmHint)confirmHint.textContent=pending?'AI 已完成元数据补充和自动打标，请核对后确认':'当前元数据和标签已确认'};
+  const renderFileDetailTags=()=>{const manual=readManualFileTags(),manualTags=manual[canonicalName]||[],tags=[...new Set([...baseRecord.autoTags,...manualTags])];fileDetailTagList.innerHTML=tags.map(tag=>`<span class="tag ${manualTags.includes(tag)?'tag-primary':''}" title="${manualTags.includes(tag)?'用户手动添加':'AI 自动生成'}">${escapeTagCategoryText(tag)}</span>`).join('');const suggestions=document.querySelector('[data-file-tag-suggestions]');if(suggestions)suggestions.innerHTML=[...new Set(allFileTagRecords().flatMap(item=>[...item.autoTags,...item.manualTags]))].sort().map(tag=>`<option value="${escapeTagCategoryText(tag)}"></option>`).join('')};
+  const fileTagDialog=document.querySelector('[data-file-tag-dialog]'),fileTagForm=document.querySelector('[data-file-tag-form]');
+  document.querySelector('[data-open-file-tag-dialog]')?.addEventListener('click',()=>{fileTagForm.reset();renderFileDetailTags();setDialogState(fileTagDialog,true,'[name="fileTagName"]')});
+  document.querySelectorAll('[data-file-tag-dialog-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(fileTagDialog,false)));
+  fileTagDialog?.addEventListener('click',event=>{if(event.target===fileTagDialog)setDialogState(fileTagDialog,false)});
+  fileTagForm?.addEventListener('submit',event=>{event.preventDefault();const tag=String(new FormData(fileTagForm).get('fileTagName')||'').trim();if(!tag)return;const manual=readManualFileTags(),current=manual[canonicalName]||[];if(baseRecord.autoTags.includes(tag)||current.includes(tag)){showToast(`标签“${tag}”已存在`);return}manual[canonicalName]=[...current,tag];saveManualFileTags(manual);setDialogState(fileTagDialog,false);renderFileDetailTags();showToast(`已为当前文件添加标签“${tag}”`)});
+  confirmAnalysisButton?.addEventListener('click',()=>{confirmFileAnalysis(baseRecord);renderFileAnalysisStatus();showToast('已确认当前文件的元数据和标签')});
+  renderFileDetailTags();
+  renderFileAnalysisStatus();
+}
+
+const fileTagBrowser=document.querySelector('[data-file-tag-list]');
+if(fileTagBrowser){
+  const categoryStorageKey='kep-file-tag-categories',categoryMapStorageKey='kep-file-tag-category-map',defaultCategories=['业务主题','文档类型','使用场景','安全等级'];
+  const readTagCategories=()=>{try{const value=JSON.parse(localStorage.getItem(categoryStorageKey)||'null');return Array.isArray(value)&&value.length?value:defaultCategories}catch{return defaultCategories}};
+  const readTagCategoryMap=()=>{try{const value=JSON.parse(localStorage.getItem(categoryMapStorageKey)||'{}');return value&&typeof value==='object'?value:{}}catch{return {}}};
+  let categories=[...readTagCategories()],categoryMap=readTagCategoryMap(),activeFileTag='all',activeCategoryFilter='all';
+  const updateCategorySelects=()=>{const filter=document.querySelector('[data-file-tag-category-filter]'),assign=document.querySelector('[data-tag-category-assign-select]'),options=categories.map(category=>`<option value="${escapeTagCategoryText(category)}">${escapeTagCategoryText(category)}</option>`).join('');filter.innerHTML=`<option value="all">全部分类</option><option value="uncategorized">未分类</option>${options}`;filter.value=categories.includes(activeCategoryFilter)||['all','uncategorized'].includes(activeCategoryFilter)?activeCategoryFilter:'all';assign.innerHTML=`<option value="">未分类</option>${options}`};
+  const renderTagBrowser=()=>{const records=allFileTagRecords(),tagQuery=document.querySelector('[data-file-tag-search]').value.trim().toLowerCase(),fileQuery=document.querySelector('[data-tag-file-search]').value.trim().toLowerCase(),tags=[...new Set(records.flatMap(item=>[...item.autoTags,...item.manualTags]))].sort(),visibleTags=tags.filter(tag=>tag.toLowerCase().includes(tagQuery)&&(activeCategoryFilter==='all'||(activeCategoryFilter==='uncategorized'?!categoryMap[tag]:categoryMap[tag]===activeCategoryFilter)));if(activeFileTag!=='all'&&!tags.includes(activeFileTag))activeFileTag='all';fileTagBrowser.innerHTML=`<button class="tag-browser-item ${activeFileTag==='all'?'is-active':''}" type="button" data-file-tag="all"><span>全部标签</span><small class="text-number">${visibleTags.length}</small></button>${visibleTags.map(tag=>{const count=records.filter(item=>item.autoTags.includes(tag)||item.manualTags.includes(tag)).length,category=categoryMap[tag]||'未分类';return `<div class="tag-browser-row ${activeFileTag===tag?'is-active':''}"><button class="tag-browser-item" type="button" data-file-tag="${escapeTagCategoryText(tag)}"><span><strong>${escapeTagCategoryText(tag)}</strong><small>${escapeTagCategoryText(category)}</small></span><small class="text-number">${count}</small></button><button class="btn btn-dense btn-text tag-assign-button" type="button" data-assign-tag-category="${escapeTagCategoryText(tag)}">加入分类</button></div>`}).join('')}`;const selected=activeFileTag==='all'?records:records.filter(item=>item.autoTags.includes(activeFileTag)||item.manualTags.includes(activeFileTag)),visibleFiles=selected.filter(item=>`${item.name} ${item.type} ${item.source}`.toLowerCase().includes(fileQuery)),rows=document.querySelector('[data-tag-file-rows]');rows.innerHTML=visibleFiles.map(item=>{const source=activeFileTag==='all'?(item.manualTags.length?'AI 自动 + 用户补充':'AI 自动'):item.manualTags.includes(activeFileTag)?'用户补充':'AI 自动';return `<tr><td class="cell-primary"><a class="document-link" href="space-file-detail.html?file=${encodeURIComponent(item.name)}">${escapeTagCategoryText(item.name)}</a></td><td><span class="tag tag-small">${escapeTagCategoryText(item.type)}</span></td><td>${escapeTagCategoryText(item.source)}</td><td><span class="tag tag-status ${source==='用户补充'?'tag-status-blue':'tag-status-secondary'}">${source}</span></td><td>${escapeTagCategoryText(item.status)}</td><td>${escapeTagCategoryText(item.updatedAt)}</td><td class="cell-actions"><a class="btn btn-dense btn-text" href="space-file-detail.html?file=${encodeURIComponent(item.name)}">查看</a></td></tr>`}).join('');const category=activeFileTag==='all'?'':categoryMap[activeFileTag]||'未分类';document.querySelector('[data-selected-file-tag]').textContent=activeFileTag==='all'?'全部标签':activeFileTag;document.querySelector('[data-selected-file-tag-description]').textContent=activeFileTag==='all'?'展示文件中心中的全部已打标文件':`分类：${category} · 展示该标签关联的文件`;document.querySelector('[data-tag-file-count]').textContent=`${visibleFiles.length} 个文件`;document.querySelector('[data-tag-file-empty]').hidden=visibleFiles.length>0};
+  const managerDialog=document.querySelector('[data-tag-category-manager]'),assignDialog=document.querySelector('[data-tag-category-assign-dialog]');
+  const renderCategoryManager=()=>{const tags=[...new Set(allFileTagRecords().flatMap(item=>[...item.autoTags,...item.manualTags]))],rows=document.querySelector('[data-tag-category-manager-rows]');rows.innerHTML=categories.map((category,index)=>`<tr><td><span class="input-wrap input-middle"><input class="input" value="${escapeTagCategoryText(category)}" maxlength="30" required data-tag-category-name="${index}" aria-label="分类名称" /></span></td><td class="text-number">${tags.filter(tag=>categoryMap[tag]===category).length}</td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-delete-tag-category="${index}">删除</button></td></tr>`).join('')||'<tr><td colspan="3" class="text-small">暂无分类，可在上方新建。</td></tr>'};
+  fileTagBrowser.addEventListener('click',event=>{const assignButton=event.target.closest('[data-assign-tag-category]');if(assignButton){activeFileTag=assignButton.dataset.assignTagCategory;document.querySelector('[data-assign-tag-name]').textContent=activeFileTag;updateCategorySelects();document.querySelector('[data-tag-category-assign-select]').value=categoryMap[activeFileTag]||'';setDialogState(assignDialog,true,'[name="tagCategory"]');return}const button=event.target.closest('[data-file-tag]');if(!button)return;activeFileTag=button.dataset.fileTag;renderTagBrowser()});
+  document.querySelector('[data-file-tag-search]').addEventListener('input',renderTagBrowser);
+  document.querySelector('[data-tag-file-search]').addEventListener('input',renderTagBrowser);
+  document.querySelector('[data-file-tag-category-filter]').addEventListener('change',event=>{activeCategoryFilter=event.currentTarget.value;activeFileTag='all';renderTagBrowser()});
+  document.querySelector('[data-open-tag-category-manager]').addEventListener('click',()=>{renderCategoryManager();setDialogState(managerDialog,true,'[name="categoryName"]')});
+  document.querySelectorAll('[data-tag-category-manager-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(managerDialog,false)));
+  managerDialog.addEventListener('click',event=>{if(event.target===managerDialog)setDialogState(managerDialog,false)});
+  document.querySelector('[data-tag-category-create-form]').addEventListener('submit',event=>{event.preventDefault();const name=String(new FormData(event.currentTarget).get('categoryName')||'').trim();if(!name)return;if(categories.includes(name))return showToast('分类名称已存在');categories.push(name);event.currentTarget.reset();renderCategoryManager()});
+  document.querySelector('[data-tag-category-manager-rows]').addEventListener('click',event=>{const button=event.target.closest('[data-delete-tag-category]');if(!button)return;const category=categories[Number(button.dataset.deleteTagCategory)];categories.splice(Number(button.dataset.deleteTagCategory),1);Object.keys(categoryMap).forEach(tag=>{if(categoryMap[tag]===category)delete categoryMap[tag]});renderCategoryManager()});
+  document.querySelector('[data-tag-category-manager-save]').addEventListener('click',()=>{const inputs=[...document.querySelectorAll('[data-tag-category-name]')],renames=new Map();inputs.forEach((input,index)=>{const old=categories[index],name=input.value.trim();if(name&&old!==name)renames.set(old,name)});categories=inputs.map(input=>input.value.trim()).filter((name,index,list)=>name&&list.indexOf(name)===index);Object.keys(categoryMap).forEach(tag=>{if(renames.has(categoryMap[tag]))categoryMap[tag]=renames.get(categoryMap[tag]);if(!categories.includes(categoryMap[tag]))delete categoryMap[tag]});localStorage.setItem(categoryStorageKey,JSON.stringify(categories));localStorage.setItem(categoryMapStorageKey,JSON.stringify(categoryMap));updateCategorySelects();setDialogState(managerDialog,false);renderTagBrowser();showToast('标签分类已保存')});
+  document.querySelectorAll('[data-tag-category-assign-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(assignDialog,false)));
+  assignDialog.addEventListener('click',event=>{if(event.target===assignDialog)setDialogState(assignDialog,false)});
+  document.querySelector('[data-tag-category-assign-form]').addEventListener('submit',event=>{event.preventDefault();const category=String(new FormData(event.currentTarget).get('tagCategory')||'');if(category)categoryMap[activeFileTag]=category;else delete categoryMap[activeFileTag];localStorage.setItem(categoryMapStorageKey,JSON.stringify(categoryMap));setDialogState(assignDialog,false);renderTagBrowser();showToast(category?`已将“${activeFileTag}”加入“${category}”`:`已将“${activeFileTag}”设为未分类`)});
+  updateCategorySelects();
+  renderTagBrowser();
+}
+
+// 旧版标签分类管理逻辑仅在旧页面结构存在时启用。
 const tagCategoryTree = document.querySelector('[data-category-tree]');
 const newTagDialog = document.querySelector('[data-tag-dialog]');
 const newTagDialogTrigger = document.querySelector('[data-open-tag-dialog]');
@@ -1988,6 +2186,7 @@ document.querySelector('[data-add-design-category]')?.addEventListener('click',(
 document.querySelector('[data-open-property-dialog]')?.addEventListener('click',()=>activeDesignCategory?setDialogState(designPropertyDialog,true,'[name="propertyName"]'):showToast('请先新增分类'));document.querySelectorAll('[data-property-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(designPropertyDialog,false)));document.querySelector('[data-property-form]')?.addEventListener('submit',event=>{event.preventDefault();const data=new FormData(event.currentTarget),item=catalogDesignTrees[activeDesignTree].categories[activeDesignCategory],code=String(data.get('propertyCode')||'').trim();if(item.properties.some(property=>property[1]===code))return showToast('字段编码已存在');item.properties.push([String(data.get('propertyName')).trim(),code,String(data.get('propertyType')),data.get('required')==='on',String(data.get('propertyPrompt')).trim()]);saveCatalogDesignTrees();setDialogState(designPropertyDialog,false);event.currentTarget.reset();renderDesignProperties();showToast('已新增分类属性')});if(catalogCategoryList)renderDesignProperties();
 
 const sourceSpace = document.body.dataset.page === 'documents-personal' ? 'personal' : document.body.dataset.page === 'documents-team' ? 'team' : 'enterprise';
+document.querySelectorAll('[data-source-task="tag"]').forEach(button => button.remove());
 document.querySelectorAll('a[href^="space-file-detail.html"]').forEach(link => {
   const url = new URL(link.href, location.href);
   if (!url.searchParams.has('space')) url.searchParams.set('space', sourceSpace);
@@ -2014,6 +2213,35 @@ if (enterpriseAttributeSections.length) {
   const standardInfo = document.querySelector('[data-standard-file-info]');
   if (standardInfo) standardInfo.hidden = enterprise;
   document.querySelectorAll('[data-edit-file-attributes]').forEach(button => { button.hidden = !enterprise; });
+
+  const basicInfoList = document.querySelector('[data-file-basic-info]');
+  if (basicInfoList) {
+    const fileName = params.get('file') || '对公授信审查办法.pdf';
+    const tagRecord = findFileTagRecord(fileName);
+    const extension = (fileName.match(/\.([^.]+)$/)?.[1] || '').toLowerCase();
+    const type = tagRecord?.type || ({ pdf: 'PDF', doc: 'Word', docx: 'Word', txt: 'TXT', png: '图片', jpg: '图片', jpeg: '图片', gif: '图片', webp: '图片', mp4: '视频', mov: '视频', avi: '视频' }[extension] || 'PDF');
+    const format = extension ? extension.toUpperCase() : ({ PDF: 'PDF', Word: 'DOCX', TXT: 'TXT', 图片: 'PNG', 视频: 'MP4' }[type] || type);
+    const common = [
+      ['文件ID', `FILE_${String(fileName).length.toString().padStart(4, '0')}_20260908`],
+      ['文件名称', fileName], ['所属空间', context.name], ['知识源', tagRecord?.source || '制度文档空间'],
+      ['文件类型', type], ['文件格式', format], ['文件大小', type === '视频' ? '286 MB' : type === '图片' ? '4.6 MB' : '2.8 MB'],
+      ['来源系统', type === '图片' || type === '视频' ? '业务采集系统' : '文件中心'],
+      ['源端文件ID', `SOURCE_${String(fileName).length.toString().padStart(4, '0')}`],
+      ['创建人', '李程'], ['创建时间', '2026-08-12 09:30'],
+      ['最后更新时间', '2026-09-08 09:30'], ['入库时间', '2026-08-12 09:30']
+    ];
+    const extensions = {
+      PDF: [['页数', '28 页'], ['字符数', '18,500 字'], ['语言', '中文']],
+      Word: [['页数', '16 页'], ['字符数', '12,680 字'], ['语言', '中文']],
+      TXT: [['字符数', '8,426 字'], ['语言', '中文'], ['编码格式', 'UTF-8']],
+      图片: [['分辨率', '3840 × 2160'], ['拍摄时间', '2026-09-08 08:20'], ['拍摄设备', '移动巡检终端']],
+      视频: [['分辨率', '1920 × 1080'], ['视频时长', '00:12:35'], ['帧率', '25 fps'], ['开始时间', '2026-09-08 08:20'], ['结束时间', '2026-09-08 08:32']]
+    };
+    const escapeBasic = value => String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    basicInfoList.innerHTML = [...common, ...(extensions[type] || [])].map(([label, value]) => `<div><dt>${escapeBasic(label)}</dt><dd>${escapeBasic(value)}</dd></div>`).join('');
+    const typeBadge = document.querySelector('[data-basic-file-type]');
+    if (typeBadge) typeBadge.textContent = type;
+  }
 
   const attributeRows = [...document.querySelectorAll('[data-file-attribute]')];
   const actions = document.querySelector('[data-file-attribute-actions]');
@@ -2303,20 +2531,90 @@ if (knowledgeAssetDetailName) {
   }
 }
 
+const teamSpaceGrid=document.querySelector('[data-team-space-grid]');
+if(teamSpaceGrid){
+  const dialog=document.querySelector('[data-team-space-dialog]'),form=document.querySelector('[data-team-space-form]'),search=document.querySelector('[data-team-space-search]');
+  const storageKey='kep-resource-team-spaces';let customSpaces=[];try{const saved=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(saved))customSpaces=saved}catch{}
+  const appendSpace=space=>{const card=document.createElement('article');card.className='resource-space-card';card.dataset.teamSpaceCard='';card.dataset.searchText=`${space.name} ${space.owner} ${space.visibility}`;card.innerHTML=`<div class="resource-space-card-art" aria-hidden="true"><span class="space-art-orbit"></span><span class="space-art-core">${esc(space.name.slice(0,1))}</span></div><div class="resource-space-card-body"><div class="resource-space-card-title"><h2 class="text-medium-bold">${esc(space.name)}</h2><span class="tag tag-small">${esc(space.visibility)}</span></div><p class="text-small">${esc(space.description)}</p><div class="resource-space-card-meta text-small"><span>0 个目录</span><span>0 项资源</span><span>负责人：${esc(space.owner)}</span></div></div><footer class="resource-space-card-footer"><span class="text-small">${space.createdAt?'创建于 '+esc(space.createdAt):'刚刚创建'}</span><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=${encodeURIComponent(space.name)}">进入空间 →</a></footer>`;teamSpaceGrid.appendChild(card)};
+  const updateSpaceCount=()=>{const count=document.querySelector('[data-team-space-count]');if(count)count.textContent=teamSpaceGrid.querySelectorAll('[data-team-space-card]').length};
+  const filterSpaces=()=>{const query=search.value.trim().toLowerCase();let visible=0;teamSpaceGrid.querySelectorAll('[data-team-space-card]').forEach(card=>{const matched=!query||card.dataset.searchText.toLowerCase().includes(query);card.hidden=!matched;if(matched)visible+=1});teamSpaceGrid.querySelector('.resource-space-create-card').hidden=Boolean(query);document.querySelector('[data-team-space-empty]').hidden=visible>0};
+  document.querySelectorAll('[data-open-team-space]').forEach(button=>button.addEventListener('click',()=>{form.reset();setDialogState(dialog,true,'[name="spaceName"]')}));
+  document.querySelectorAll('[data-team-space-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(dialog,false)));
+  dialog.addEventListener('click',event=>{if(event.target===dialog)setDialogState(dialog,false)});
+  search.addEventListener('input',filterSpaces);
+  customSpaces.forEach(appendSpace);
+  form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form),space={name:String(data.get('spaceName')).trim(),owner:String(data.get('spaceOwner')).trim(),description:String(data.get('spaceDescription')).trim(),visibility:String(data.get('visibility')),managers:String(data.get('spaceManagers')||''),editors:String(data.get('spaceEditors')||''),viewers:String(data.get('spaceViewers')||''),createdAt:new Date().toLocaleDateString('zh-CN')};if([...teamSpaceGrid.querySelectorAll('[data-team-space-card] h2')].some(title=>title.textContent.trim()===space.name))return showToast('空间名称已存在');customSpaces.push(space);localStorage.setItem(storageKey,JSON.stringify(customSpaces));appendSpace(space);updateSpaceCount();setDialogState(dialog,false);showToast(`已创建团队空间“${space.name}”`)});
+  updateSpaceCount();
+}
+
 const resourceDirectoryTreeNode=document.querySelector('[data-resource-directory-tree]');
 if(resourceDirectoryTreeNode){
 const directoryKey='kep-resource-directory-spaces',defaults={personal:{name:'个人空间',summary:'管理我的文件夹',note:'个人目录仅由当前用户管理。',nodes:[{id:'p-work',name:'工作资料',description:'日常工作文档与项目材料。',parentId:null,depth:1},{id:'p-plan',name:'产品规划',description:'产品方案和版本规划。',parentId:'p-work',depth:2},{id:'p-study',name:'学习资料',description:'个人学习笔记与参考文档。',parentId:null,depth:1},{id:'p-draft',name:'临时文件',description:'待整理的临时内容。',parentId:null,depth:1}]},team:{name:'团队空间',summary:'企业业务分类目录',note:'团队目录按企业业务视角组织，子目录默认继承父目录权限。',nodes:[{id:'t-corporate',name:'公司金融',description:'面向企业客户的金融业务资源。',parentId:null,depth:1,inherit:false,permissions:{manage:['团队负责人'],edit:['公司金融产品组'],view:['团队全员']}},{id:'t-credit',name:'对公授信',description:'授信制度、审查规范和业务案例。',parentId:'t-corporate',depth:2,inherit:true,permissions:{manage:['团队负责人'],edit:['公司金融产品组'],view:['团队全员']}},{id:'t-retail',name:'零售金融',description:'个人客户、零售产品与营销资源。',parentId:null,depth:1,inherit:false,permissions:{manage:['团队负责人'],edit:['零售产品组'],view:['团队全员']}},{id:'t-risk',name:'风险管理',description:'风险政策、合规规则与风险案例。',parentId:null,depth:1,inherit:false,permissions:{manage:['风险管理部'],edit:['风险策略组'],view:['团队全员']}}]}};
 let spaces=defaults;try{const saved=JSON.parse(localStorage.getItem(directoryKey)||'null');if(saved?.personal?.nodes&&saved?.team?.nodes)spaces=saved}catch{}
-const files=[['personal','p-work','客户需求调研记录','DOCX','当前用户'],['personal','p-plan','知识工程产品规划','PPTX','当前用户'],['personal','p-study','知识图谱学习笔记','PDF','当前用户'],['personal','p-draft','未整理会议纪要','DOCX','当前用户'],['team','t-credit','对公授信审查办法','PDF','王翠'],['team','t-corporate','公司金融产品手册','DOCX','李程'],['team','t-retail','零售客户分层方案','PPTX','张明'],['team','t-risk','客户风险评级规则','XLSX','刘敏']];
-let activeSpace='team',activeId=null,pendingParent=null;const dialog=document.querySelector('[data-resource-directory-dialog]'),form=document.querySelector('[data-resource-directory-form]'),esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),space=()=>spaces[activeSpace],node=id=>space().nodes.find(item=>item.id===id),children=id=>space().nodes.filter(item=>item.parentId===id),save=()=>localStorage.setItem(directoryKey,JSON.stringify(spaces));
+const directoryResourceKey='kep-resource-directory-mounts',defaultFiles=[['personal','p-work','客户需求调研记录','DOCX','当前用户','file'],['personal','p-plan','知识工程产品规划','PPTX','当前用户','file'],['personal','p-study','知识图谱学习笔记','PDF','当前用户','file'],['personal','p-draft','未整理会议纪要','DOCX','当前用户','file'],['team','t-credit','对公授信审查办法','PDF','王翠','file'],['team','t-credit','授信客户风险汇总','数据表','陈曦','table'],['team','t-corporate','公司金融产品手册','DOCX','李程','file'],['team','t-corporate','企业客户主数据','数据表','赵峰','table'],['team','t-retail','零售客户分层方案','PPTX','张明','file'],['team','t-risk','客户风险评级规则','XLSX','刘敏','file']];
+let files=defaultFiles;try{const savedFiles=JSON.parse(localStorage.getItem(directoryResourceKey)||'null');if(Array.isArray(savedFiles))files=savedFiles}catch{}
+const saveFiles=()=>localStorage.setItem(directoryResourceKey,JSON.stringify(files));
+const directoryResourceCandidates={file:[{id:'f-credit-policy',name:'对公授信审查办法.pdf',type:'PDF',source:'制度文档空间'},{id:'f-loan-policy',name:'固定资产贷款管理办法.docx',type:'Word',source:'制度文档空间'},{id:'f-risk-note',name:'客户风险评级服务设计.txt',type:'TXT',source:'研发协作空间'},{id:'f-credit-flow',name:'征信接口流程图.png',type:'图片',source:'研发协作空间'},{id:'f-training',name:'授信规则培训视频.mp4',type:'视频',source:'归档文档库'}],table:[{id:'t-customer-master',name:'企业客户主数据',type:'数据表',source:'客户数据仓'},{id:'t-credit-summary',name:'授信客户风险汇总',type:'数据表',source:'客户数据仓'},{id:'t-contract-index',name:'合同档案索引表',type:'数据表',source:'核心业务库'},{id:'t-risk-indicator',name:'风险指标明细表',type:'数据表',source:'风险数据集市'}]};
+const defaultPermissionEntries={team:[{kind:'user',name:'王浩杰',path:'总行 / 产品部',level:'manage'},{kind:'user',name:'陈曦',path:'总行 / 公司金融部',level:'edit'},{kind:'group',name:'公司金融产品组',path:'总行 / 产品中心',level:'edit'},{kind:'group',name:'团队全员',path:'当前团队',level:'view'},{kind:'org',name:'风险管理部',path:'总行 / 风险管理部',level:'view'}],personal:[{kind:'user',name:'当前用户',path:'我的空间',level:'manage'}]},permissionEntries={};
+const permissionCandidates={user:[{id:'u-liudan',name:'刘丹',account:'liudan',detail:'liu.dan@haizhi.com',path:'总行 / 产品部'},{id:'u-liuhuan',name:'刘焕',account:'liuhuan',detail:'liu.huan@haizhi.com',path:'总行 / 公司金融部'},{id:'u-wanghaojie',name:'王浩杰',account:'wanghaojie',detail:'wang.haojie@haizhi.com',path:'总行 / 产品部'},{id:'u-liujie',name:'刘捷',account:'liujie',detail:'liu.jie@haizhi.com',path:'总行 / 风险管理部'},{id:'u-liuyize',name:'刘漪泽',account:'liuyize',detail:'liu.yize@haizhi.com',path:'总行 / 数据中心'},{id:'u-liuxianglong',name:'刘翔龙',account:'liuxianglong',detail:'liu.xianglong@haizhi.com',path:'分行 / 信息科技部'}],group:[{id:'g-product',name:'产品经理组',account:'12 名成员',detail:'用户组',path:'总行 / 产品部'},{id:'g-corporate',name:'公司金融产品组',account:'18 名成员',detail:'用户组',path:'总行 / 公司金融部'},{id:'g-risk',name:'风险策略组',account:'9 名成员',detail:'用户组',path:'总行 / 风险管理部'},{id:'g-data',name:'数据治理组',account:'15 名成员',detail:'用户组',path:'总行 / 数据中心'}],org:[{id:'o-product',name:'产品部',account:'一级部门',detail:'36 人',path:'总行 / 产品部'},{id:'o-corporate',name:'公司金融部',account:'一级部门',detail:'52 人',path:'总行 / 公司金融部'},{id:'o-risk',name:'风险管理部',account:'一级部门',detail:'41 人',path:'总行 / 风险管理部'},{id:'o-data',name:'数据中心',account:'一级部门',detail:'68 人',path:'总行 / 数据中心'}]};
+let activeSpace='team',activeId=null,pendingParent=null,activePermissionKind='user',permissionDraft=[];const dialog=document.querySelector('[data-resource-directory-dialog]'),form=document.querySelector('[data-resource-directory-form]'),permissionDialog=document.querySelector('[data-directory-permission-dialog]'),permissionForm=document.querySelector('[data-directory-permission-form]'),esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),space=()=>spaces[activeSpace],node=id=>space().nodes.find(item=>item.id===id),children=id=>space().nodes.filter(item=>item.parentId===id),save=()=>localStorage.setItem(directoryKey,JSON.stringify(spaces));
+const permissionList=()=>{const key=`${activeSpace}:${activeId||'root'}`;return permissionEntries[key]||(permissionEntries[key]=JSON.parse(JSON.stringify(defaultPermissionEntries[activeSpace])))};
 function nodeMarkup(item){const subs=children(item.id),count=files.filter(file=>file[0]===activeSpace&&file[1]===item.id).length;return `<div class="resource-directory-node" role="treeitem" aria-level="${item.depth}"><div class="resource-directory-row"><button class="resource-directory-select ${activeId===item.id?'is-active':''}" type="button" data-resource-directory-id="${item.id}"><span class="resource-directory-caret">${subs.length?'⌄':'›'}</span><span class="asset-folder-icon">□</span><span>${esc(item.name)}</span><span class="resource-directory-count text-number">${count}</span></button><button class="resource-directory-add-child" type="button" data-resource-directory-child="${item.id}" aria-label="在${esc(item.name)}下新建子目录">+</button></div>${subs.length?`<div class="resource-directory-children" role="group">${subs.map(nodeMarkup).join('')}</div>`:''}</div>`}
 function renderTree(){resourceDirectoryTreeNode.innerHTML=children(null).map(nodeMarkup).join('')||'<p class="source-empty-state text-small">暂无目录，请新建一级目录</p>'}
-function renderFiles(){const selected=activeId?node(activeId):null,query=document.querySelector('[data-resource-directory-file-search]').value.trim().toLowerCase(),visible=files.filter(file=>file[0]===activeSpace&&(!selected||file[1]===selected.id)&&`${file[2]} ${file[3]} ${file[4]}`.toLowerCase().includes(query)),rows=document.querySelector('[data-resource-directory-file-rows]');rows.innerHTML=visible.map(file=>`<tr><td class="cell-primary"><a class="document-link" href="resource-catalog-detail.html?file=${encodeURIComponent(file[2])}">${esc(file[2])}</a></td><td>${file[3]}</td><td>${esc(node(file[1])?.name||'未分类')}</td><td>${esc(file[4])}</td><td>2026-09-06 16:42</td><td class="cell-actions"><a class="btn btn-dense btn-text" href="resource-catalog-detail.html?file=${encodeURIComponent(file[2])}">查看</a></td></tr>`).join('');document.querySelector('[data-resource-directory-empty]').hidden=visible.length>0;document.querySelector('[data-resource-directory-file-count]').textContent=`${visible.length} 个文件`;document.querySelector('[data-resource-directory-path]').textContent=selected?.name||'全部文件';document.querySelector('[data-resource-directory-title]').textContent=selected?.name||'全部文件';document.querySelector('[data-resource-directory-description]').textContent=selected?.description||`展示${space().name}中的全部文件`;const summary=document.querySelector('[data-directory-permission-summary]');summary.hidden=activeSpace!=='team'||!selected;if(activeSpace==='team'&&selected){document.querySelector('[data-directory-inherit-state]').textContent=selected.inherit?'继承父目录':'独立权限';document.querySelector('[data-directory-manage-count]').textContent=selected.permissions?.manage?.length||0;document.querySelector('[data-directory-edit-count]').textContent=selected.permissions?.edit?.length||0;document.querySelector('[data-directory-view-count]').textContent=selected.permissions?.view?.length||0}}
-function activateSpace(id){activeSpace=id;activeId=null;document.querySelectorAll('[data-directory-space]').forEach(button=>{const on=button.dataset.directorySpace===id;button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});document.querySelector('[data-directory-space-summary]').textContent=space().summary;document.querySelector('[data-directory-space-note]').textContent=space().note;document.querySelector('[data-resource-directory-root]').textContent=space().name;document.querySelector('[data-open-resource-directory]').textContent=id==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-search]').value='';document.querySelector('[data-resource-directory-file-search]').value='';renderTree();renderFiles()}
+function renderFiles(){const selected=activeId?node(activeId):null,query=document.querySelector('[data-resource-directory-file-search]').value.trim().toLowerCase(),folderRows=children(selected?.id||null).map(item=>({name:item.name,type:'文件夹',owner:activeSpace==='team'?'目录管理员':'当前用户',kind:'folder',id:item.id})),resourceRows=files.filter(file=>file[0]===activeSpace&&file[1]===(selected?.id||null)).map(file=>({name:file[2],type:file[3],owner:file[4],kind:file[5]})),visible=[...folderRows,...resourceRows].filter(item=>`${item.name} ${item.type} ${item.owner}`.toLowerCase().includes(query)),rows=document.querySelector('[data-resource-directory-file-rows]');rows.innerHTML=visible.map(item=>{const name=item.kind==='folder'?`<button class="document-link resource-folder-link" type="button" data-open-directory-node="${item.id}">${esc(item.name)}</button>`:`<a class="document-link" href="resource-catalog-detail.html?file=${encodeURIComponent(item.name)}">${esc(item.name)}</a>`,action=item.kind==='folder'?`<button class="btn btn-dense btn-text" type="button" data-open-directory-node="${item.id}">进入</button>`:`<a class="btn btn-dense btn-text" href="resource-catalog-detail.html?file=${encodeURIComponent(item.name)}">查看</a>`;return `<tr><td class="cell-primary">${name}</td><td><span class="resource-kind-badge resource-kind-${item.kind}">${esc(item.type)}</span></td><td>${esc(selected?.name||space().name)}</td><td>${esc(item.owner)}</td><td>2026-09-08 16:42</td><td class="cell-actions">${action}</td></tr>`}).join('');document.querySelector('[data-resource-directory-empty]').hidden=visible.length>0;document.querySelector('[data-resource-directory-file-count]').textContent=`${visible.length} 项资源`;document.querySelector('[data-resource-directory-path]').textContent=selected?.name||'全部资源';document.querySelector('[data-resource-directory-title]').textContent=selected?.name||'全部资源';document.querySelector('[data-resource-directory-description]').textContent=selected?.description||`展示${space().name}的顶级目录`;const summary=document.querySelector('[data-directory-permission-summary]');summary.hidden=activeSpace!=='team'||!selected;if(activeSpace==='team'&&selected){document.querySelector('[data-directory-manage-count]').textContent=selected.permissions?.manage?.length||0;document.querySelector('[data-directory-edit-count]').textContent=selected.permissions?.edit?.length||0;document.querySelector('[data-directory-view-count]').textContent=selected.permissions?.view?.length||0}}
+function renderPermissions(){const query=document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase(),labels={user:'用户',group:'用户组',org:'组织机构'},entries=permissionList().filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(query)),rows=document.querySelector('[data-directory-permission-rows]');rows.innerHTML=entries.map((item,index)=>`<tr><td class="cell-primary"><span class="permission-subject"><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><strong>${esc(item.name)}</strong></span></td><td>${labels[item.kind]}</td><td>${esc(item.path)}</td><td><select class="select select-small" aria-label="设置${esc(item.name)}的权限" data-permission-entry="${index}"><option value="view" ${item.level==='view'?'selected':''}>查看权限</option><option value="edit" ${item.level==='edit'?'selected':''}>编辑权限</option><option value="manage" ${item.level==='manage'?'selected':''}>管理权限</option></select></td><td><span class="tag tag-status tag-status-secondary">${node(activeId)?.inherit?'继承父目录':'当前目录'}</span></td><td class="cell-actions"><button class="btn btn-dense btn-text" type="button" data-remove-permission="${index}" aria-label="移除${esc(item.name)}">移除</button></td></tr>`).join('');document.querySelector('[data-directory-permission-empty]').hidden=entries.length>0}
+function renderPermissionPicker(){const query=document.querySelector('[data-permission-candidate-search]').value.trim().toLowerCase(),candidates=permissionCandidates[activePermissionKind].filter(item=>`${item.name} ${item.account} ${item.detail} ${item.path}`.toLowerCase().includes(query)),selectedIds=new Set(permissionDraft.map(item=>item.id)),candidateNode=document.querySelector('[data-permission-candidates]'),selectedNode=document.querySelector('[data-permission-selected]'),typeLabels={user:'用户',group:'用户组',org:'组织机构'};candidateNode.innerHTML=candidates.map(item=>`<label class="permission-candidate-item ${selectedIds.has(item.id)?'is-selected':''}"><input class="checkbox" type="checkbox" value="${item.id}" data-permission-candidate ${selectedIds.has(item.id)?'checked':''}/><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><span class="permission-candidate-main"><strong>${esc(item.name)}</strong><small>${esc(item.path)}</small></span><span class="permission-candidate-meta"><span>${esc(item.account)}</span><small>${esc(item.detail)}</small></span></label>`).join('')||'<div class="source-empty-state text-small">未找到匹配对象</div>';selectedNode.innerHTML=permissionDraft.map(item=>`<div class="permission-selected-item"><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><span class="permission-selected-main"><strong>${esc(item.name)}</strong><small>${typeLabels[activePermissionKind]} · ${esc(item.path)}</small></span><select class="select select-small" aria-label="设置${esc(item.name)}的权限" data-draft-permission="${item.id}"><option value="view" ${item.level==='view'?'selected':''}>查看权限</option><option value="edit" ${item.level==='edit'?'selected':''}>编辑权限</option><option value="manage" ${item.level==='manage'?'selected':''}>管理权限</option></select><button class="permission-selected-remove" type="button" data-remove-draft-permission="${item.id}" aria-label="取消选择${esc(item.name)}">×</button></div>`).join('')||'<div class="permission-picker-empty"><strong>尚未选择对象</strong><span class="text-small">在左侧勾选后，可在此逐个设置权限。</span></div>';document.querySelector('[data-permission-candidate-count]').textContent=`${candidates.length} 个结果`;document.querySelector('[data-permission-selected-count]').textContent=`${permissionDraft.length} 个对象`;document.querySelector('[data-confirm-directory-permission]').disabled=permissionDraft.length===0;document.querySelector('[data-permission-picker-note]').textContent=permissionDraft.length?`将添加 ${permissionDraft.length} 个权限对象`:'请至少选择一个权限对象'}
+const resourceDialog=document.querySelector('[data-directory-resource-dialog]'),resourceForm=document.querySelector('[data-directory-resource-form]');
+let activeResourceType='file',selectedResourceIds=new Set();
+function renderResourcePicker(){
+  const query=document.querySelector('[data-directory-resource-search]').value.trim().toLowerCase();
+  const candidates=directoryResourceCandidates[activeResourceType].filter(item=>`${item.name} ${item.type} ${item.source}`.toLowerCase().includes(query));
+  const rows=document.querySelector('[data-directory-resource-candidates]');
+  rows.innerHTML=candidates.map(item=>{const mounted=files.some(file=>file[0]===activeSpace&&file[1]===activeId&&file[2]===item.name&&file[5]===activeResourceType);return `<tr class="${mounted?'is-disabled':''}"><td class="directory-resource-check"><input class="checkbox" type="checkbox" value="${esc(item.id)}" data-directory-resource-candidate ${selectedResourceIds.has(item.id)?'checked':''} ${mounted?'disabled':''} aria-label="选择${esc(item.name)}"/></td><td class="cell-primary">${esc(item.name)}</td><td><span class="tag tag-small">${esc(item.type)}</span></td><td>${esc(item.source)}</td><td><span class="tag tag-status ${mounted?'tag-status-secondary':'tag-status-lime'}">${mounted?'已挂载':'可添加'}</span></td></tr>`}).join('');
+  document.querySelector('[data-directory-resource-candidate-count]').textContent=`${candidates.length} 个结果`;
+  document.querySelector('[data-directory-resource-candidate-empty]').hidden=candidates.length>0;
+  document.querySelector('[data-directory-resource-selected-count]').textContent=selectedResourceIds.size?`已选择 ${selectedResourceIds.size} 项资源`:'请选择要添加的资源';
+  document.querySelector('[data-confirm-directory-resource]').disabled=selectedResourceIds.size===0;
+}
+function openResourcePicker(){
+  if(!activeId)return showToast('请先选择一个目录节点');
+  activeResourceType='file';selectedResourceIds=new Set();resourceForm.reset();
+  document.querySelector('[data-directory-resource-target]').textContent=node(activeId)?.name||space().name;
+  document.querySelectorAll('[data-directory-resource-type]').forEach(button=>{const on=button.dataset.directoryResourceType==='file';button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});
+  renderResourcePicker();setDialogState(resourceDialog,true,'[data-directory-resource-search]');
+}
+function activateSpace(id){activeSpace=id;activeId=children(null)[0]?.id||null;document.querySelectorAll('[data-directory-space]').forEach(button=>{const on=button.dataset.directorySpace===id;button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});document.querySelector('[data-directory-space-summary]').textContent=space().summary;document.querySelector('[data-directory-space-note]').textContent=space().note;document.querySelector('[data-resource-directory-root]').textContent=space().name;document.querySelector('[data-open-resource-directory]').textContent=id==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-search]').value='';document.querySelector('[data-resource-directory-file-search]').value='';document.querySelector('[data-directory-permission-search]').value='';renderTree();renderFiles();renderPermissions()}
 function disablePermissions(disabled){['managePermission','editPermission','viewPermission'].forEach(name=>{form.elements[name].disabled=disabled;form.elements[name].required=activeSpace==='team'&&!disabled})}
-function openDirectory(parentId=null){pendingParent=parentId;const parent=parentId?node(parentId):null,depth=parent?parent.depth+1:1;form.reset();document.querySelector('[data-resource-directory-dialog-title]').textContent=activeSpace==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-dialog-subtitle]').textContent=activeSpace==='personal'?'在个人空间中创建自有文件夹':'创建企业业务分类节点并配置权限';document.querySelector('[data-resource-directory-parent]').textContent=parent?.name||space().name;document.querySelector('[data-resource-directory-level]').textContent=`${['一','二','三','四','五'][depth-1]||depth}级目录`;document.querySelector('[data-team-directory-permissions]').hidden=activeSpace!=='team';document.querySelector('.resource-directory-inherit').hidden=activeSpace!=='team'||!parent;const inherit=document.querySelector('[data-inherit-directory-permissions]');inherit.checked=Boolean(parent);const permissions=parent?.permissions||{manage:[],edit:[],view:[]};form.elements.managePermission.value=permissions.manage.join('，');form.elements.editPermission.value=permissions.edit.join('，');form.elements.viewPermission.value=permissions.view.join('，');disablePermissions(activeSpace==='team'&&Boolean(parent));setDialogState(dialog,true,'[name="directoryName"]')}
-document.querySelectorAll('[data-directory-space]').forEach(button=>button.addEventListener('click',()=>activateSpace(button.dataset.directorySpace)));document.querySelector('[data-open-resource-directory]').addEventListener('click',()=>openDirectory());document.querySelector('[data-resource-directory-root]').addEventListener('click',()=>{activeId=null;renderTree();renderFiles()});resourceDirectoryTreeNode.addEventListener('click',event=>{const child=event.target.closest('[data-resource-directory-child]');if(child)return openDirectory(child.dataset.resourceDirectoryChild);const select=event.target.closest('[data-resource-directory-id]');if(select){activeId=select.dataset.resourceDirectoryId;renderTree();renderFiles()}});document.querySelector('[data-resource-directory-search]').addEventListener('input',event=>{const query=event.currentTarget.value.trim().toLowerCase();resourceDirectoryTreeNode.querySelectorAll('.resource-directory-node').forEach(item=>item.hidden=Boolean(query)&&!item.textContent.toLowerCase().includes(query))});document.querySelector('[data-resource-directory-file-search]').addEventListener('input',renderFiles);document.querySelector('[data-inherit-directory-permissions]').addEventListener('change',event=>disablePermissions(event.currentTarget.checked));document.querySelectorAll('[data-resource-directory-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(dialog,false)));dialog.addEventListener('click',event=>{if(event.target===dialog)setDialogState(dialog,false)});
-form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form),parent=pendingParent?node(pendingParent):null,inherit=activeSpace==='team'&&Boolean(parent)&&document.querySelector('[data-inherit-directory-permissions]').checked,list=value=>String(value||'').split(/[,，]/).map(item=>item.trim()).filter(Boolean),name=String(data.get('directoryName')).trim();if(space().nodes.some(item=>item.parentId===pendingParent&&item.name===name))return showToast('同级目录名称已存在');const item={id:`${activeSpace}-${Date.now()}`,name,description:String(data.get('directoryDescription')).trim(),parentId:pendingParent,depth:parent?parent.depth+1:1};if(activeSpace==='team'){item.inherit=inherit;item.permissions=inherit?JSON.parse(JSON.stringify(parent.permissions)):{manage:list(data.get('managePermission')),edit:list(data.get('editPermission')),view:list(data.get('viewPermission'))}}space().nodes.push(item);activeId=item.id;save();setDialogState(dialog,false);renderTree();renderFiles();showToast(`已创建目录“${name}”`)});activateSpace('team');
+function openDirectory(parentId=null){pendingParent=parentId;const parent=parentId?node(parentId):null,depth=parent?parent.depth+1:1;form.reset();document.querySelector('[data-resource-directory-dialog-title]').textContent=activeSpace==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-dialog-subtitle]').textContent=activeSpace==='personal'?'在个人空间中创建自有文件夹':'创建业务目录，权限自动沿用当前团队空间';document.querySelector('[data-resource-directory-parent]').textContent=parent?.name||space().name;document.querySelector('[data-resource-directory-level]').textContent=`${['一','二','三','四','五'][depth-1]||depth}级目录`;document.querySelector('[data-team-directory-permissions]').hidden=true;document.querySelector('.resource-directory-inherit').hidden=true;const inherit=document.querySelector('[data-inherit-directory-permissions]');inherit.checked=Boolean(parent);const permissions=parent?.permissions||{manage:[],edit:[],view:[]};form.elements.managePermission.value=permissions.manage.join('，');form.elements.editPermission.value=permissions.edit.join('，');form.elements.viewPermission.value=permissions.view.join('，');disablePermissions(activeSpace==='team');setDialogState(dialog,true,'[name="directoryName"]')}
+document.querySelectorAll('[data-directory-space]').forEach(button=>button.addEventListener('click',()=>activateSpace(button.dataset.directorySpace)));
+document.querySelectorAll('[data-directory-content-tab]').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.directoryContentTab;document.querySelectorAll('[data-directory-content-tab]').forEach(item=>{const on=item===button;item.classList.toggle('is-active',on);item.setAttribute('aria-selected',String(on))});document.querySelectorAll('[data-directory-content-panel]').forEach(panel=>panel.hidden=panel.dataset.directoryContentPanel!==target);if(target==='permissions')renderPermissions()}));
+document.querySelectorAll('[data-permission-subject-tab]').forEach(button=>button.addEventListener('click',()=>{activePermissionKind=button.dataset.permissionSubjectTab;document.querySelectorAll('[data-permission-subject-tab]').forEach(item=>{const on=item===button;item.classList.toggle('is-active',on);item.setAttribute('aria-selected',String(on))});renderPermissions()}));
+document.querySelector('[data-open-resource-directory]').addEventListener('click',()=>openDirectory());
+document.querySelector('[data-resource-directory-root]').addEventListener('click',()=>{activeId=null;renderTree();renderFiles();renderPermissions()});
+resourceDirectoryTreeNode.addEventListener('click',event=>{const child=event.target.closest('[data-resource-directory-child]');if(child)return openDirectory(child.dataset.resourceDirectoryChild);const select=event.target.closest('[data-resource-directory-id]');if(select){activeId=select.dataset.resourceDirectoryId;renderTree();renderFiles();renderPermissions()}});
+document.querySelector('[data-resource-directory-file-rows]').addEventListener('click',event=>{const folder=event.target.closest('[data-open-directory-node]');if(folder){activeId=folder.dataset.openDirectoryNode;renderTree();renderFiles();renderPermissions()}});
+document.querySelector('[data-resource-directory-search]').addEventListener('input',event=>{const query=event.currentTarget.value.trim().toLowerCase();resourceDirectoryTreeNode.querySelectorAll('.resource-directory-node').forEach(item=>item.hidden=Boolean(query)&&!item.textContent.toLowerCase().includes(query))});
+document.querySelector('[data-resource-directory-file-search]').addEventListener('input',renderFiles);
+document.querySelector('[data-open-directory-resource]').addEventListener('click',openResourcePicker);
+document.querySelectorAll('[data-directory-resource-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(resourceDialog,false)));
+resourceDialog.addEventListener('click',event=>{if(event.target===resourceDialog)setDialogState(resourceDialog,false)});
+document.querySelectorAll('[data-directory-resource-type]').forEach(button=>button.addEventListener('click',()=>{activeResourceType=button.dataset.directoryResourceType;selectedResourceIds=new Set();document.querySelectorAll('[data-directory-resource-type]').forEach(item=>{const on=item===button;item.classList.toggle('is-active',on);item.setAttribute('aria-selected',String(on))});renderResourcePicker()}));
+document.querySelector('[data-directory-resource-search]').addEventListener('input',renderResourcePicker);
+document.querySelector('[data-directory-resource-candidates]').addEventListener('change',event=>{const checkbox=event.target.closest('[data-directory-resource-candidate]');if(!checkbox)return;if(checkbox.checked)selectedResourceIds.add(checkbox.value);else selectedResourceIds.delete(checkbox.value);renderResourcePicker()});
+resourceForm.addEventListener('submit',event=>{event.preventDefault();if(!selectedResourceIds.size||!activeId)return;const candidates=directoryResourceCandidates[activeResourceType],selected=candidates.filter(item=>selectedResourceIds.has(item.id));selected.forEach(item=>{if(!files.some(file=>file[0]===activeSpace&&file[1]===activeId&&file[2]===item.name&&file[5]===activeResourceType))files.push([activeSpace,activeId,item.name,item.type,'当前用户',activeResourceType])});saveFiles();setDialogState(resourceDialog,false);renderTree();renderFiles();showToast(`已向“${node(activeId)?.name}”添加 ${selected.length} 项资源`)});
+document.querySelector('[data-directory-permission-search]').addEventListener('input',renderPermissions);
+document.querySelector('[data-directory-permission-rows]').addEventListener('change',event=>{const select=event.target.closest('[data-permission-entry]');if(!select)return;const visible=permissionList().filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase()));if(visible[Number(select.dataset.permissionEntry)])visible[Number(select.dataset.permissionEntry)].level=select.value;showToast('权限已更新')});
+document.querySelector('[data-directory-permission-rows]').addEventListener('click',event=>{const remove=event.target.closest('[data-remove-permission]');if(!remove)return;const list=permissionList(),visible=list.filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase())),target=visible[Number(remove.dataset.removePermission)];if(target){list.splice(list.indexOf(target),1);renderPermissions();showToast(`已移除“${target.name}”的权限`)}});
+document.querySelector('[data-open-directory-permission]').addEventListener('click',()=>{permissionForm.reset();permissionDraft=[];const labels={user:'用户',group:'用户组',org:'组织机构'};document.querySelector('[data-permission-picker-title]').textContent=`添加${labels[activePermissionKind]}`;document.querySelector('[data-permission-candidate-search]').value='';renderPermissionPicker();setDialogState(permissionDialog,true,'[data-permission-candidate-search]')});
+document.querySelectorAll('[data-directory-permission-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(permissionDialog,false)));
+permissionDialog.addEventListener('click',event=>{if(event.target===permissionDialog)setDialogState(permissionDialog,false)});
+document.querySelector('[data-permission-candidate-search]').addEventListener('input',renderPermissionPicker);
+document.querySelector('[data-permission-candidates]').addEventListener('change',event=>{const checkbox=event.target.closest('[data-permission-candidate]');if(!checkbox)return;const candidate=permissionCandidates[activePermissionKind].find(item=>item.id===checkbox.value);if(!candidate)return;if(checkbox.checked&&!permissionDraft.some(item=>item.id===candidate.id))permissionDraft.push({...candidate,level:'view'});if(!checkbox.checked)permissionDraft=permissionDraft.filter(item=>item.id!==candidate.id);renderPermissionPicker()});
+document.querySelector('[data-permission-selected]').addEventListener('change',event=>{const select=event.target.closest('[data-draft-permission]'),item=permissionDraft.find(entry=>entry.id===select?.dataset.draftPermission);if(item)item.level=select.value});
+document.querySelector('[data-permission-selected]').addEventListener('click',event=>{const remove=event.target.closest('[data-remove-draft-permission]');if(remove){permissionDraft=permissionDraft.filter(item=>item.id!==remove.dataset.removeDraftPermission);renderPermissionPicker()}});
+permissionForm.addEventListener('submit',event=>{event.preventDefault();if(!permissionDraft.length)return;const list=permissionList();permissionDraft.forEach(item=>{const entry={kind:activePermissionKind,name:item.name,path:item.path,level:item.level},matched=list.find(current=>current.kind===entry.kind&&current.name===entry.name);if(matched)matched.level=entry.level;else list.push(entry)});const count=permissionDraft.length;setDialogState(permissionDialog,false);renderPermissions();showToast(`已添加 ${count} 个权限对象`)});
+document.querySelector('[data-inherit-directory-permissions]').addEventListener('change',event=>disablePermissions(event.currentTarget.checked));document.querySelectorAll('[data-resource-directory-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(dialog,false)));dialog.addEventListener('click',event=>{if(event.target===dialog)setDialogState(dialog,false)});
+form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form),parent=pendingParent?node(pendingParent):null,inherit=activeSpace==='team'&&Boolean(parent)&&document.querySelector('[data-inherit-directory-permissions]').checked,list=value=>String(value||'').split(/[,，]/).map(item=>item.trim()).filter(Boolean),name=String(data.get('directoryName')).trim();if(space().nodes.some(item=>item.parentId===pendingParent&&item.name===name))return showToast('同级目录名称已存在');const item={id:`${activeSpace}-${Date.now()}`,name,description:String(data.get('directoryDescription')).trim(),parentId:pendingParent,depth:parent?parent.depth+1:1};if(activeSpace==='team'){item.inherit=inherit;item.permissions=inherit?JSON.parse(JSON.stringify(parent.permissions)):{manage:list(data.get('managePermission')),edit:list(data.get('editPermission')),view:list(data.get('viewPermission'))}}space().nodes.push(item);activeId=item.id;save();setDialogState(dialog,false);renderTree();renderFiles();showToast(`已创建目录“${name}”`)});const selectedTeamSpace=new URLSearchParams(location.search).get('space');if(selectedTeamSpace){document.querySelector('.page-title').textContent=selectedTeamSpace==='all'?'全员空间':selectedTeamSpace==='finance'?'金融空间':selectedTeamSpace==='risk'?'风险管理空间':selectedTeamSpace;document.querySelector('.page-description').textContent='管理当前团队空间的目录、资源与继承权限。'}activateSpace(selectedTeamSpace?'team':document.body.dataset.directoryDefaultSpace||'team');
 }
 
 const metadataStandardDialog = document.querySelector('[data-metadata-standard-dialog]');
@@ -2386,4 +2684,8 @@ if (metadataStandardDialog && metadataStandardForm) {
   });
   render('business');
   render('management');
+}
+
+if (['resource-tasks', 'resource-task-detail'].includes(document.body.dataset.page)) {
+  import('./resource-task-detail.js?v=1');
 }

@@ -6,7 +6,7 @@
   <title>知识源管理 - 知识工程平台</title>
   <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
   <link rel="stylesheet" href="../assets/design-system/components.css" />
-  <link rel="stylesheet" href="../assets/css/platform.css?v=25" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=26" />
 </head>
 <body data-page="knowledge-sources">
   <div data-shell></div>
@@ -92,8 +92,9 @@
           </aside>
           <form class="source-config-form" data-source-form>
             <div class="source-config-heading"><span class="connector-mark connector-confluence" data-config-mark>CF</span><div><h3 class="text-normal-bold" data-config-title>配置 Confluence</h3><p class="text-small" data-config-description>同步 Confluence 空间、页面与附件。</p></div></div>
+            <fieldset class="source-access-mode" data-source-access-mode><legend class="field-label text-small-bold">接入方式 *</legend><div class="source-access-mode-options"><label class="source-access-mode-option"><input class="radio" type="radio" name="accessMode" value="direct" /><span><strong>直连</strong><small>通过网络协议直接访问知识源服务器，不在本系统保存文件副本。</small></span></label><label class="source-access-mode-option is-active"><input class="radio" type="radio" name="accessMode" value="sync" checked /><span><strong>同步</strong><small>将远端知识源文件同步到本系统，并保存一份内容副本。</small></span></label></div></fieldset>
             <div class="source-dynamic-fields" data-source-fields></div>
-            <div class="source-connection-note text-small"><strong>连接与同步是两个阶段</strong><span>保存连接后，请前往目标知识库选择此知识源并配置同步范围、解析方式和刷新频率。</span></div>
+            <div class="source-connection-note text-small" data-source-mode-note><strong data-source-mode-note-title>同步并保存内容</strong><span data-source-mode-note-description>连接成功后，可配置同步范围和同步频率；远端文件将复制到本系统。</span></div>
           </form>
         </div>
         <footer class="dialog-actions source-dialog-actions"><span class="source-test-result text-small" data-source-test-result></span><button class="btn btn-medium" type="button" data-test-source>测试连接</button><button class="btn btn-medium btn-primary" type="button" data-save-source disabled>保存连接</button></footer>
@@ -106,6 +107,6 @@
       <button class="is-danger" type="button" data-toast="删除为演示操作，未真实移除知识源">删除知识源</button>
     </div>
   </template>
-  <script type="module" src="../assets/js/app.js?v=26"></script>
+  <script type="module" src="../assets/js/app.js?v=27"></script>
 </body>
 </html>
