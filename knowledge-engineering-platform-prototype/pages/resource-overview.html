@@ -6,7 +6,7 @@
   <title>资源概览 - 知识工程平台</title>
   <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
   <link rel="stylesheet" href="../assets/design-system/components.css" />
-  <link rel="stylesheet" href="../assets/css/platform.css?v=35" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=51" />
 </head>
 <body data-page="resource-overview">
   <div data-shell></div>
@@ -15,17 +15,39 @@
       <div><h1 class="page-title text-x-big-bold">资源概览</h1></div>
       <div class="page-actions"><button class="btn btn-medium btn-secondary" type="button" data-toast="文档报告已生成">导出报告</button></div>
     </header>
-    <section class="grid grid-4" aria-label="资源核心指标">
-      <article class="metric-card"><div class="metric-label text-normal"><span>资源总量</span><span class="tag tag-small">全类型</span></div><div class="metric-value text-x-big-bold text-number">286,430</div><div class="metric-foot text-small"><span class="trend-up">+8.7%</span><span>较上月</span></div></article>
-      <article class="metric-card"><div class="metric-label text-normal"><span>已完成加工</span></div><div class="metric-value text-x-big-bold text-number">241,806</div><div class="metric-foot text-small"><span>加工覆盖率 84.4%</span></div></article>
-      <article class="metric-card"><div class="metric-label text-normal"><span>待完善元数据</span></div><div class="metric-value text-x-big-bold text-number">3,286</div><div class="metric-foot text-small"><span class="trend-risk">428 份低于 60%</span></div></article>
-      <article class="metric-card"><div class="metric-label text-normal"><span>今日新增</span></div><div class="metric-value text-x-big-bold text-number">9,842</div><div class="metric-foot text-small"><span>企业 8,126</span><span>团队与个人 1,716</span></div></article>
+    <section class="resource-overview-metrics" aria-label="资源核心指标">
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>资源总量</span><span class="tag tag-small">全类型</span></div><div class="metric-value text-x-big-bold text-number">286,430</div><div class="metric-foot text-small"><span class="trend-up">+8.7%</span><span>较上月</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>知识源健康率</span><span class="tag tag-status tag-status-lime">正常</span></div><div class="metric-value text-x-big-bold text-number">92.3%</div><div class="metric-foot text-small"><span>36 / 39 个连接正常</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>同步成功率</span><span class="tag tag-small">近 7 日</span></div><div class="metric-value text-x-big-bold text-number">98.6%</div><div class="metric-foot text-small"><span>1,248 / 1,266 次成功</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>待处理任务</span><span class="tag tag-status tag-status-red">5 个超时</span></div><div class="metric-value text-x-big-bold text-number">26</div><div class="metric-foot text-small"><span>同步 8</span><span>元数据 13</span><span>入目 5</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>元数据完整率</span><span class="tag tag-small">已确认</span></div><div class="metric-value text-x-big-bold text-number">84.4%</div><div class="metric-foot text-small"><span>241,806 / 286,430 份</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>已入目率</span><span class="tag tag-small">资源目录</span></div><div class="metric-value text-x-big-bold text-number">76.8%</div><div class="metric-foot text-small"><span>220,003 / 286,430 份</span></div></article>
     </section>
-    <section class="section grid grid-main-aside">
-      <article class="panel"><div class="panel-header"><div><h2 class="panel-title text-big-bold">最近文档活动</h2><p class="panel-description text-small">跨空间查看最新上传、同步与自动入目记录</p></div></div><div class="table-wrap"><table class="table"><thead><tr><th>文档</th><th>所属空间</th><th>来源</th><th>更新时间</th><th>状态</th></tr></thead><tbody><tr><td class="cell-primary">对公授信审查办法<span class="cell-secondary text-small">PDF · V3.2</span></td><td>企业空间</td><td>制度中台</td><td>2 分钟前</td><td><span class="tag tag-status tag-status-lime">已加工</span></td></tr><tr><td class="cell-primary">零售业务培训资料<span class="cell-secondary text-small">DOCX · V1.0</span></td><td>团队空间</td><td>本地上传</td><td>18 分钟前</td><td><span class="tag tag-status tag-status-blue">解析中</span></td></tr><tr><td class="cell-primary">客户访谈纪要<span class="cell-secondary text-small">DOCX · V2.1</span></td><td>个人空间</td><td>本地上传</td><td>1 小时前</td><td><span class="tag tag-status tag-status-secondary">已解析</span></td></tr></tbody></table></div></article>
-      <aside class="panel"><div class="panel-header"><div><h2 class="panel-title text-big-bold">文档健康度</h2><p class="panel-description text-small">综合完整性、时效性和权限状态</p></div></div><div class="status-list"><div class="status-row"><div><strong>元数据完整度</strong><small>业务与管理属性覆盖</small></div><strong class="text-number">96</strong><div class="progress"><span data-bar="96"></span></div></div><div class="status-row"><div><strong>内容解析成功率</strong><small>近 30 日解析任务</small></div><strong class="text-number">98</strong><div class="progress"><span data-bar="98"></span></div></div><div class="status-row"><div><strong>权限配置完整度</strong><small>企业空间文档</small></div><strong class="text-number">92</strong><div class="progress"><span data-bar="92"></span></div></div></div></aside>
+
+    <section class="resource-overview-dashboard" aria-label="接入与治理概况">
+      <article class="panel resource-overview-panel">
+        <div class="panel-header"><div><h2 class="panel-title text-big-bold">接入与同步健康</h2><p class="panel-description text-small">知识源连接状态和近 7 日同步运行情况</p></div><a class="btn btn-dense btn-text" href="knowledge-sources.html">查看知识源</a></div>
+        <div class="source-health-summary"><div><strong class="text-x-big-bold text-number">39</strong><span class="text-small">知识源总数</span></div><div><strong class="text-x-big-bold text-number trend-up">36</strong><span class="text-small">连接正常</span></div><div><strong class="text-x-big-bold text-number trend-risk">2</strong><span class="text-small">连接异常</span></div></div>
+        <div class="overview-progress-group"><div class="overview-progress-heading"><span>同步成功率</span><strong class="text-number">98.6%</strong></div><div class="progress"><span data-bar="98.6"></span></div><div class="overview-progress-note text-small"><span>成功 1,248 次</span><span>失败 18 次</span><span>平均耗时 2分14秒</span></div></div>
+        <div class="overview-issue-list"><a href="resource-tasks.html"><span><strong>合同管理系统</strong><small>连续 3 次增量同步失败</small></span><span class="tag tag-status tag-status-red">同步异常</span></a></div>
+      </article>
+
+      <article class="panel resource-overview-panel">
+        <div class="panel-header"><div><h2 class="panel-title text-big-bold">资源治理进度</h2><p class="panel-description text-small">从接入到元数据确认和资源入目的处理漏斗</p></div></div>
+        <div class="governance-funnel" aria-label="资源治理漏斗"><div><span>已接入资源</span><strong class="text-number">286,430</strong><small>100%</small></div><div><span>完成元数据补充</span><strong class="text-number">251,672</strong><small>87.9%</small></div><div><span>属性已确认</span><strong class="text-number">241,806</strong><small>84.4%</small></div><div><span>完成入目</span><strong class="text-number">220,003</strong><small>76.8%</small></div></div>
+        <div class="governance-issue-grid"><a href="resource-tasks.html"><strong class="text-number">3,286</strong><span>待完善元数据</span><small>428 份低置信度</small></a><a href="resource-tags.html"><strong class="text-number">216</strong><span>无标签资源</span><small>需要补充业务标签</small></a><a href="resource-team-spaces.html"><strong class="text-number">97</strong><span>未入目资源</span><small>35 个候选待确认</small></a></div>
+      </article>
+    </section>
+
+    <section class="resource-overview-dashboard resource-overview-dashboard-single" aria-label="管理待办">
+      <article class="panel resource-overview-panel overview-task-panel" data-tabs>
+        <div class="panel-header overview-tab-heading"><div><h2 class="panel-title text-big-bold">管理工作台</h2><p class="panel-description text-small">集中查看需要处理的事项与资源变更</p></div></div>
+        <div class="tabs tabs-dense" role="tablist" aria-label="管理工作台内容"><button class="tabs-item is-active" id="overview-todo-tab" type="button" role="tab" aria-selected="true" aria-controls="overview-todo-panel">管理待办 <span class="text-number">8</span></button><button class="tabs-item" id="overview-activity-tab" type="button" role="tab" aria-selected="false" aria-controls="overview-activity-panel">最近动态</button></div>
+        <div class="overview-tab-panel" id="overview-todo-panel" role="tabpanel" aria-labelledby="overview-todo-tab"><div class="management-todo-list"><a href="resource-tasks.html"><span class="todo-priority todo-priority-high">高</span><span><strong>处理合同管理系统同步失败</strong><small>连续失败 3 次 · 负责人：李程</small></span><time class="text-small">超时 2 小时</time></a><a href="resource-tasks.html"><span class="todo-priority todo-priority-high">高</span><span><strong>确认 428 份低置信度属性</strong><small>元数据补充任务 · 负责人：王翠</small></span><time class="text-small">今天 18:00</time></a><a href="resource-team-spaces.html"><span class="todo-priority">中</span><span><strong>确认 35 个目录候选</strong><small>金融空间与风险管理空间</small></span><time class="text-small">明天 12:00</time></a><a href="resource-team-spaces.html"><span class="todo-priority">中</span><span><strong>修复 12 个权限继承异常</strong><small>涉及 4 个一级目录</small></span><time class="text-small">9月17日</time></a></div></div>
+        <div class="overview-tab-panel" id="overview-activity-panel" role="tabpanel" aria-labelledby="overview-activity-tab" hidden><div class="management-activity-list"><article><span class="tag tag-small">上传</span><div><strong>零售业务培训资料</strong><small>王翠上传到企业空间 · 2 分钟前</small></div></article><article><span class="tag tag-small">同步</span><div><strong>制度中台完成增量同步</strong><small>新增 126 份，更新 38 份 · 18 分钟前</small></div></article><article><span class="tag tag-small">确认</span><div><strong>对公授信审查办法完成属性确认</strong><small>李程确认 10 项属性 · 1 小时前</small></div></article><article><span class="tag tag-small">权限</span><div><strong>风险管理目录权限已调整</strong><small>刘敏增加风险管理部查看权限 · 2 小时前</small></div></article></div></div>
+      </article>
     </section>
   </template>
-  <script type="module" src="../assets/js/app.js?v=35"></script>
+  <script type="module" src="../assets/js/app.js?v=50"></script>
 </body>
 </html>
