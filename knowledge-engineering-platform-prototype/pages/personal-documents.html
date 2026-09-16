@@ -21,7 +21,7 @@
             <label class="field folder-search"><span class="input-wrap input-middle"><input class="input" type="search" placeholder="搜索文件夹" aria-label="搜索个人空间文件夹" data-folder-search /></span></label>
             <nav class="personal-folder-tree" aria-label="个人文件夹目录">
               <section class="folder-root-group">
-                <div class="folder-root-row"><button class="folder-root is-expanded" type="button" aria-expanded="true" data-folder-root><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m8 10 4 4 4-4"/><path d="M3 6h7l2 2h9v11H3z"/></svg><span>我的文件夹</span><span class="source-count">96</span></button><button class="personal-folder-add-child" type="button" aria-label="在我的文件夹下新建文件夹" data-open-personal-folder>＋</button></div>
+                <div class="folder-root-row"><button class="folder-root is-expanded" type="button" aria-expanded="true" data-folder-root><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m8 10 4 4 4-4"/><path d="M3 6h7l2 2h9v11H3z"/></svg><span>我的文件夹</span><span class="source-count">96</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-personal-folder-menu aria-label="我的文件夹功能">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-personal-folder-action="create">新建</button></div></div>
                 <div class="folder-children"><button class="personal-folder-item is-active" type="button" data-personal-folder="all" aria-pressed="true"><span>全部文件</span><span class="source-count">96</span></button></div>
               </section>
               <section class="folder-root-group">
@@ -64,6 +64,14 @@
       </div>
     </div>
 
+    <div class="dialog-mask" data-personal-folder-delete-dialog hidden>
+      <section class="dialog dialog-form personal-folder-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="personal-folder-delete-title" aria-describedby="personal-folder-delete-description">
+        <header class="dialog-header"><div><h2 class="dialog-title" id="personal-folder-delete-title" data-personal-folder-delete-title>删除文件夹</h2><p class="dialog-description text-small">此操作需要二次确认</p></div><button class="dialog-close" type="button" aria-label="关闭" data-close-personal-folder-delete></button></header>
+        <div class="dialog-body form-stack"><p class="personal-folder-delete-warning" id="personal-folder-delete-description" data-personal-folder-delete-description></p><p class="people-dialog-note text-small" data-personal-folder-delete-impact></p></div>
+        <footer class="dialog-actions"><button class="btn btn-medium btn-secondary" type="button" data-close-personal-folder-delete>取消</button><button class="btn btn-medium btn-danger" type="button" data-confirm-personal-folder-delete>确认删除</button></footer>
+      </section>
+    </div>
+
     <div class="dialog-mask" data-file-action-dialog hidden>
       <div class="dialog dialog-form" role="dialog" aria-modal="true" aria-labelledby="file-action-dialog-title">
         <div class="dialog-header"><h2 class="dialog-title" id="file-action-dialog-title" data-file-action-title>文件操作</h2><button class="dialog-close" type="button" aria-label="关闭" data-close-file-action-dialog></button></div>
@@ -80,6 +88,6 @@
 
     <input class="visually-hidden" type="file" data-file-version-input aria-label="选择新版本文件" />
   </template>
-  <script type="module" src="../assets/js/app.js?v=49"></script>
+  <script type="module" src="../assets/js/app.js?v=56"></script>
 </body>
 </html>

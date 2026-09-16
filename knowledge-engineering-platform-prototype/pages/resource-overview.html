@@ -6,7 +6,7 @@
   <title>资源概览 - 知识工程平台</title>
   <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
   <link rel="stylesheet" href="../assets/design-system/components.css" />
-  <link rel="stylesheet" href="../assets/css/platform.css?v=51" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=52" />
 </head>
 <body data-page="resource-overview">
   <div data-shell></div>
@@ -16,20 +16,20 @@
       <div class="page-actions"><button class="btn btn-medium btn-secondary" type="button" data-toast="文档报告已生成">导出报告</button></div>
     </header>
     <section class="resource-overview-metrics" aria-label="资源核心指标">
-      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>资源总量</span><span class="tag tag-small">全类型</span></div><div class="metric-value text-x-big-bold text-number">286,430</div><div class="metric-foot text-small"><span class="trend-up">+8.7%</span><span>较上月</span></div></article>
-      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>知识源健康率</span><span class="tag tag-status tag-status-lime">正常</span></div><div class="metric-value text-x-big-bold text-number">92.3%</div><div class="metric-foot text-small"><span>36 / 39 个连接正常</span></div></article>
-      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>同步成功率</span><span class="tag tag-small">近 7 日</span></div><div class="metric-value text-x-big-bold text-number">98.6%</div><div class="metric-foot text-small"><span>1,248 / 1,266 次成功</span></div></article>
-      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>待处理任务</span><span class="tag tag-status tag-status-red">5 个超时</span></div><div class="metric-value text-x-big-bold text-number">26</div><div class="metric-foot text-small"><span>同步 8</span><span>元数据 13</span><span>入目 5</span></div></article>
-      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>元数据完整率</span><span class="tag tag-small">已确认</span></div><div class="metric-value text-x-big-bold text-number">84.4%</div><div class="metric-foot text-small"><span>241,806 / 286,430 份</span></div></article>
-      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>已入目率</span><span class="tag tag-small">资源目录</span></div><div class="metric-value text-x-big-bold text-number">76.8%</div><div class="metric-foot text-small"><span>220,003 / 286,430 份</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>资源总量</span></div><div class="metric-value text-x-big-bold text-number">286,430</div><div class="metric-foot text-small"><span>当前全量去重资源</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>知识源健康率</span></div><div class="metric-value text-x-big-bold text-number">92.3%</div><div class="metric-foot text-small"><span>36 / 39 个连接正常</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>同步成功率</span></div><div class="metric-value text-x-big-bold text-number">98.6%</div><div class="metric-foot text-small"><span>全量累计成功 1,248 / 1,266 次</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>待处理任务</span></div><div class="metric-value text-x-big-bold text-number">26</div><div class="metric-foot text-small"><span>同步 8</span><span>元数据 13</span><span>入目 5</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>元数据完整率</span></div><div class="metric-value text-x-big-bold text-number">84.4%</div><div class="metric-foot text-small"><span>完整且已确认 241,806 / 286,430</span></div></article>
+      <article class="metric-card resource-overview-metric"><div class="metric-label text-normal"><span>已入目率</span></div><div class="metric-value text-x-big-bold text-number">76.8%</div><div class="metric-foot text-small"><span>已挂载 220,003 / 286,430</span></div></article>
     </section>
 
     <section class="resource-overview-dashboard" aria-label="接入与治理概况">
       <article class="panel resource-overview-panel">
-        <div class="panel-header"><div><h2 class="panel-title text-big-bold">接入与同步健康</h2><p class="panel-description text-small">知识源连接状态和近 7 日同步运行情况</p></div><a class="btn btn-dense btn-text" href="knowledge-sources.html">查看知识源</a></div>
+        <div class="panel-header"><div><h2 class="panel-title text-big-bold">接入与同步健康</h2><p class="panel-description text-small">知识源当前连接状态和全量累计同步运行情况</p></div></div>
         <div class="source-health-summary"><div><strong class="text-x-big-bold text-number">39</strong><span class="text-small">知识源总数</span></div><div><strong class="text-x-big-bold text-number trend-up">36</strong><span class="text-small">连接正常</span></div><div><strong class="text-x-big-bold text-number trend-risk">2</strong><span class="text-small">连接异常</span></div></div>
         <div class="overview-progress-group"><div class="overview-progress-heading"><span>同步成功率</span><strong class="text-number">98.6%</strong></div><div class="progress"><span data-bar="98.6"></span></div><div class="overview-progress-note text-small"><span>成功 1,248 次</span><span>失败 18 次</span><span>平均耗时 2分14秒</span></div></div>
-        <div class="overview-issue-list"><a href="resource-tasks.html"><span><strong>合同管理系统</strong><small>连续 3 次增量同步失败</small></span><span class="tag tag-status tag-status-red">同步异常</span></a></div>
+        <div class="overview-issue-list"><a href="resource-tasks.html?type=%E7%9F%A5%E8%AF%86%E6%BA%90%E5%90%8C%E6%AD%A5&amp;status=%E6%89%A7%E8%A1%8C%E5%A4%B1%E8%B4%A5" aria-label="进入任务中心查看同步异常任务"><span><strong>合同管理系统</strong><small>连续 3 次增量同步失败</small></span><span class="tag tag-status tag-status-red">同步异常</span></a></div>
       </article>
 
       <article class="panel resource-overview-panel">
@@ -48,6 +48,6 @@
       </article>
     </section>
   </template>
-  <script type="module" src="../assets/js/app.js?v=50"></script>
+  <script type="module" src="../assets/js/app.js?v=56"></script>
 </body>
 </html>

@@ -12,8 +12,8 @@
   <div data-shell></div>
   <template data-page-template>
     <header class="page-heading document-detail-heading">
-      <div><a class="back-link text-small" href="documents.html" data-space-back>‹ 返回文件中心</a><h1 class="page-title text-x-big-bold" data-query-file>文件详情</h1><p class="page-description text-normal" data-space-description>企业空间文件的信息与原文内容</p></div>
-      <div class="page-actions"><button class="btn btn-medium btn-primary" type="button" data-confirm-file-analysis hidden>确认元数据和标签</button><button class="btn btn-medium btn-secondary" type="button" data-edit-file-attributes>编辑属性</button><button class="btn btn-medium btn-secondary" type="button" data-toast="已开始下载">下载</button><button class="btn btn-medium btn-primary" type="button" data-toast="已打开新版本上传">更新版本</button></div>
+      <div><a class="back-link text-small" href="documents.html" data-space-back>‹ 返回文件中心</a><h1 class="page-title text-x-big-bold" data-query-file>文件详情</h1><p class="page-description text-normal" data-space-description>文件内容、属性与AI处理结果</p></div>
+      <div class="page-actions"><button class="btn btn-medium btn-primary" type="button" data-confirm-file-analysis>确认AI结果</button><button class="btn btn-medium btn-secondary" type="button" data-edit-file-attributes>编辑属性</button><button class="btn btn-medium btn-secondary" type="button" data-toast="已开始下载">下载</button><button class="btn btn-medium btn-primary" type="button" data-toast="已打开新版本上传">更新版本</button></div>
     </header>
 
     <section class="file-detail-tabs" data-tabs>
@@ -82,6 +82,6 @@
     </section>
     <div class="dialog-mask" data-file-tag-dialog hidden><section class="dialog dialog-form" role="dialog" aria-modal="true" aria-labelledby="file-tag-dialog-title"><header class="dialog-header"><div><h2 class="dialog-title" id="file-tag-dialog-title">添加标签</h2><p class="dialog-description text-small">为当前文件手动补充一个标签，添加后将同步到标签管理。</p></div><button class="dialog-close" type="button" aria-label="关闭" data-file-tag-dialog-close></button></header><form data-file-tag-form><div class="dialog-body"><label class="field"><span class="field-label">标签名称</span><span class="input-wrap input-middle"><input class="input" name="fileTagName" list="file-tag-suggestions" maxlength="30" required placeholder="输入或选择标签" autocomplete="off" /></span></label><datalist id="file-tag-suggestions" data-file-tag-suggestions></datalist><p class="field-hint text-small">可选择已有标签，也可以输入新的业务标签。</p></div><footer class="dialog-actions"><button class="btn btn-medium btn-secondary" type="button" data-file-tag-dialog-close>取消</button><button class="btn btn-medium btn-primary" type="submit">确认添加</button></footer></form></section></div>
   </template>
-  <script type="module" src="../assets/js/app.js?v=46"></script>
+  <script type="module" src="../assets/js/app.js?v=55"></script>
 </body>
 </html>

@@ -1,10 +1,11 @@
 import { createTaskFileResult } from './task-file-results.js?v=1';
 import { renderShell } from './shell.js?v=43';
+import { injectResourcePageNotes } from './resource-page-notes.js?v=4';
 
 const platformStylesheet = document.querySelector('link[href*="platform.css"]');
 if (platformStylesheet) {
   const stylesheetUrl = new URL(platformStylesheet.href);
-  stylesheetUrl.searchParams.set('v', '44');
+  stylesheetUrl.searchParams.set('v', '46');
   platformStylesheet.href = stylesheetUrl.href;
 }
 
@@ -16,6 +17,7 @@ document.querySelector('[data-resource-directory-nav-toggle]')?.addEventListener
 });
 const template = document.querySelector('template[data-page-template]');
 if (template) document.querySelector('[data-page-content]').append(template.content.cloneNode(true));
+injectResourcePageNotes();
 import('./publishing.js?v=2');
 
 document.querySelectorAll('[data-ai-chat-open], [data-ai-chat-dialog]').forEach(node => node.remove());
@@ -127,11 +129,13 @@ document.querySelector('.personal-folder-tree')?.addEventListener('click',event=
 });
 
 const personalOwnedFolderContainer=document.querySelector('.folder-root-group:first-child .folder-children');
+const personalFolderTree=document.querySelector('.personal-folder-tree');
 const personalFolderStorageKey='kep-personal-folder-tree';
+const personalDeletedFilesStorageKey='kep-personal-deleted-files';
 let personalCustomFolders=[{id:'work',name:'工作资料',count:34,children:[]},{id:'study',name:'学习资料',count:27,children:[]},{id:'draft',name:'临时文件',count:12,children:[]}];
 try{const saved=JSON.parse(localStorage.getItem(personalFolderStorageKey)||'null');if(Array.isArray(saved))personalCustomFolders=saved}catch{}
 const escapePersonalFolder=value=>String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-function personalFolderNodeMarkup(folder){return `<div class="personal-folder-node" data-personal-folder-node="${folder.id}"><div class="personal-folder-row"><button class="personal-folder-item" type="button" data-personal-folder="${folder.id}" aria-pressed="false"><span>${escapePersonalFolder(folder.name)}</span><span class="source-count">${folder.count||0}</span></button><button class="personal-folder-add-child" type="button" data-add-personal-folder="${folder.id}" aria-label="在${escapePersonalFolder(folder.name)}下新建子文件夹">＋</button></div><div class="personal-folder-subtree">${(folder.children||[]).map(personalFolderNodeMarkup).join('')}</div></div>`}
+function personalFolderNodeMarkup(folder){return `<div class="personal-folder-node" data-personal-folder-node="${folder.id}"><div class="personal-folder-row"><button class="personal-folder-item" type="button" data-personal-folder="${folder.id}" aria-pressed="false"><span>${escapePersonalFolder(folder.name)}</span><span class="source-count">${folder.count||0}</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-personal-folder-menu aria-label="${escapePersonalFolder(folder.name)}文件夹功能">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-personal-folder-action="create">新建</button><button type="button" role="menuitem" data-personal-folder-action="modify">修改</button><button type="button" role="menuitem" data-personal-folder-action="rename">重命名</button><button class="is-danger" type="button" role="menuitem" data-personal-folder-action="delete">删除</button></div></div><div class="personal-folder-subtree">${(folder.children||[]).map(personalFolderNodeMarkup).join('')}</div></div>`}
 function renderPersonalCustomFolders(){if(!personalOwnedFolderContainer)return;personalOwnedFolderContainer.querySelectorAll('[data-personal-folder-node]').forEach(node=>node.remove());personalCustomFolders.forEach(folder=>personalOwnedFolderContainer.insertAdjacentHTML('beforeend',personalFolderNodeMarkup(folder)));const register=folders=>folders.forEach(folder=>{personalFolderTitles[folder.id]=folder.name;register(folder.children||[])});register(personalCustomFolders)}
 function findPersonalFolder(folders,id){for(const folder of folders){if(folder.id===id)return folder;const child=findPersonalFolder(folder.children||[],id);if(child)return child}return null}
 function startPersonalFolderInlineCreate(parentId=null){
@@ -149,9 +153,57 @@ function startPersonalFolderInlineCreate(parentId=null){
   input.addEventListener('blur',()=>{if(!cancelled&&form.isConnected){if(input.value.trim())form.requestSubmit();else cancel()}});
   input.focus();
 }
-document.querySelector('[data-open-personal-folder]')?.addEventListener('click',()=>startPersonalFolderInlineCreate());
-personalOwnedFolderContainer?.addEventListener('click',event=>{const trigger=event.target.closest('[data-add-personal-folder]');if(trigger){event.stopPropagation();startPersonalFolderInlineCreate(trigger.dataset.addPersonalFolder)}});
+const personalFolderDeleteDialog=document.querySelector('[data-personal-folder-delete-dialog]');
+let pendingPersonalFolderDelete=null;
+const collectPersonalFolderIds=folder=>[folder.id,...(folder.children||[]).flatMap(collectPersonalFolderIds)];
+const closePersonalFolderMenus=except=>personalFolderTree?.querySelectorAll('[data-personal-folder-menu]').forEach(item=>{const open=item===except;item.setAttribute('aria-expanded',String(open));const menu=item.parentElement.querySelector('.source-function-menu');if(menu)menu.hidden=!open});
+function openPersonalFolderDeleteDialog(folder){
+  const ids=collectPersonalFolderIds(folder),rows=[...document.querySelectorAll('[data-personal-folder-row]')].filter(row=>ids.includes(row.dataset.personalFolderRow));
+  pendingPersonalFolderDelete={folder,ids,rows};
+  const hasContent=rows.length>0||ids.length>1;
+  const title=document.querySelector('[data-personal-folder-delete-title]'),description=document.querySelector('[data-personal-folder-delete-description]'),impact=document.querySelector('[data-personal-folder-delete-impact]');
+  if(title)title.textContent=`删除“${folder.name}”`;
+  if(description)description.textContent=hasContent?'该文件夹不是空文件夹。确认后将同时删除文件夹、全部子文件夹及其中的文件，且无法恢复。':'该文件夹为空。确认后将删除该文件夹，且无法恢复。';
+  if(impact)impact.textContent=`影响范围：${ids.length} 个文件夹，${rows.length} 个文件`;
+  setDialogState(personalFolderDeleteDialog,true,'[data-confirm-personal-folder-delete]');
+}
+personalFolderTree?.addEventListener('click',event=>{
+  const menuTrigger=event.target.closest('[data-personal-folder-menu]');
+  if(menuTrigger){event.stopPropagation();closePersonalFolderMenus(menuTrigger.getAttribute('aria-expanded')==='true'?null:menuTrigger);return}
+  const action=event.target.closest('[data-personal-folder-action]');
+  if(!action)return;
+  event.stopPropagation();
+  closePersonalFolderMenus();
+  const node=action.closest('[data-personal-folder-node]'),folder=findPersonalFolder(personalCustomFolders,node?.dataset.personalFolderNode);
+  if(action.dataset.personalFolderAction==='create'){startPersonalFolderInlineCreate(folder?.id||null);return}
+  if(!folder)return;
+  if(action.dataset.personalFolderAction==='modify'){
+    const description=window.prompt('修改文件夹说明',folder.description||'');
+    if(description===null)return;
+    folder.description=description.trim();showToast(`已修改文件夹“${folder.name}”`);
+  }else if(action.dataset.personalFolderAction==='rename'){
+    const name=window.prompt('重命名文件夹',folder.name)?.trim();
+    if(!name||name===folder.name)return;
+    const parentNode=node.parentElement.closest('[data-personal-folder-node]'),parent=parentNode?findPersonalFolder(personalCustomFolders,parentNode.dataset.personalFolderNode):null,siblings=parent?.children||personalCustomFolders;
+    if(siblings.some(item=>item!==folder&&item.name===name)){showToast('同级文件夹名称已存在');return}
+    folder.name=name;showToast(`已重命名为“${name}”`);
+  }else if(action.dataset.personalFolderAction==='delete'){
+    openPersonalFolderDeleteDialog(folder);return;
+  }
+  localStorage.setItem(personalFolderStorageKey,JSON.stringify(personalCustomFolders));renderPersonalCustomFolders();
+});
 renderPersonalCustomFolders();
+try{const deleted=JSON.parse(localStorage.getItem(personalDeletedFilesStorageKey)||'[]');if(Array.isArray(deleted))document.querySelectorAll('[data-personal-folder-row]').forEach(row=>{const name=row.querySelector('.document-link')?.textContent.trim();if(deleted.includes(name))row.remove()})}catch{}
+document.querySelectorAll('[data-close-personal-folder-delete]').forEach(button=>button.addEventListener('click',()=>{pendingPersonalFolderDelete=null;setDialogState(personalFolderDeleteDialog,false)}));
+personalFolderDeleteDialog?.addEventListener('click',event=>{if(event.target===personalFolderDeleteDialog){pendingPersonalFolderDelete=null;setDialogState(personalFolderDeleteDialog,false)}});
+document.querySelector('[data-confirm-personal-folder-delete]')?.addEventListener('click',()=>{
+  if(!pendingPersonalFolderDelete)return;
+  const {folder,rows}=pendingPersonalFolderDelete,deletedNames=rows.map(row=>row.querySelector('.document-link')?.textContent.trim()).filter(Boolean);
+  const savedDeleted=(()=>{try{const value=JSON.parse(localStorage.getItem(personalDeletedFilesStorageKey)||'[]');return Array.isArray(value)?value:[]}catch{return[]}})();
+  rows.forEach(row=>row.remove());localStorage.setItem(personalDeletedFilesStorageKey,JSON.stringify([...new Set([...savedDeleted,...deletedNames])]));
+  const remove=folders=>{const index=folders.findIndex(item=>item.id===folder.id);if(index>=0){folders.splice(index,1);return true}return folders.some(item=>remove(item.children||[]))};remove(personalCustomFolders);
+  localStorage.setItem(personalFolderStorageKey,JSON.stringify(personalCustomFolders));renderPersonalCustomFolders();pendingPersonalFolderDelete=null;setDialogState(personalFolderDeleteDialog,false);document.querySelector('[data-personal-folder="all"]')?.click();showToast(`已删除文件夹“${folder.name}”及其中的 ${deletedNames.length} 个文件`);
+});
 
 document.querySelectorAll('[data-folder-root]').forEach(button => button.addEventListener('click', () => {
   const expanded = button.classList.toggle('is-expanded');
@@ -376,7 +428,11 @@ function appendUploadedFile(file, targetSpace = 'enterprise') {
     return;
   }
   row.dataset.personalFolderRow = personalSpace ? 'work' : '';
-  row.innerHTML = `<td class="cell-primary"><a class="document-link" href="document-detail.html" data-uploaded-name></a><span class="cell-secondary text-small" data-uploaded-meta></span></td><td data-uploaded-type></td><td><span class="tag tag-status ${personalSpace ? 'tag-status-secondary' : 'tag-status-lime'}">${personalSpace ? '仅自己' : '已解析'}</span></td><td class="text-number">v1.0</td><td data-uploaded-created></td><td data-uploaded-time></td><td>当前用户</td><td class="cell-actions"><button class="btn btn-dense btn-text" ${personalSpace ? 'data-open-share-dialog' : 'data-toast="分享设置已打开"'}>分享</button><button class="btn btn-dense btn-text" data-update-file>更新</button></td>`;
+  if (!personalSpace) row.dataset.knowledgeSourceRow = 'local';
+  row.dataset.sourceKind = personalSpace ? '' : 'unstructured';
+  row.innerHTML = personalSpace
+    ? '<td class="cell-primary"><a class="document-link" href="document-detail.html" data-uploaded-name></a><span class="cell-secondary text-small" data-uploaded-meta></span></td><td data-uploaded-type></td><td><span class="tag tag-status tag-status-secondary">仅自己</span></td><td class="text-number">v1.0</td><td data-uploaded-created></td><td data-uploaded-time></td><td>当前用户</td><td class="cell-actions"><button class="btn btn-dense btn-text" data-open-share-dialog>分享</button><button class="btn btn-dense btn-text" data-update-file>更新</button></td>'
+    : '<td class="cell-primary"><a class="document-link" href="document-detail.html" data-uploaded-name></a><span class="cell-secondary text-small" data-uploaded-meta></span></td><td data-uploaded-type></td><td>本地上传</td><td class="text-number">v1.0</td><td data-file-tag-column><span class="text-small">待自动打标</span></td><td><span class="tag tag-status tag-status-secondary">待确认</span></td><td>当前用户</td><td data-uploaded-time></td>';
   const nameLink = row.querySelector('[data-uploaded-name]');
   nameLink.textContent = file.name;
   nameLink.href = personalSpace
@@ -385,10 +441,16 @@ function appendUploadedFile(file, targetSpace = 'enterprise') {
   row.querySelector('[data-uploaded-meta]').textContent = `${extension} · ${formatFileSize(file.size)}`;
   row.querySelector('[data-uploaded-type]').textContent = extension;
   const time = new Intl.DateTimeFormat('zh-CN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date());
-  row.querySelector('[data-uploaded-created]').textContent = time;
+  const createdNode = row.querySelector('[data-uploaded-created]');
+  if (createdNode) createdNode.textContent = time;
   row.querySelector('[data-uploaded-time]').textContent = time;
   body.prepend(row);
   if (personalSpace) ensureFileMoreMenu(row);
+  if (!personalSpace) {
+    const localSource = document.querySelector('[data-knowledge-source="local"] .source-count');
+    if (localSource) localSource.textContent = String(Number(localSource.textContent || 0) + 1);
+    applyResourceFileFilters();
+  }
 }
 
 function formatFileSize(bytes) {
@@ -420,6 +482,8 @@ function filterKnowledgeSource(button) {
   if (countNode) countNode.textContent = `${visibleCount} 条结果`;
   if (emptyNode) emptyNode.hidden = visibleCount !== 0;
   if (emptyMessage && sourceId === 'oracle') emptyMessage.textContent = '该知识源尚未完成认证，完成连接并同步后将在此展示内容。';
+  const localUploadActions = document.querySelector('[data-local-upload-actions]');
+  if (localUploadActions) localUploadActions.hidden = sourceId !== 'local';
 }
 
 function applyResourceFileFilters() {
@@ -429,36 +493,42 @@ function applyResourceFileFilters() {
   const sourceId = activeSource?.dataset.knowledgeSource || 'all';
   const sourceKind = activeSource?.dataset.sourceKind || activeSource?.closest('[data-source-kind]')?.dataset.sourceKind || 'unstructured';
   const fileType = document.querySelector('[data-file-type-filter]')?.value || 'all';
+  const tag = document.querySelector('[data-file-tag-filter]')?.value || 'all';
+  const analysisStatus = document.querySelector('[data-file-analysis-filter]')?.value || 'all';
+  const owner = document.querySelector('[data-file-owner-filter]')?.value || 'all';
+  const updatedFrom = document.querySelector('[data-file-updated-from]')?.value || '';
+  const updatedTo = document.querySelector('[data-file-updated-to]')?.value || '';
   const query = document.querySelector('[data-table-search="#resource-table"]')?.value.trim().toLowerCase() || '';
   let visibleCount = 0;
   table.querySelectorAll('tbody tr[data-knowledge-source-row]').forEach(row => {
     const sourceMatches = row.dataset.sourceKind === sourceKind && (sourceId === 'all' || row.dataset.knowledgeSourceRow === sourceId);
     const typeMatches = fileType === 'all' || row.dataset.fileType === fileType;
+    const tagMatches = tag === 'all' || (tag === 'untagged' ? !row.querySelector('[data-file-tag-column] .tag') : [...row.querySelectorAll('[data-file-tag-column] .tag')].some(item => item.textContent.trim() === tag));
+    const statusText = row.querySelector('.tag-status')?.textContent.trim() || '';
+    const statusMatches = analysisStatus === 'all' || statusText === analysisStatus;
+    const ownerText = row.children[row.children.length - 2]?.textContent.trim() || '';
+    const ownerMatches = owner === 'all' || ownerText === owner;
+    const updatedDate = (row.lastElementChild?.textContent.trim() || '').slice(0, 10);
+    const dateMatches = (!updatedFrom || updatedDate >= updatedFrom) && (!updatedTo || updatedDate <= updatedTo);
     const queryMatches = !query || row.textContent.toLowerCase().includes(query);
-    const visible = sourceMatches && typeMatches && queryMatches;
+    const visible = sourceMatches && typeMatches && tagMatches && statusMatches && ownerMatches && dateMatches && queryMatches;
     row.hidden = !visible;
     if (visible) visibleCount += 1;
   });
   const countNode = document.querySelector('[data-resource-count]');
   if (countNode) countNode.textContent = `${visibleCount} 条结果`;
+  const emptyNode = document.querySelector('[data-resource-filter-empty]');
+  if (emptyNode) emptyNode.hidden = visibleCount > 0;
   return visibleCount;
 }
 
 function setupDocumentFileTypes() {
   const rows = [...document.querySelectorAll('#resource-table tbody tr[data-knowledge-source-row]')];
   if (!rows.length) return;
-  const examples = [
-    ['对公授信审查办法.pdf', 'PDF'],
-    ['固定资产贷款管理办法.docx', 'Word'],
-    ['客户风险评级服务设计.txt', 'TXT'],
-    ['征信接口流程图.png', '图片'],
-    ['授信规则培训视频.mp4', '视频'],
-    ['2025年授信档案汇编.pdf', 'PDF'],
-    ['历史合同扫描件.jpg', '图片'],
-    ['风险模型说明.txt', 'TXT']
-  ];
-  rows.forEach((row, index) => {
-    const [name, type] = examples[index] || [row.querySelector('.document-link')?.textContent.trim(), row.children[1]?.textContent.trim()];
+  rows.forEach(row => {
+    const name = row.querySelector('.document-link')?.textContent.trim();
+    const rawType = row.children[1]?.textContent.trim() || '文件';
+    const type = /pdf/i.test(rawType) ? 'PDF' : /doc|word/i.test(rawType) ? 'Word' : /txt|markdown|readme|wiki/i.test(rawType) ? 'TXT' : /png|jpg|jpeg|图片/i.test(rawType) ? '图片' : /mp4|mov|视频/i.test(rawType) ? '视频' : rawType;
     const link = row.querySelector('.document-link');
     if (link && name) {
       link.textContent = name;
@@ -549,20 +619,31 @@ function normalizeSourceTask(task) {
 function getSourceTasks(){try{const tasks=JSON.parse(localStorage.getItem('kep-source-processing-tasks')||'[]');return Array.isArray(tasks)?tasks.map(normalizeSourceTask):[]}catch{return[]}}
 function saveSourceTasks(tasks){localStorage.setItem('kep-source-processing-tasks',JSON.stringify(tasks))}
 function renderSourceTaskNotices(){const list=document.querySelector('[data-catalog-task-list]'),tasks=getSourceTasks().slice(0,5);if(!list||!tasks.length)return;document.querySelector('[data-catalog-empty]')?.remove();list.innerHTML=tasks.map(item=>`<article class="task-notice ${item.status==='已完成'?'is-complete':''}"><div class="task-notice-head"><div><strong class="text-small-bold">${item.taskName}</strong><p class="text-small">${item.sourceName} · ${item.fileCount} 个文件</p></div><span class="tag tag-status ${item.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${item.status}</span></div><a class="btn btn-dense btn-text task-notice-link" href="resource-task-detail.html?task=${encodeURIComponent(item.id)}">${item.status==='已完成'?'任务已完成，查看详情':'进入任务中心查看'}</a></article>`).join('');updateTaskCenterSummary()}
-function renderSourceTasks(){const body=document.querySelector('[data-resource-task-rows]');if(!body)return;getSourceTasks().slice().reverse().forEach(item=>{const row=document.createElement('tr'),completed=item.status==='已完成';row.dataset.sourceTaskId=item.id;row.dataset.resourceTaskRow=item.taskName;row.innerHTML=`<td class="cell-primary">${item.sourceName} · ${item.taskName}<span class="cell-secondary text-small">${item.id}</span></td><td>${item.taskName}</td><td>${item.sourceName}</td><td>当前用户</td><td>${item.startedAt}</td><td>${item.result}</td><td><span class="tag tag-status ${completed?'tag-status-lime':'tag-status-blue'}">${item.status}</span></td><td><a class="btn btn-dense btn-text" href="resource-task-detail.html?task=${encodeURIComponent(item.id)}">查看</a></td>`;body.prepend(row)});const taskId=new URLSearchParams(location.search).get('task'),task=taskId&&getSourceTasks().find(item=>item.id===taskId),detail=document.querySelector('[data-source-task-detail]');if(!task||!detail)return;detail.hidden=false;detail.innerHTML=`<header><div><h2 class="text-medium-bold">${task.sourceName} · ${task.taskName}</h2><p class="text-small">${task.id}</p></div><span class="tag tag-status ${task.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${task.status}</span></header><div class="source-task-detail-grid"><div><span class="text-small">任务维度</span><strong>知识源</strong></div><div><span class="text-small">处理范围</span><strong>${task.fileCount} 个文件</strong></div><div><span class="text-small">开始时间</span><strong>${task.startedAt}</strong></div><div><span class="text-small">执行结果</span><strong>${task.result}</strong></div></div>${task.taskType==='catalog'&&task.status==='已完成'?'<div class="asset-section-actions"><a class="btn btn-medium btn-primary" href="asset-catalogs.html?review=classification">查看并确认分类结果</a></div>':''}`;document.querySelector(`[data-source-task-id="${CSS.escape(taskId)}"]`)?.classList.add('is-highlighted')}
+function renderSourceTasks(){const body=document.querySelector('[data-resource-task-rows]');if(!body)return;getSourceTasks().slice().reverse().forEach(item=>{const row=document.createElement('tr'),completed=item.status==='已完成';row.dataset.sourceTaskId=item.id;row.dataset.resourceTaskRow=item.taskName;row.dataset.resourceTaskStatus=item.status;row.innerHTML=`<td class="cell-primary">${item.sourceName} · ${item.taskName}<span class="cell-secondary text-small">${item.id}</span></td><td>${item.taskName}</td><td>${item.sourceName}</td><td>当前用户</td><td>${item.startedAt}</td><td>${item.result}</td><td><span class="tag tag-status ${completed?'tag-status-lime':'tag-status-blue'}">${item.status}</span></td><td><a class="btn btn-dense btn-text" href="resource-task-detail.html?task=${encodeURIComponent(item.id)}">查看</a></td>`;body.prepend(row)});const taskId=new URLSearchParams(location.search).get('task'),task=taskId&&getSourceTasks().find(item=>item.id===taskId),detail=document.querySelector('[data-source-task-detail]');if(!task||!detail)return;detail.hidden=false;detail.innerHTML=`<header><div><h2 class="text-medium-bold">${task.sourceName} · ${task.taskName}</h2><p class="text-small">${task.id}</p></div><span class="tag tag-status ${task.status==='已完成'?'tag-status-lime':'tag-status-blue'}">${task.status}</span></header><div class="source-task-detail-grid"><div><span class="text-small">任务维度</span><strong>知识源</strong></div><div><span class="text-small">处理范围</span><strong>${task.fileCount} 个文件</strong></div><div><span class="text-small">开始时间</span><strong>${task.startedAt}</strong></div><div><span class="text-small">执行结果</span><strong>${task.result}</strong></div></div>${task.taskType==='catalog'&&task.status==='已完成'?'<div class="asset-section-actions"><a class="btn btn-medium btn-primary" href="asset-catalogs.html?review=classification">查看并确认分类结果</a></div>':''}`;document.querySelector(`[data-source-task-id="${CSS.escape(taskId)}"]`)?.classList.add('is-highlighted')}
 renderSourceTaskNotices();renderSourceTasks();
 
+const resourceTaskQuery = new URLSearchParams(location.search);
+let activeResourceTaskType = resourceTaskQuery.get('type') || 'all';
+const activeResourceTaskStatus = resourceTaskQuery.get('status');
+function applyResourceTaskFilters() {
+  document.querySelectorAll('[data-resource-task-row]').forEach(row => {
+    const matchesType = activeResourceTaskType === 'all' || row.dataset.resourceTaskRow === activeResourceTaskType;
+    const matchesStatus = !activeResourceTaskStatus || row.dataset.resourceTaskStatus === activeResourceTaskStatus;
+    row.hidden = !matchesType || !matchesStatus;
+  });
+}
 document.querySelectorAll('[data-resource-task-type]').forEach(button => button.addEventListener('click', () => {
   const type = button.dataset.resourceTaskType;
+  activeResourceTaskType = type;
   document.querySelectorAll('[data-resource-task-type]').forEach(item => {
     const active = item === button;
     item.classList.toggle('is-active', active);
     item.setAttribute('aria-selected', String(active));
   });
-  document.querySelectorAll('[data-resource-task-row]').forEach(row => {
-    row.hidden = type !== 'all' && row.dataset.resourceTaskRow !== type;
-  });
+  applyResourceTaskFilters();
 }));
+const initialResourceTaskType = document.querySelector(`[data-resource-task-type="${CSS.escape(activeResourceTaskType)}"]`) || document.querySelector('[data-resource-task-type="all"]');
+initialResourceTaskType?.click();
 
 function startSourceTask(row, taskType) {
   const sourceButton = row.querySelector('[data-knowledge-source]');
@@ -629,6 +710,53 @@ function startSourceTask(row, taskType) {
   }, 240);
 }
 
+const fileCenterSourceStateKey='kep-file-center-source-states';
+const readFileCenterSourceStates=()=>{try{const value=JSON.parse(localStorage.getItem(fileCenterSourceStateKey)||'{}');return value&&typeof value==='object'?value:{}}catch{return {}}};
+const saveFileCenterSourceStates=value=>localStorage.setItem(fileCenterSourceStateKey,JSON.stringify(value));
+function setFileCenterSourceSubtitle(button,status){const small=button?.querySelector('.source-label small');if(!small)return;const connector=small.textContent.split(' · ')[0];small.textContent=`${connector} · ${status}`}
+function updateFileCenterSourceSummary(){
+  const tree=document.querySelector('[data-knowledge-source-tree]');if(!tree)return;
+  const rows=[...tree.querySelectorAll(':scope > .source-tree-row')];
+  const all=tree.querySelector('[data-knowledge-source="all"]');
+  const fileCount=[...document.querySelectorAll('#resource-table tbody tr[data-knowledge-source-row]')].length;
+  const summary=document.querySelector('.source-panel-header .panel-description');
+  if(summary)summary.textContent=`${rows.length} 个文档类知识源`;
+  const allSummary=all?.querySelector('.source-label small');if(allSummary)allSummary.textContent=`${rows.length} 个已配置知识源`;
+  const allCount=all?.querySelector('.source-count');if(allCount)allCount.textContent=String(fileCount);
+}
+function setFileCenterSourceEnabled(row,enabled,persist=true){
+  const button=row.querySelector('[data-knowledge-source]');if(!button)return;
+  row.dataset.sourceEnabled=String(enabled);button.classList.toggle('is-disabled',!enabled);button.setAttribute('aria-disabled',String(!enabled));
+  const toggle=row.querySelector('[data-source-toggle]');if(toggle)toggle.textContent=enabled?'停用':'启动';
+  row.querySelectorAll('[data-source-sync-now],[data-source-task],[data-edit-source-config]').forEach(action=>{action.disabled=!enabled});
+  if(!enabled)setFileCenterSourceSubtitle(button,'已停用');else if(button.dataset.lastSourceStatus)setFileCenterSourceSubtitle(button,button.dataset.lastSourceStatus);else setFileCenterSourceSubtitle(button,'已启用');
+  if(persist){const states=readFileCenterSourceStates(),id=button.dataset.knowledgeSource;states[id]={...(states[id]||{}),enabled};saveFileCenterSourceStates(states)}
+}
+function ensureFileCenterSourceActions(){
+  if(document.body.dataset.page!=='documents')return;
+  const states=readFileCenterSourceStates(),tree=document.querySelector('[data-knowledge-source-tree]');if(!tree)return;
+  tree.querySelectorAll(':scope > .source-tree-row').forEach(row=>{
+    const button=row.querySelector('[data-knowledge-source]'),id=button?.dataset.knowledgeSource;if(!button||id==='local')return;
+    if(states[id]?.deleted){document.querySelectorAll(`#resource-table tr[data-knowledge-source-row="${CSS.escape(id)}"]`).forEach(item=>item.remove());row.remove();return}
+    const menu=row.querySelector('.source-function-menu');if(!menu)return;
+    if(!menu.querySelector('[data-source-sync-now]')){const edit=menu.querySelector('[data-edit-source-config]');edit?.insertAdjacentHTML('afterend','<button type="button" role="menuitem" data-source-sync-now>立即同步</button>');menu.insertAdjacentHTML('beforeend','<button type="button" role="menuitem" data-source-toggle>停用</button><button class="is-danger" type="button" role="menuitem" data-source-delete>删除</button>')}
+    const syncAction=menu.querySelector('[data-source-sync-now]');if(syncAction)syncAction.hidden=(row.dataset.accessMode||button.dataset.accessMode)==='direct';
+    button.dataset.lastSourceStatus=button.querySelector('.source-label small')?.textContent.split(' · ')[1]||'已同步';
+    setFileCenterSourceEnabled(row,states[id]?.enabled!==false,false);
+  });
+  updateFileCenterSourceSummary();applyResourceFileFilters();
+}
+function startImmediateSourceSync(row){
+  const button=row.querySelector('[data-knowledge-source]'),id=button?.dataset.knowledgeSource,name=button?.querySelector('.source-label strong')?.textContent.trim()||'当前知识源';
+  if(!button||row.dataset.sourceEnabled==='false')return showToast('请先启动该知识源');
+  const action=row.querySelector('[data-source-sync-now]');if(action){action.disabled=true;action.textContent='同步中…'}
+  setFileCenterSourceSubtitle(button,'同步中');closeSourceFunctionMenus();
+  const taskId=`TASK-SYNC-${Date.now()}`,startedAt=new Intl.DateTimeFormat('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}).format(new Date()),fileCount=document.querySelectorAll(`#resource-table tr[data-knowledge-source-row="${CSS.escape(id)}"]`).length;
+  const tasks=getSourceTasks();tasks.unshift({id:taskId,taskType:'sync',taskName:'知识源同步',sourceId:id,sourceName:name,fileNames:[],fileCount,startedAt,status:'执行中',result:'正在从远端知识源同步文件'});saveSourceTasks(tasks);showToast(`已发起“${name}”同步任务，可在任务中心查看`);
+  window.setTimeout(()=>{setFileCenterSourceSubtitle(button,'已同步');button.dataset.lastSourceStatus='已同步';if(action){action.disabled=false;action.textContent='立即同步'}const current=getSourceTasks(),task=current.find(item=>item.id===taskId);if(task){task.status='已完成';task.result=`已完成同步，共检查 ${fileCount} 个文件`;saveSourceTasks(current)}showToast(`“${name}”同步完成`)},900);
+}
+ensureFileCenterSourceActions();
+
 document.querySelector('[data-knowledge-source-tree]')?.addEventListener('click', event => {
   const trigger = event.target.closest('[data-source-function]');
   if (trigger) {
@@ -636,10 +764,25 @@ document.querySelector('[data-knowledge-source-tree]')?.addEventListener('click'
     closeSourceFunctionMenus(trigger.getAttribute('aria-expanded') === 'true' ? null : trigger);
     return;
   }
+  const editAction = event.target.closest('[data-edit-source-config]');
+  if (editAction) {
+    event.stopPropagation();
+    const row = editAction.closest('.source-tree-row');
+    closeSourceFunctionMenus();
+    openSourceDialog(editAction.dataset.editSourceConfig, row);
+    return;
+  }
+  const syncAction=event.target.closest('[data-source-sync-now]');
+  if(syncAction){event.stopPropagation();startImmediateSourceSync(syncAction.closest('.source-tree-row'));return}
+  const toggleAction=event.target.closest('[data-source-toggle]');
+  if(toggleAction){event.stopPropagation();const row=toggleAction.closest('.source-tree-row'),button=row.querySelector('[data-knowledge-source]'),enabled=row.dataset.sourceEnabled!=='false';if(enabled&&button.classList.contains('is-active'))filterKnowledgeSource(document.querySelector('[data-knowledge-source="all"]'));setFileCenterSourceEnabled(row,!enabled);closeSourceFunctionMenus();applyResourceFileFilters();showToast(`已${enabled?'停用':'启动'}“${button.querySelector('.source-label strong').textContent.trim()}”`);return}
+  const deleteAction=event.target.closest('[data-source-delete]');
+  if(deleteAction){event.stopPropagation();const row=deleteAction.closest('.source-tree-row'),button=row.querySelector('[data-knowledge-source]'),id=button.dataset.knowledgeSource,name=button.querySelector('.source-label strong').textContent.trim();if(!window.confirm(`删除知识源“${name}”？该知识源下的文件将从文件中心移除。`))return;const wasActive=button.classList.contains('is-active'),states=readFileCenterSourceStates();states[id]={...(states[id]||{}),deleted:true};saveFileCenterSourceStates(states);document.querySelectorAll(`#resource-table tr[data-knowledge-source-row="${CSS.escape(id)}"]`).forEach(item=>item.remove());row.remove();if(wasActive)filterKnowledgeSource(document.querySelector('[data-knowledge-source="all"]'));updateFileCenterSourceSummary();applyResourceFileFilters();showToast(`已删除知识源“${name}”`);return}
   const action = event.target.closest('[data-source-task]');
   if (!action) return;
   event.stopPropagation();
   const row = action.closest('.source-tree-row');
+  if(row.dataset.sourceEnabled==='false'){closeSourceFunctionMenus();showToast('请先启动该知识源');return}
   closeSourceFunctionMenus();
   startSourceTask(row, action.dataset.sourceTask);
 });
@@ -1887,8 +2030,9 @@ function openSourceDialog(type = null, row = null) {
   editingSourceRow = row;
   type = type || document.querySelector('[data-source-type]')?.dataset.sourceType || 'confluence';
   const config = sourceConnectorConfigs[type] || sourceConnectorConfigs.confluence;
-  const sourceTitle = row?.querySelector('.source-name-cell strong')?.textContent || '';
-  renderSourceConfig(type, sourceTitle ? { name: sourceTitle, accessMode: row?.dataset.accessMode || 'sync', businessSystem: row?.dataset.businessSystem || '', syncFrequency: row?.dataset.syncFrequency || '' } : { accessMode: 'sync' });
+  const sourceTitle = row?.querySelector('.source-name-cell strong, .source-label strong')?.textContent || '';
+  const sourceButton = row?.querySelector('[data-knowledge-source]');
+  renderSourceConfig(type, sourceTitle ? { name: sourceTitle, accessMode: row?.dataset.accessMode || sourceButton?.dataset.accessMode || 'sync', businessSystem: row?.dataset.businessSystem || sourceButton?.dataset.businessSystem || '', syncFrequency: row?.dataset.syncFrequency || sourceButton?.dataset.syncFrequency || '' } : { accessMode: 'sync' });
   const dialogTitle = document.querySelector('#source-dialog-title');
   if (dialogTitle) dialogTitle.textContent = row ? '编辑知识源' : '新增知识源';
   setDialogState(sourceDialog, true, '[data-source-fields] input');
@@ -1937,13 +2081,22 @@ sourceSaveButton?.addEventListener('click', () => {
   const businessSystem = String(data.get('businessSystem') || '').trim();
   const syncFrequency = accessMode === 'sync' ? String(data.get('syncFrequency') || '') : '';
   if (editingSourceRow) {
-    editingSourceRow.querySelector('.source-name-cell strong').textContent = name;
+    const titleNode = editingSourceRow.querySelector('.source-name-cell strong, .source-label strong');
+    if (titleNode) titleNode.textContent = name;
     editingSourceRow.dataset.name = `${name} ${config.name}`;
     editingSourceRow.dataset.accessMode = accessMode;
     if (sourceIsFileCenter) {
       editingSourceRow.dataset.businessSystem = businessSystem;
       editingSourceRow.dataset.syncFrequency = syncFrequency;
     }
+    const sourceButton = editingSourceRow.querySelector('[data-knowledge-source]');
+    if (sourceButton) {
+      sourceButton.dataset.businessSystem = businessSystem;
+      sourceButton.dataset.syncFrequency = syncFrequency;
+      const summary = sourceButton.querySelector('.source-label small');
+      if (summary) summary.textContent = `${config.name} · ${accessMode === 'direct' ? '直连' : '已同步'}`;
+    }
+    ensureFileCenterSourceActions();
     showToast(`已保存“${name}”的连接配置`);
   } else {
     const row = document.createElement('tr');
@@ -1962,16 +2115,26 @@ sourceSaveButton?.addEventListener('click', () => {
     if (isContentCenter) {
       const allSource = sidebar.querySelector('[data-knowledge-source="all"]');
       const kind = allSource?.dataset.sourceKind || 'unstructured';
+      const sourceId = `${activeSourceType}-${Date.now()}`;
+      const sourceRow = document.createElement('div');
+      sourceRow.className = 'source-tree-row';
+      sourceRow.dataset.sourceKind = kind;
+      sourceRow.dataset.accessMode = accessMode;
+      sourceRow.dataset.businessSystem = businessSystem;
+      sourceRow.dataset.syncFrequency = syncFrequency;
       const item = document.createElement('button');
       item.className = 'source-tree-item';
       item.type = 'button';
-      item.dataset.knowledgeSource = `${activeSourceType}-${Date.now()}`;
+      item.dataset.knowledgeSource = sourceId;
       item.dataset.sourceKind = kind;
       item.dataset.businessSystem = businessSystem;
       item.dataset.syncFrequency = syncFrequency;
       item.setAttribute('aria-pressed', 'false');
       item.innerHTML = `<span class="connector-mark connector-${activeSourceType}">${config.mark}</span><span class="source-label"><strong>${escapeSourceText(name)}</strong><small>${config.name} · ${accessMode === 'direct' ? '直连' : '尚未同步'}</small></span><span class="source-count">0</span>`;
-      sidebar.append(item);
+      sourceRow.append(item);
+      sourceRow.insertAdjacentHTML('beforeend',`<button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-source-function>⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" data-edit-source-config="${activeSourceType}">修改配置</button><button type="button" data-source-task="metadata">元数据补充</button><button type="button" data-source-task="catalog">自动入目</button></div>`);
+      sidebar.append(sourceRow);
+      ensureFileCenterSourceActions();
     }
     const total = document.querySelector('[data-source-total]');
     if (total) total.textContent = String(Number(total.textContent) + 1);
@@ -2056,9 +2219,37 @@ function renderDocumentListTags(){
   const table=document.querySelector('#resource-table');
   if(!table||table.querySelector('[data-file-tag-column]'))return;
   const heading=document.createElement('th');heading.dataset.fileTagColumn='';heading.textContent='标签';table.querySelector('thead tr')?.children[4]?.before(heading);
-  table.querySelectorAll('tbody tr[data-knowledge-source-row]').forEach(row=>{const name=row.querySelector('.document-link')?.textContent.trim()||'',record=findFileTagRecord(name),manual=readManualFileTags()[record?.name]||[],tags=[...new Set([...(record?.autoTags||[]),...manual])],cell=document.createElement('td');cell.dataset.fileTagColumn='';cell.innerHTML=tags.length?`<div class="file-list-tag-summary">${tags.slice(0,2).map(tag=>`<span class="tag tag-small">${escapeTagCategoryText(tag)}</span>`).join('')}${tags.length>2?`<span class="text-small">+${tags.length-2}</span>`:''}</div>`:'<span class="text-small">待自动打标</span>';row.children[4]?.before(cell);const status=getFileAnalysisStatus(record),statusNode=row.querySelector('.tag-status'),actionCell=row.lastElementChild;if(statusNode&&record){statusNode.textContent=status;statusNode.className=`tag tag-status ${status==='已确认'?'tag-status-lime':'tag-status-secondary'}`}if(actionCell&&status==='待确认'){actionCell.innerHTML=`<button class="btn btn-dense btn-primary" type="button" data-confirm-file-analysis-row>确认</button><a class="btn btn-dense btn-text" href="space-file-detail.html?file=${encodeURIComponent(name)}&space=${sourceSpace}">查看并修改</a>`;actionCell.querySelector('[data-confirm-file-analysis-row]')?.addEventListener('click',()=>{confirmFileAnalysis(record);statusNode.textContent='已确认';statusNode.className='tag tag-status tag-status-lime';actionCell.innerHTML='<span class="text-small">已确认</span>';showToast('已确认当前文件的元数据和标签')})}});
+  table.querySelectorAll('tbody tr[data-knowledge-source-row]').forEach(row=>{const name=row.querySelector('.document-link')?.textContent.trim()||'',record=findFileTagRecord(name),manual=readManualFileTags()[record?.name]||[],tags=[...new Set([...(record?.autoTags||[]),...manual])],cell=document.createElement('td');cell.dataset.fileTagColumn='';cell.innerHTML=tags.length?`<div class="file-list-tag-summary">${tags.slice(0,2).map(tag=>`<span class="tag tag-small">${escapeTagCategoryText(tag)}</span>`).join('')}${tags.length>2?`<span class="text-small">+${tags.length-2}</span>`:''}</div>`:'<span class="text-small">待自动打标</span>';row.children[4]?.before(cell);const status=getFileAnalysisStatus(record),statusNode=row.querySelector('.tag-status');if(statusNode&&record){statusNode.textContent=status;statusNode.className=`tag tag-status ${status==='已确认'?'tag-status-lime':'tag-status-secondary'}`}});
 }
 renderDocumentListTags();
+
+function setupDocumentAdvancedFilters(){
+  const toolbar=document.querySelector('.source-content-panel .personal-file-toolbar');
+  const table=document.querySelector('#resource-table');
+  const spacer=toolbar?.querySelector('.toolbar-spacer');
+  if(!toolbar||!table||!spacer||toolbar.querySelector('[data-file-tag-filter]'))return;
+  const rows=[...table.querySelectorAll('tbody tr[data-knowledge-source-row]')];
+  const options=values=>[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b,'zh-CN'));
+  const tags=options(allFileTagRecords().flatMap(item=>[...item.autoTags,...item.manualTags]));
+  const statuses=options(rows.map(row=>row.querySelector('.tag-status')?.textContent.trim()));
+  const owners=options(rows.map(row=>row.children[row.children.length-2]?.textContent.trim()));
+  const wrap=document.createElement('div');
+  wrap.className='document-advanced-filters';
+  wrap.innerHTML=`
+    <label class="field file-filter-control"><span class="field-label text-small">标签</span><span class="input-wrap input-middle"><select class="input" data-file-tag-filter><option value="all">全部标签</option><option value="untagged">待打标</option>${tags.map(value=>`<option value="${escapeTagCategoryText(value)}">${escapeTagCategoryText(value)}</option>`).join('')}</select></span></label>
+    <label class="field file-filter-control"><span class="field-label text-small">分析状态</span><span class="input-wrap input-middle"><select class="input" data-file-analysis-filter><option value="all">全部状态</option>${statuses.map(value=>`<option value="${escapeTagCategoryText(value)}">${escapeTagCategoryText(value)}</option>`).join('')}</select></span></label>
+    <label class="field file-filter-control"><span class="field-label text-small">负责人</span><span class="input-wrap input-middle"><select class="input" data-file-owner-filter><option value="all">全部负责人</option>${owners.map(value=>`<option value="${escapeTagCategoryText(value)}">${escapeTagCategoryText(value)}</option>`).join('')}</select></span></label>
+    <label class="field file-filter-date"><span class="field-label text-small">更新时间从</span><span class="input-wrap input-middle"><input class="input" type="date" data-file-updated-from aria-label="更新时间起始日期" /></span></label>
+    <label class="field file-filter-date"><span class="field-label text-small">至</span><span class="input-wrap input-middle"><input class="input" type="date" data-file-updated-to aria-label="更新时间结束日期" /></span></label>
+    <button class="btn btn-dense btn-text file-filter-reset" type="button" data-reset-file-filters>重置</button>`;
+  toolbar.insertAdjacentElement('afterend',wrap);
+  wrap.querySelectorAll('select,input').forEach(control=>control.addEventListener('change',applyResourceFileFilters));
+  wrap.querySelector('[data-reset-file-filters]').addEventListener('click',()=>{wrap.querySelectorAll('select').forEach(select=>{select.value='all'});wrap.querySelectorAll('input').forEach(input=>{input.value=''});applyResourceFileFilters()});
+  const tableWrap=table.closest('.table-wrap');
+  if(tableWrap&&!document.querySelector('[data-resource-filter-empty]')){const empty=document.createElement('p');empty.className='resource-filter-empty text-small';empty.dataset.resourceFilterEmpty='';empty.hidden=true;empty.textContent='没有符合当前筛选条件的文件，请调整筛选条件。';tableWrap.after(empty)}
+  applyResourceFileFilters();
+}
+setupDocumentAdvancedFilters();
 
 const fileDetailTagList=document.querySelector('[data-file-detail-tags]');
 if(fileDetailTagList){
@@ -2066,7 +2257,7 @@ if(fileDetailTagList){
   const baseRecord=findFileTagRecord(queryName)||{name:queryName,aliases:[],type:'文件',source:'文件中心',status:'已确认',updatedAt:'2026-09-08 09:30',autoTags:['待分类']};
   const canonicalName=baseRecord.name;
   const analysisStatusNode=document.querySelector('[data-file-analysis-status]'),confirmAnalysisButton=document.querySelector('[data-confirm-file-analysis]'),confirmHint=document.querySelector('[data-file-confirm-hint]');
-  const renderFileAnalysisStatus=()=>{const status=getFileAnalysisStatus(baseRecord),pending=status==='待确认';if(analysisStatusNode){analysisStatusNode.textContent=status;analysisStatusNode.className=`tag tag-status ${pending?'tag-status-secondary':'tag-status-lime'}`}if(confirmAnalysisButton)confirmAnalysisButton.hidden=!pending;if(confirmHint)confirmHint.textContent=pending?'AI 已完成元数据补充和自动打标，请核对后确认':'当前元数据和标签已确认'};
+  const renderFileAnalysisStatus=()=>{const status=getFileAnalysisStatus(baseRecord),pending=status==='待确认';if(analysisStatusNode){analysisStatusNode.textContent=status;analysisStatusNode.className=`tag tag-status ${pending?'tag-status-secondary':'tag-status-lime'}`}if(confirmAnalysisButton){confirmAnalysisButton.hidden=false;confirmAnalysisButton.disabled=!pending;confirmAnalysisButton.textContent=pending?'确认AI结果':'AI结果已确认'}if(confirmHint)confirmHint.textContent=pending?'AI 已完成属性补充和自动打标，请核对后确认':'当前AI属性和标签结果已确认'};
   const renderFileDetailTags=()=>{const manual=readManualFileTags(),manualTags=manual[canonicalName]||[],tags=[...new Set([...baseRecord.autoTags,...manualTags])];fileDetailTagList.innerHTML=tags.map(tag=>`<span class="tag ${manualTags.includes(tag)?'tag-primary':''}" title="${manualTags.includes(tag)?'用户手动添加':'AI 自动生成'}">${escapeTagCategoryText(tag)}</span>`).join('');const suggestions=document.querySelector('[data-file-tag-suggestions]');if(suggestions)suggestions.innerHTML=[...new Set(allFileTagRecords().flatMap(item=>[...item.autoTags,...item.manualTags]))].sort().map(tag=>`<option value="${escapeTagCategoryText(tag)}"></option>`).join('')};
   const fileTagDialog=document.querySelector('[data-file-tag-dialog]'),fileTagForm=document.querySelector('[data-file-tag-form]');
   document.querySelector('[data-open-file-tag-dialog]')?.addEventListener('click',()=>{fileTagForm.reset();renderFileDetailTags();setDialogState(fileTagDialog,true,'[name="fileTagName"]')});
@@ -2380,12 +2571,13 @@ if (enterpriseAttributeSections.length) {
   const params = new URLSearchParams(location.search);
   const space = params.get('space') || 'enterprise';
   const spaces = {
-    enterprise: { name: '企业空间', page: 'documents.html', description: '企业空间文件的内容与属性信息' },
+    file: { name: '文件中心', page: 'documents.html', description: '文件内容、属性与AI处理结果' },
+    enterprise: { name: '文件中心', page: 'documents.html', description: '文件内容、属性与AI处理结果' },
     personal: { name: '个人空间', page: 'personal-documents.html', description: '个人空间文件的内容与基本信息' },
     team: { name: '团队空间', page: 'team-documents.html', description: '团队空间文件的内容与基本信息' }
   };
-  const context = spaces[space] || spaces.enterprise;
-  const enterprise = space === 'enterprise';
+  const context = spaces[space] || spaces.file;
+  const enterprise = space !== 'personal' && space !== 'team';
   const back = document.querySelector('[data-space-back]');
   if (back) { back.href = context.page; back.textContent = `‹ 返回${context.name}`; }
   const description = document.querySelector('[data-space-description]');
@@ -2405,17 +2597,16 @@ if (enterpriseAttributeSections.length) {
     const format = extension ? extension.toUpperCase() : ({ PDF: 'PDF', Word: 'DOCX', TXT: 'TXT', 图片: 'PNG', 视频: 'MP4' }[type] || type);
     const common = [
       ['文件ID', `FILE_${String(fileName).length.toString().padStart(4, '0')}_20260908`],
-      ['文件名称', fileName], ['所属空间', context.name], ['知识源', tagRecord?.source || '制度文档空间'],
+      ['文件名称', fileName], ['知识源', tagRecord?.source || '制度文档空间'],
       ['文件类型', type], ['文件格式', format], ['文件大小', type === '视频' ? '286 MB' : type === '图片' ? '4.6 MB' : '2.8 MB'],
-      ['来源系统', type === '图片' || type === '视频' ? '业务采集系统' : '文件中心'],
       ['源端文件ID', `SOURCE_${String(fileName).length.toString().padStart(4, '0')}`],
       ['创建人', '李程'], ['创建时间', '2026-08-12 09:30'],
       ['最后更新时间', '2026-09-08 09:30'], ['入库时间', '2026-08-12 09:30']
     ];
     const extensions = {
-      PDF: [['页数', '28 页'], ['字符数', '18,500 字'], ['语言', '中文']],
-      Word: [['页数', '16 页'], ['字符数', '12,680 字'], ['语言', '中文']],
-      TXT: [['字符数', '8,426 字'], ['语言', '中文'], ['编码格式', 'UTF-8']],
+      PDF: [['页数', '28 页'], ['字符数', '18,500 字']],
+      Word: [['页数', '16 页'], ['字符数', '12,680 字']],
+      TXT: [['字符数', '8,426 字'], ['编码格式', 'UTF-8']],
       图片: [['分辨率', '3840 × 2160'], ['拍摄时间', '2026-09-08 08:20'], ['拍摄设备', '移动巡检终端']],
       视频: [['分辨率', '1920 × 1080'], ['视频时长', '00:12:35'], ['帧率', '25 fps'], ['开始时间', '2026-09-08 08:20'], ['结束时间', '2026-09-08 08:32']]
     };
@@ -2717,7 +2908,7 @@ const teamSpaceGrid=document.querySelector('[data-team-space-grid]');
 if(teamSpaceGrid){
   const dialog=document.querySelector('[data-team-space-dialog]'),form=document.querySelector('[data-team-space-form]'),search=document.querySelector('[data-team-space-search]');
   const storageKey='kep-resource-team-spaces';let customSpaces=[];try{const saved=JSON.parse(localStorage.getItem(storageKey)||'[]');if(Array.isArray(saved))customSpaces=saved}catch{}
-  const appendSpace=space=>{const card=document.createElement('article');card.className='resource-space-card';card.dataset.teamSpaceCard='';card.dataset.searchText=`${space.name} ${space.owner} ${space.visibility}`;card.innerHTML=`<div class="resource-space-card-art" aria-hidden="true"><span class="space-art-orbit"></span><span class="space-art-core">${esc(space.name.slice(0,1))}</span></div><div class="resource-space-card-body"><div class="resource-space-card-title"><h2 class="text-medium-bold">${esc(space.name)}</h2><span class="tag tag-small">${esc(space.visibility)}</span></div><p class="text-small">${esc(space.description)}</p><div class="resource-space-card-meta text-small"><span>0 个目录</span><span>0 项资源</span><span>负责人：${esc(space.owner)}</span></div></div><footer class="resource-space-card-footer"><span class="text-small">${space.createdAt?'创建于 '+esc(space.createdAt):'刚刚创建'}</span><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=${encodeURIComponent(space.name)}">进入空间 →</a></footer>`;teamSpaceGrid.appendChild(card)};
+  const appendSpace=space=>{const card=document.createElement('article');card.className='resource-space-card';card.dataset.teamSpaceCard='';card.dataset.searchText=`${space.name} ${space.owner} ${space.visibility||'待配置授权'}`;const encodedName=encodeURIComponent(space.name);card.innerHTML=`<div class="resource-space-card-art" aria-hidden="true"><span class="space-art-orbit"></span><span class="space-art-core">${esc(space.name.slice(0,1))}</span></div><div class="resource-space-card-body"><div class="resource-space-card-title"><h2 class="text-medium-bold">${esc(space.name)}</h2><span class="tag tag-small">${esc(space.visibility||'待配置授权')}</span></div><p class="text-small">${esc(space.description)}</p><div class="resource-space-card-meta text-small"><span>0 个目录</span><span>0 项资源</span><span>负责人：${esc(space.owner)}</span></div></div><footer class="resource-space-card-footer"><span class="text-small">${space.createdAt?'创建于 '+esc(space.createdAt):'刚刚创建'}</span><div class="resource-space-card-actions"><a class="btn btn-dense btn-secondary" href="resource-catalog-design.html?space=${encodedName}&scope=space&tab=permissions">授权配置</a><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=${encodedName}">进入空间 →</a></div></footer>`;teamSpaceGrid.appendChild(card)};
   const updateSpaceCount=()=>{const count=document.querySelector('[data-team-space-count]');if(count)count.textContent=teamSpaceGrid.querySelectorAll('[data-team-space-card]').length};
   const filterSpaces=()=>{const query=search.value.trim().toLowerCase();let visible=0;teamSpaceGrid.querySelectorAll('[data-team-space-card]').forEach(card=>{const matched=!query||card.dataset.searchText.toLowerCase().includes(query);card.hidden=!matched;if(matched)visible+=1});teamSpaceGrid.querySelector('.resource-space-create-card').hidden=Boolean(query);document.querySelector('[data-team-space-empty]').hidden=visible>0};
   document.querySelectorAll('[data-open-team-space]').forEach(button=>button.addEventListener('click',()=>{form.reset();setDialogState(dialog,true,'[name="spaceName"]')}));
@@ -2725,15 +2916,16 @@ if(teamSpaceGrid){
   dialog.addEventListener('click',event=>{if(event.target===dialog)setDialogState(dialog,false)});
   search.addEventListener('input',filterSpaces);
   customSpaces.forEach(appendSpace);
-  form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form),space={name:String(data.get('spaceName')).trim(),owner:String(data.get('spaceOwner')).trim(),description:String(data.get('spaceDescription')).trim(),visibility:String(data.get('visibility')),managers:String(data.get('spaceManagers')||''),editors:String(data.get('spaceEditors')||''),viewers:String(data.get('spaceViewers')||''),createdAt:new Date().toLocaleDateString('zh-CN')};if([...teamSpaceGrid.querySelectorAll('[data-team-space-card] h2')].some(title=>title.textContent.trim()===space.name))return showToast('空间名称已存在');customSpaces.push(space);localStorage.setItem(storageKey,JSON.stringify(customSpaces));appendSpace(space);updateSpaceCount();setDialogState(dialog,false);showToast(`已创建团队空间“${space.name}”`)});
+  form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form),space={name:String(data.get('spaceName')).trim(),owner:String(data.get('spaceOwner')).trim(),description:String(data.get('spaceDescription')).trim(),visibility:'待配置授权',createdAt:new Date().toLocaleDateString('zh-CN')};if([...teamSpaceGrid.querySelectorAll('[data-team-space-card] h2')].some(title=>title.textContent.trim()===space.name))return showToast('空间名称已存在');customSpaces.push(space);localStorage.setItem(storageKey,JSON.stringify(customSpaces));appendSpace(space);updateSpaceCount();setDialogState(dialog,false);showToast(`已创建团队空间“${space.name}”，可在空间卡片配置授权`)});
   updateSpaceCount();
 }
 
 const resourceDirectoryTreeNode=document.querySelector('[data-resource-directory-tree]');
 if(resourceDirectoryTreeNode){
-const selectedTeamSpace=new URLSearchParams(location.search).get('space');
+const directoryQuery=new URLSearchParams(location.search),selectedTeamSpace=directoryQuery.get('space'),permissionScope=directoryQuery.get('scope');
 const storedTeamSpaces=(()=>{try{const saved=JSON.parse(localStorage.getItem('kep-resource-team-spaces')||'[]');return Array.isArray(saved)?saved:[]}catch{return []}})();
 const teamOwner=()=>selectedTeamSpace==='all'?'平台管理员':selectedTeamSpace==='finance'?'王浩杰':selectedTeamSpace==='risk'?'刘敏':storedTeamSpaces.find(item=>item.name===selectedTeamSpace)?.owner||'团队负责人';
+const spacePermissionKey='kep-resource-space-permissions';let storedSpacePermissions={};try{const saved=JSON.parse(localStorage.getItem(spacePermissionKey)||'{}');if(saved&&typeof saved==='object')storedSpacePermissions=saved}catch{}
 const directoryKey='kep-resource-directory-spaces',defaults={personal:{name:'个人空间',summary:'管理我的文件夹',note:'个人目录仅由当前用户管理。',nodes:[{id:'p-work',name:'工作资料',description:'日常工作文档与项目材料。',parentId:null,depth:1},{id:'p-plan',name:'产品规划',description:'产品方案和版本规划。',parentId:'p-work',depth:2},{id:'p-study',name:'学习资料',description:'个人学习笔记与参考文档。',parentId:null,depth:1},{id:'p-draft',name:'临时文件',description:'待整理的临时内容。',parentId:null,depth:1}]},team:{name:'团队空间',summary:'企业业务分类目录',note:'团队目录按企业业务视角组织，子目录默认继承父目录权限。',nodes:[{id:'t-corporate',name:'公司金融',description:'面向企业客户的金融业务资源。',parentId:null,depth:1,inherit:false,permissions:{manage:['团队负责人'],edit:['公司金融产品组'],view:['团队全员']}},{id:'t-credit',name:'对公授信',description:'授信制度、审查规范和业务案例。',parentId:'t-corporate',depth:2,inherit:true,permissions:{manage:['团队负责人'],edit:['公司金融产品组'],view:['团队全员']}},{id:'t-retail',name:'零售金融',description:'个人客户、零售产品与营销资源。',parentId:null,depth:1,inherit:false,permissions:{manage:['团队负责人'],edit:['零售产品组'],view:['团队全员']}},{id:'t-risk',name:'风险管理',description:'风险政策、合规规则与风险案例。',parentId:null,depth:1,inherit:false,permissions:{manage:['风险管理部'],edit:['风险策略组'],view:['团队全员']}}]}};
 let spaces=defaults;try{const saved=JSON.parse(localStorage.getItem(directoryKey)||'null');if(saved?.personal?.nodes&&saved?.team?.nodes)spaces=saved}catch{}
 const directoryResourceKey='kep-resource-directory-mounts',defaultFiles=[['personal','p-work','客户需求调研记录','DOCX','当前用户','file'],['personal','p-plan','知识工程产品规划','PPTX','当前用户','file'],['personal','p-study','知识图谱学习笔记','PDF','当前用户','file'],['personal','p-draft','未整理会议纪要','DOCX','当前用户','file'],['team','t-credit','对公授信审查办法','PDF','王翠','file'],['team','t-credit','授信客户风险汇总','数据表','陈曦','table'],['team','t-corporate','公司金融产品手册','DOCX','李程','file'],['team','t-corporate','企业客户主数据','数据表','赵峰','table'],['team','t-retail','零售客户分层方案','PPTX','张明','file'],['team','t-risk','客户风险评级规则','XLSX','刘敏','file']];
@@ -2742,13 +2934,20 @@ const saveFiles=()=>localStorage.setItem(directoryResourceKey,JSON.stringify(fil
 const directoryResourceCandidates={file:[{id:'f-credit-policy',name:'对公授信审查办法.pdf',type:'PDF',source:'制度文档空间'},{id:'f-loan-policy',name:'固定资产贷款管理办法.docx',type:'Word',source:'制度文档空间'},{id:'f-risk-note',name:'客户风险评级服务设计.txt',type:'TXT',source:'研发协作空间'},{id:'f-credit-flow',name:'征信接口流程图.png',type:'图片',source:'研发协作空间'},{id:'f-training',name:'授信规则培训视频.mp4',type:'视频',source:'归档文档库'}],table:[{id:'t-customer-master',name:'企业客户主数据',type:'数据表',source:'客户数据仓'},{id:'t-credit-summary',name:'授信客户风险汇总',type:'数据表',source:'客户数据仓'},{id:'t-contract-index',name:'合同档案索引表',type:'数据表',source:'核心业务库'},{id:'t-risk-indicator',name:'风险指标明细表',type:'数据表',source:'风险数据集市'}]};
 const defaultPermissionEntries={team:[{kind:'user',name:'王浩杰',path:'总行 / 产品部',level:'manage'},{kind:'user',name:'陈曦',path:'总行 / 公司金融部',level:'edit'},{kind:'group',name:'公司金融产品组',path:'总行 / 产品中心',level:'edit'},{kind:'group',name:'团队全员',path:'当前团队',level:'view'},{kind:'org',name:'风险管理部',path:'总行 / 风险管理部',level:'view'}],personal:[{kind:'user',name:'当前用户',path:'我的空间',level:'manage'}]},permissionEntries={};
 const permissionCandidates={user:[{id:'u-liudan',name:'刘丹',account:'liudan',detail:'liu.dan@haizhi.com',path:'总行 / 产品部'},{id:'u-liuhuan',name:'刘焕',account:'liuhuan',detail:'liu.huan@haizhi.com',path:'总行 / 公司金融部'},{id:'u-wanghaojie',name:'王浩杰',account:'wanghaojie',detail:'wang.haojie@haizhi.com',path:'总行 / 产品部'},{id:'u-liujie',name:'刘捷',account:'liujie',detail:'liu.jie@haizhi.com',path:'总行 / 风险管理部'},{id:'u-liuyize',name:'刘漪泽',account:'liuyize',detail:'liu.yize@haizhi.com',path:'总行 / 数据中心'},{id:'u-liuxianglong',name:'刘翔龙',account:'liuxianglong',detail:'liu.xianglong@haizhi.com',path:'分行 / 信息科技部'}],group:[{id:'g-product',name:'产品经理组',account:'12 名成员',detail:'用户组',path:'总行 / 产品部'},{id:'g-corporate',name:'公司金融产品组',account:'18 名成员',detail:'用户组',path:'总行 / 公司金融部'},{id:'g-risk',name:'风险策略组',account:'9 名成员',detail:'用户组',path:'总行 / 风险管理部'},{id:'g-data',name:'数据治理组',account:'15 名成员',detail:'用户组',path:'总行 / 数据中心'}],org:[{id:'o-product',name:'产品部',account:'一级部门',detail:'36 人',path:'总行 / 产品部'},{id:'o-corporate',name:'公司金融部',account:'一级部门',detail:'52 人',path:'总行 / 公司金融部'},{id:'o-risk',name:'风险管理部',account:'一级部门',detail:'41 人',path:'总行 / 风险管理部'},{id:'o-data',name:'数据中心',account:'一级部门',detail:'68 人',path:'总行 / 数据中心'}]};
-let activeSpace='team',activeId=null,pendingParent=null,activePermissionKind='user',permissionDraft=[];const dialog=document.querySelector('[data-resource-directory-dialog]'),form=document.querySelector('[data-resource-directory-form]'),permissionDialog=document.querySelector('[data-directory-permission-dialog]'),permissionForm=document.querySelector('[data-directory-permission-form]'),esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),space=()=>spaces[activeSpace],node=id=>space().nodes.find(item=>item.id===id),children=id=>space().nodes.filter(item=>item.parentId===id),save=()=>localStorage.setItem(directoryKey,JSON.stringify(spaces));
-const permissionList=()=>{const key=`${activeSpace}:${activeId||'root'}`;if(permissionEntries[key])return permissionEntries[key];const current=node(activeId),levels=['manage','edit','view'],subjectKind=name=>name.endsWith('部')?'org':/(组|全员)$/.test(name)?'group':'user';permissionEntries[key]=activeSpace==='team'&&current?.permissions?levels.flatMap(level=>(current.permissions[level]||[]).map(name=>({kind:subjectKind(name),name,path:current.inherit?'继承父目录':'当前目录',level}))):JSON.parse(JSON.stringify(defaultPermissionEntries[activeSpace]));if(activeSpace==='team'){const owner=teamOwner();permissionEntries[key]=permissionEntries[key].filter(item=>item.name!==owner&&item.name!=='团队负责人');permissionEntries[key].unshift({kind:'user',name:owner,path:'当前团队 / 团队负责人',level:'manage',locked:true})}return permissionEntries[key]};
-function syncNodePermissions(){const current=node(activeId);if(activeSpace!=='team'||!current)return;const list=permissionList();current.permissions={manage:list.filter(item=>item.level==='manage').map(item=>item.name),edit:list.filter(item=>item.level==='edit').map(item=>item.name),view:list.filter(item=>item.level==='view').map(item=>item.name)};current.inherit=false;save();renderTree();renderFiles()}
-function nodeMarkup(item){const subs=children(item.id),count=files.filter(file=>file[0]===activeSpace&&file[1]===item.id).length,permissions=item.permissions||{manage:[],edit:[],view:[]},permissionSummary=activeSpace==='team'?`<small class="resource-directory-permission-meta"><span class="tag tag-small">${item.inherit?'继承':'独立'}</span><span>管 ${permissions.manage.length}</span><span>编 ${permissions.edit.length}</span><span>看 ${permissions.view.length}</span></small>`:'';return `<div class="resource-directory-node" role="treeitem" aria-level="${item.depth}"><div class="resource-directory-row"><button class="resource-directory-select ${activeId===item.id?'is-active':''}" type="button" data-resource-directory-id="${item.id}"><span class="resource-directory-caret">${subs.length?'⌄':'›'}</span><span class="asset-folder-icon">□</span><span class="resource-directory-node-main"><span>${esc(item.name)}</span>${permissionSummary}</span><span class="resource-directory-count text-number">${count}</span></button><button class="resource-directory-add-child" type="button" data-resource-directory-child="${item.id}" aria-label="在${esc(item.name)}下新建子目录">+</button></div>${subs.length?`<div class="resource-directory-children" role="group">${subs.map(nodeMarkup).join('')}</div>`:''}</div>`}
-function renderTree(){resourceDirectoryTreeNode.innerHTML=children(null).map(nodeMarkup).join('')||'<p class="source-empty-state text-small">暂无目录，请新建一级目录</p>'}
-function renderFiles(){const selected=activeId?node(activeId):null,query=document.querySelector('[data-resource-directory-file-search]').value.trim().toLowerCase(),folderRows=children(selected?.id||null).map(item=>({name:item.name,type:'文件夹',owner:activeSpace==='team'?'目录管理员':'当前用户',kind:'folder',id:item.id})),resourceRows=files.filter(file=>file[0]===activeSpace&&file[1]===(selected?.id||null)).map(file=>({name:file[2],type:file[3],owner:file[4],kind:file[5]})),visible=[...folderRows,...resourceRows].filter(item=>`${item.name} ${item.type} ${item.owner}`.toLowerCase().includes(query)),rows=document.querySelector('[data-resource-directory-file-rows]');rows.innerHTML=visible.map(item=>{const detailHref=`resource-catalog-detail.html?context=directory&space=${encodeURIComponent(new URLSearchParams(location.search).get('space')||activeSpace)}&file=${encodeURIComponent(item.name)}`,name=item.kind==='folder'?`<button class="document-link resource-folder-link" type="button" data-open-directory-node="${item.id}">${esc(item.name)}</button>`:`<a class="document-link" href="${detailHref}">${esc(item.name)}</a>`,action=item.kind==='folder'?`<button class="btn btn-dense btn-text" type="button" data-open-directory-node="${item.id}">进入</button>`:`<a class="btn btn-dense btn-text" href="${detailHref}">查看</a>`;return `<tr><td class="cell-primary">${name}</td><td><span class="resource-kind-badge resource-kind-${item.kind}">${esc(item.type)}</span></td><td>${esc(selected?.name||space().name)}</td><td>${esc(item.owner)}</td><td>2026-09-08 16:42</td><td class="cell-actions">${action}</td></tr>`}).join('');document.querySelector('[data-resource-directory-empty]').hidden=visible.length>0;document.querySelector('[data-resource-directory-file-count]').textContent=`${visible.length} 项资源`;document.querySelector('[data-resource-directory-path]').textContent=selected?.name||'全部资源';document.querySelector('[data-resource-directory-title]').textContent=selected?.name||'全部资源';document.querySelector('[data-resource-directory-description]').textContent=selected?.description||`展示${space().name}的顶级目录`;const summary=document.querySelector('[data-directory-permission-summary]');summary.hidden=activeSpace!=='team'||!selected;if(activeSpace==='team'&&selected){document.querySelector('[data-directory-manage-count]').textContent=selected.permissions?.manage?.length||0;document.querySelector('[data-directory-edit-count]').textContent=selected.permissions?.edit?.length||0;document.querySelector('[data-directory-view-count]').textContent=selected.permissions?.view?.length||0}}
-function renderPermissions(){const query=document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase(),labels={user:'用户',group:'用户组',org:'组织机构'},entries=permissionList().filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(query)),rows=document.querySelector('[data-directory-permission-rows]');rows.innerHTML=entries.map((item,index)=>`<tr><td class="cell-primary"><span class="permission-subject"><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><strong>${esc(item.name)}</strong></span></td><td>${labels[item.kind]}</td><td>${esc(item.path)}</td><td><select class="select select-small" aria-label="设置${esc(item.name)}的权限" data-permission-entry="${index}" ${item.locked?'disabled':''}><option value="view" ${item.level==='view'?'selected':''}>查看权限</option><option value="edit" ${item.level==='edit'?'selected':''}>编辑权限</option><option value="manage" ${item.level==='manage'?'selected':''}>管理权限</option></select></td><td><span class="tag tag-status tag-status-secondary">${item.locked?'空间默认':node(activeId)?.inherit?'继承父目录':'当前目录'}</span></td><td class="cell-actions">${item.locked?'<span class="text-small">不可修改</span>':`<button class="btn btn-dense btn-text" type="button" data-remove-permission="${index}" aria-label="移除${esc(item.name)}">移除</button>`}</td></tr>`).join('');document.querySelector('[data-directory-permission-empty]').hidden=entries.length>0}
+let activeSpace='team',activeId=null,pendingParent=null,pendingDirectoryId=null,pendingDeleteId=null,directoryAction='create',activePermissionKind='user',permissionDraft=[];const dialog=document.querySelector('[data-resource-directory-dialog]'),form=document.querySelector('[data-resource-directory-form]'),moveDialog=document.querySelector('[data-directory-move-dialog]'),moveForm=document.querySelector('[data-directory-move-form]'),deleteDialog=document.querySelector('[data-directory-delete-dialog]'),permissionDialog=document.querySelector('[data-directory-permission-dialog]'),permissionForm=document.querySelector('[data-directory-permission-form]'),esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),space=()=>spaces[activeSpace],node=id=>space().nodes.find(item=>item.id===id),children=id=>space().nodes.filter(item=>item.parentId===id),save=()=>localStorage.setItem(directoryKey,JSON.stringify(spaces));
+const permissionList=()=>{const spaceKey=selectedTeamSpace||activeSpace,key=permissionScope==='space'?`space:${spaceKey}`:`${activeSpace}:${activeId||'root'}`;if(permissionEntries[key])return permissionEntries[key];const current=node(activeId),levels=['manage','edit','view'],subjectKind=name=>name.endsWith('部')?'org':/(组|全员|成员)$/.test(name)?'group':'user';permissionEntries[key]=permissionScope==='space'&&Array.isArray(storedSpacePermissions[spaceKey])?JSON.parse(JSON.stringify(storedSpacePermissions[spaceKey])):activeSpace==='team'&&current?.permissions?levels.flatMap(level=>(current.permissions[level]||[]).map(name=>({kind:subjectKind(name),name,path:current.inherit?'继承父目录':'当前目录',level}))):JSON.parse(JSON.stringify(defaultPermissionEntries[activeSpace]));if(activeSpace==='team'){const owner=teamOwner();permissionEntries[key]=permissionEntries[key].filter(item=>item.name!==owner&&item.name!=='团队负责人');permissionEntries[key].unshift({kind:'user',name:owner,path:'当前团队 / 团队负责人',level:'manage',locked:true})}return permissionEntries[key]};
+function syncNodePermissions(){const list=permissionList();if(permissionScope==='space'){storedSpacePermissions[selectedTeamSpace||activeSpace]=list;localStorage.setItem(spacePermissionKey,JSON.stringify(storedSpacePermissions));return}const current=node(activeId);if(activeSpace!=='team'||!current)return;current.permissions={manage:list.filter(item=>item.level==='manage').map(item=>item.name),edit:list.filter(item=>item.level==='edit').map(item=>item.name),view:list.filter(item=>item.level==='view').map(item=>item.name)};current.inherit=false;save();renderTree();renderFiles()}
+function nodeMarkup(item){const subs=children(item.id),count=files.filter(file=>file[0]===activeSpace&&file[1]===item.id).length,permissions=item.permissions||{manage:[],edit:[],view:[]},permissionSummary=activeSpace==='team'?`<small class="resource-directory-permission-meta"><span class="tag tag-small">${item.inherit?'继承':'独立'}</span><span>管 ${permissions.manage.length}</span><span>编 ${permissions.edit.length}</span><span>看 ${permissions.view.length}</span></small>`:'';return `<div class="resource-directory-node" role="treeitem" aria-level="${item.depth}" data-resource-directory-node="${item.id}"><div class="resource-directory-row"><button class="resource-directory-select ${activeId===item.id?'is-active':''}" type="button" data-resource-directory-id="${item.id}"><span class="resource-directory-caret">${subs.length?'⌄':'›'}</span><span class="asset-folder-icon">□</span><span class="resource-directory-node-main"><span>${esc(item.name)}</span>${permissionSummary}</span><span class="resource-directory-count text-number">${count}</span></button><button class="source-function-trigger" type="button" aria-haspopup="menu" aria-expanded="false" data-resource-directory-menu aria-label="${esc(item.name)}目录操作">⋮</button><div class="source-function-menu" role="menu" hidden><button type="button" role="menuitem" data-resource-directory-modify>修改</button><button class="is-danger" type="button" role="menuitem" data-resource-directory-delete>删除</button><button type="button" role="menuitem" data-resource-directory-move>移动</button><button type="button" role="menuitem" data-resource-directory-rename>重命名</button></div></div>${subs.length?`<div class="resource-directory-children" role="group">${subs.map(nodeMarkup).join('')}</div>`:''}</div>`}
+function renderTree(){const total=files.filter(file=>file[0]===activeSpace).length,allNode=`<div class="resource-directory-node resource-directory-all" role="treeitem" aria-level="1"><div class="resource-directory-row"><button class="resource-directory-select ${activeId?'':'is-active'}" type="button" data-resource-directory-all><span class="asset-folder-icon">□</span><span class="resource-directory-node-main"><span>全部</span></span><span class="resource-directory-count text-number">${total}</span></button></div></div>`,tree=children(null).map(nodeMarkup).join('');resourceDirectoryTreeNode.innerHTML=allNode+(tree||'<p class="source-empty-state text-small">暂无目录，请新建一级目录</p>')}
+function renderFiles(){
+  const selected=activeId?node(activeId):null,query=document.querySelector('[data-resource-directory-file-search]').value.trim().toLowerCase();
+  const folderRows=selected?children(selected.id).map(item=>({name:item.name,type:'文件夹',owner:activeSpace==='team'?'目录管理员':'当前用户',kind:'folder',id:item.id,directory:selected.name})):[];
+  const resourceRows=files.filter(file=>file[0]===activeSpace&&(!selected||file[1]===selected.id)).map(file=>({name:file[2],type:file[3],owner:file[4],kind:file[5],directory:node(file[1])?.name||space().name}));
+  const visible=[...folderRows,...resourceRows].filter(item=>`${item.name} ${item.type} ${item.owner} ${item.directory}`.toLowerCase().includes(query)),rows=document.querySelector('[data-resource-directory-file-rows]');
+  rows.innerHTML=visible.map(item=>{const detailHref=`resource-catalog-detail.html?context=directory&space=${encodeURIComponent(new URLSearchParams(location.search).get('space')||activeSpace)}&file=${encodeURIComponent(item.name)}`,name=item.kind==='folder'?`<button class="document-link resource-folder-link" type="button" data-open-directory-node="${item.id}">${esc(item.name)}</button>`:`<a class="document-link" href="${detailHref}">${esc(item.name)}</a>`;return `<tr><td class="cell-primary">${name}</td><td><span class="resource-kind-badge resource-kind-${item.kind}">${esc(item.type)}</span></td><td>${esc(item.directory)}</td><td>${esc(item.owner)}</td><td>2026-09-08 16:42</td></tr>`}).join('');
+  document.querySelector('[data-resource-directory-empty]').hidden=visible.length>0;document.querySelector('[data-resource-directory-file-count]').textContent=`${visible.length} 项资源`;document.querySelector('[data-resource-directory-path]').textContent=selected?.name||'全部';document.querySelector('[data-resource-directory-title]').textContent=selected?.name||'全部';document.querySelector('[data-resource-directory-description]').textContent=selected?.description||`展示${space().name}全部目录中的资源`;const summary=document.querySelector('[data-directory-permission-summary]');summary.hidden=activeSpace!=='team'||!selected;if(activeSpace==='team'&&selected){document.querySelector('[data-directory-manage-count]').textContent=selected.permissions?.manage?.length||0;document.querySelector('[data-directory-edit-count]').textContent=selected.permissions?.edit?.length||0;document.querySelector('[data-directory-view-count]').textContent=selected.permissions?.view?.length||0}
+}
+function renderPermissions(){const query=document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase(),labels={user:'用户',group:'用户组',org:'组织机构'},list=permissionList(),entries=list.filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(query)),rows=document.querySelector('[data-directory-permission-rows]');rows.innerHTML=entries.map((item,index)=>`<tr><td class="cell-primary"><span class="permission-subject"><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><strong>${esc(item.name)}</strong></span></td><td>${labels[item.kind]}</td><td>${esc(item.path)}</td><td><select class="select select-small" aria-label="设置${esc(item.name)}的权限" data-permission-entry="${index}" ${item.locked||item.public?'disabled':''}><option value="view" ${item.level==='view'?'selected':''}>查看权限</option><option value="edit" ${item.level==='edit'?'selected':''}>编辑权限</option><option value="manage" ${item.level==='manage'?'selected':''}>管理权限</option></select></td><td><span class="tag tag-status tag-status-secondary">${item.locked?'空间默认':item.public?'全员快捷授权':node(activeId)?.inherit?'继承父目录':'当前目录'}</span></td><td class="cell-actions">${item.locked||item.public?'<span class="text-small">不可修改</span>':`<button class="btn btn-dense btn-text" type="button" data-remove-permission="${index}" aria-label="移除${esc(item.name)}">移除</button>`}</td></tr>`).join('');document.querySelector('[data-directory-permission-empty]').hidden=entries.length>0;const publicAccess=document.querySelector('[data-directory-public-access]'),enabled=list.some(item=>item.public||item.name==='全体成员');if(publicAccess){publicAccess.checked=enabled;document.querySelector('[data-directory-public-access-label]').textContent=enabled?'已开启':'未开启'}}
 function renderPermissionPicker(){const query=document.querySelector('[data-permission-candidate-search]').value.trim().toLowerCase(),candidates=permissionCandidates[activePermissionKind].filter(item=>`${item.name} ${item.account} ${item.detail} ${item.path}`.toLowerCase().includes(query)),selectedIds=new Set(permissionDraft.map(item=>item.id)),candidateNode=document.querySelector('[data-permission-candidates]'),selectedNode=document.querySelector('[data-permission-selected]'),typeLabels={user:'用户',group:'用户组',org:'组织机构'};candidateNode.innerHTML=candidates.map(item=>`<label class="permission-candidate-item ${selectedIds.has(item.id)?'is-selected':''}"><input class="checkbox" type="checkbox" value="${item.id}" data-permission-candidate ${selectedIds.has(item.id)?'checked':''}/><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><span class="permission-candidate-main"><strong>${esc(item.name)}</strong><small>${esc(item.path)}</small></span><span class="permission-candidate-meta"><span>${esc(item.account)}</span><small>${esc(item.detail)}</small></span></label>`).join('')||'<div class="source-empty-state text-small">未找到匹配对象</div>';selectedNode.innerHTML=permissionDraft.map(item=>`<div class="permission-selected-item"><span class="permission-avatar">${esc(item.name.slice(0,1))}</span><span class="permission-selected-main"><strong>${esc(item.name)}</strong><small>${typeLabels[activePermissionKind]} · ${esc(item.path)}</small></span><select class="select select-small" aria-label="设置${esc(item.name)}的权限" data-draft-permission="${item.id}"><option value="view" ${item.level==='view'?'selected':''}>查看权限</option><option value="edit" ${item.level==='edit'?'selected':''}>编辑权限</option><option value="manage" ${item.level==='manage'?'selected':''}>管理权限</option></select><button class="permission-selected-remove" type="button" data-remove-draft-permission="${item.id}" aria-label="取消选择${esc(item.name)}">×</button></div>`).join('')||'<div class="permission-picker-empty"><strong>尚未选择对象</strong><span class="text-small">在左侧勾选后，可在此逐个设置权限。</span></div>';document.querySelector('[data-permission-candidate-count]').textContent=`${candidates.length} 个结果`;document.querySelector('[data-permission-selected-count]').textContent=`${permissionDraft.length} 个对象`;document.querySelector('[data-confirm-directory-permission]').disabled=permissionDraft.length===0;document.querySelector('[data-permission-picker-note]').textContent=permissionDraft.length?`将添加 ${permissionDraft.length} 个权限对象`:'请至少选择一个权限对象'}
 const resourceDialog=document.querySelector('[data-directory-resource-dialog]'),resourceForm=document.querySelector('[data-directory-resource-form]');
 let activeResourceType='file',selectedResourceIds=new Set();
@@ -2769,14 +2968,21 @@ function openResourcePicker(){
   document.querySelectorAll('[data-directory-resource-type]').forEach(button=>{const on=button.dataset.directoryResourceType==='file';button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});
   renderResourcePicker();setDialogState(resourceDialog,true,'[data-directory-resource-search]');
 }
-function activateSpace(id){activeSpace=id;activeId=children(null)[0]?.id||null;document.querySelectorAll('[data-directory-space]').forEach(button=>{const on=button.dataset.directorySpace===id;button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});const permissionTab=document.querySelector('[data-team-permission-tab]');permissionTab.hidden=id!=='team';if(id!=='team'){document.querySelectorAll('[data-directory-content-tab]').forEach(button=>{const on=button.dataset.directoryContentTab==='resources';button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});document.querySelectorAll('[data-directory-content-panel]').forEach(panel=>panel.hidden=panel.dataset.directoryContentPanel!=='resources')}document.querySelector('[data-directory-space-summary]').textContent=space().summary;document.querySelector('[data-directory-space-note]').textContent=space().note;document.querySelector('[data-resource-directory-root]').textContent=space().name;document.querySelector('[data-open-resource-directory]').textContent=id==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-search]').value='';document.querySelector('[data-resource-directory-file-search]').value='';document.querySelector('[data-directory-permission-search]').value='';renderTree();renderFiles();renderPermissions()}
-function openDirectory(parentId=null){pendingParent=parentId;const parent=parentId?node(parentId):null,depth=parent?parent.depth+1:1;form.reset();document.querySelector('[data-resource-directory-dialog-title]').textContent=activeSpace==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-dialog-subtitle]').textContent=activeSpace==='personal'?'在个人空间中创建自有文件夹':'创建目录后，可在权限设置中配置访问权限';document.querySelector('[data-resource-directory-parent]').textContent=parent?.name||space().name;document.querySelector('[data-resource-directory-level]').textContent=`${['一','二','三','四','五'][depth-1]||depth}级目录`;setDialogState(dialog,true,'[name="directoryName"]')}
+function activateSpace(id){activeSpace=id;activeId=null;document.querySelectorAll('[data-directory-space]').forEach(button=>{const on=button.dataset.directorySpace===id;button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});const permissionTab=document.querySelector('[data-team-permission-tab]');permissionTab.hidden=id!=='team';if(id!=='team'){document.querySelectorAll('[data-directory-content-tab]').forEach(button=>{const on=button.dataset.directoryContentTab==='resources';button.classList.toggle('is-active',on);button.setAttribute('aria-selected',String(on))});document.querySelectorAll('[data-directory-content-panel]').forEach(panel=>panel.hidden=panel.dataset.directoryContentPanel!=='resources')}document.querySelector('[data-directory-space-summary]').textContent=space().summary;document.querySelector('[data-resource-directory-root]').textContent=space().name;document.querySelector('[data-open-resource-directory]').textContent=id==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-search]').value='';document.querySelector('[data-resource-directory-file-search]').value='';document.querySelector('[data-directory-permission-search]').value='';renderTree();renderFiles();renderPermissions()}
+function closeDirectoryMenus(except=null){resourceDirectoryTreeNode.querySelectorAll('[data-resource-directory-menu]').forEach(trigger=>{const open=trigger===except;trigger.setAttribute('aria-expanded',String(open));const menu=trigger.parentElement.querySelector('.source-function-menu');if(menu)menu.hidden=!open})}
+function configureDirectoryDialog(action,directoryId=null,parentId=null){directoryAction=action;pendingDirectoryId=directoryId;pendingParent=parentId;const current=directoryId?node(directoryId):null,parent=parentId?node(parentId):current?.parentId?node(current.parentId):null,depth=current?.depth||(parent?parent.depth+1:1),nameField=document.querySelector('[data-directory-name-field]'),descriptionField=document.querySelector('[data-directory-description-field]'),submit=document.querySelector('[data-resource-directory-submit]');form.reset();form.elements.directoryName.value=current?.name||'';form.elements.directoryDescription.value=current?.description||'';document.querySelector('[data-resource-directory-parent]').textContent=parent?.name||space().name;document.querySelector('[data-resource-directory-level]').textContent=`${['一','二','三','四','五'][depth-1]||depth}级目录`;nameField.hidden=action==='modify';descriptionField.hidden=action==='rename';form.elements.directoryName.required=action!=='modify';form.elements.directoryDescription.required=action!=='rename';if(action==='modify'){document.querySelector('[data-resource-directory-dialog-title]').textContent='修改目录';document.querySelector('[data-resource-directory-dialog-subtitle]').textContent=`修改“${current.name}”的目录描述，不改变目录名称和位置。`;submit.textContent='保存修改'}else if(action==='rename'){document.querySelector('[data-resource-directory-dialog-title]').textContent='重命名目录';document.querySelector('[data-resource-directory-dialog-subtitle]').textContent='仅修改目录名称，目录内资源、子目录和权限保持不变。';submit.textContent='确认重命名'}else{document.querySelector('[data-resource-directory-dialog-title]').textContent=activeSpace==='personal'?'新建文件夹':'新建业务目录';document.querySelector('[data-resource-directory-dialog-subtitle]').textContent=activeSpace==='personal'?'在个人空间中创建自有文件夹':'创建目录后，可在权限设置中配置访问权限';submit.textContent='确认创建'}setDialogState(dialog,true,action==='modify'?'[name="directoryDescription"]':'[name="directoryName"]')}
+function openDirectory(parentId=null){configureDirectoryDialog('create',null,parentId)}
+function descendantIds(directoryId){const found=new Set([directoryId]),visit=id=>children(id).forEach(child=>{found.add(child.id);visit(child.id)});visit(directoryId);return found}
+function directoryOptionMarkup(item,excluded,depth=0){if(excluded.has(item.id))return '';const prefix='　'.repeat(depth);return `<option value="${esc(item.id)}">${prefix}${esc(item.name)}</option>${children(item.id).map(child=>directoryOptionMarkup(child,excluded,depth+1)).join('')}`}
+function openDirectoryMove(directoryId){const current=node(directoryId),excluded=descendantIds(directoryId),target=document.querySelector('[data-directory-move-target]');pendingDirectoryId=directoryId;document.querySelector('[data-directory-move-name]').textContent=current.name;target.innerHTML=`<option value="root">${esc(space().name)}（根目录）</option>${children(null).map(item=>directoryOptionMarkup(item,excluded)).join('')}`;target.value=current.parentId||'root';setDialogState(moveDialog,true,'[data-directory-move-target]')}
+function requestDirectoryDelete(directoryId){const current=node(directoryId),hasChildren=children(directoryId).length>0,mounted=files.filter(file=>file[0]===activeSpace&&file[1]===directoryId).length;if(hasChildren||mounted){const reason=hasChildren&&mounted?'子目录和已挂载资源':hasChildren?'子目录':'已挂载资源';return showToast(`请先迁移该目录下的${reason}`)}pendingDeleteId=directoryId;document.querySelector('[data-directory-delete-name]').textContent=current.name;setDialogState(deleteDialog,true,'[data-directory-delete-confirm]')}
 document.querySelectorAll('[data-directory-space]').forEach(button=>button.addEventListener('click',()=>activateSpace(button.dataset.directorySpace)));
 document.querySelectorAll('[data-directory-content-tab]').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.directoryContentTab;document.querySelectorAll('[data-directory-content-tab]').forEach(item=>{const on=item===button;item.classList.toggle('is-active',on);item.setAttribute('aria-selected',String(on))});document.querySelectorAll('[data-directory-content-panel]').forEach(panel=>panel.hidden=panel.dataset.directoryContentPanel!==target);if(target==='permissions')renderPermissions()}));
 document.querySelectorAll('[data-permission-subject-tab]').forEach(button=>button.addEventListener('click',()=>{activePermissionKind=button.dataset.permissionSubjectTab;document.querySelectorAll('[data-permission-subject-tab]').forEach(item=>{const on=item===button;item.classList.toggle('is-active',on);item.setAttribute('aria-selected',String(on))});renderPermissions()}));
 document.querySelector('[data-open-resource-directory]').addEventListener('click',()=>openDirectory());
 document.querySelector('[data-resource-directory-root]').addEventListener('click',()=>{activeId=null;renderTree();renderFiles();renderPermissions()});
-resourceDirectoryTreeNode.addEventListener('click',event=>{const child=event.target.closest('[data-resource-directory-child]');if(child)return openDirectory(child.dataset.resourceDirectoryChild);const select=event.target.closest('[data-resource-directory-id]');if(select){activeId=select.dataset.resourceDirectoryId;renderTree();renderFiles();renderPermissions()}});
+resourceDirectoryTreeNode.addEventListener('click',event=>{const trigger=event.target.closest('[data-resource-directory-menu]');if(trigger){const open=trigger.getAttribute('aria-expanded')!=='true';closeDirectoryMenus(open?trigger:null);return}const branch=event.target.closest('[data-resource-directory-node]'),directoryId=branch?.dataset.resourceDirectoryNode;if(directoryId&&event.target.closest('[data-resource-directory-modify]'))configureDirectoryDialog('modify',directoryId);else if(directoryId&&event.target.closest('[data-resource-directory-delete]'))requestDirectoryDelete(directoryId);else if(directoryId&&event.target.closest('[data-resource-directory-move]'))openDirectoryMove(directoryId);else if(directoryId&&event.target.closest('[data-resource-directory-rename]'))configureDirectoryDialog('rename',directoryId);else{const all=event.target.closest('[data-resource-directory-all]');if(all){activeId=null;renderTree();renderFiles();renderPermissions();return}const select=event.target.closest('[data-resource-directory-id]');if(select){activeId=select.dataset.resourceDirectoryId;renderTree();renderFiles();renderPermissions()}}closeDirectoryMenus()});
+document.addEventListener('click',event=>{if(!event.target.closest('[data-resource-directory-menu],.resource-directory-row .source-function-menu'))closeDirectoryMenus()});
 document.querySelector('[data-resource-directory-file-rows]').addEventListener('click',event=>{const folder=event.target.closest('[data-open-directory-node]');if(folder){activeId=folder.dataset.openDirectoryNode;renderTree();renderFiles();renderPermissions()}});
 document.querySelector('[data-resource-directory-search]').addEventListener('input',event=>{const query=event.currentTarget.value.trim().toLowerCase();resourceDirectoryTreeNode.querySelectorAll('.resource-directory-node').forEach(item=>item.hidden=Boolean(query)&&!item.textContent.toLowerCase().includes(query))});
 document.querySelector('[data-resource-directory-file-search]').addEventListener('input',renderFiles);
@@ -2788,6 +2994,7 @@ document.querySelector('[data-directory-resource-search]').addEventListener('inp
 document.querySelector('[data-directory-resource-candidates]').addEventListener('change',event=>{const checkbox=event.target.closest('[data-directory-resource-candidate]');if(!checkbox)return;if(checkbox.checked)selectedResourceIds.add(checkbox.value);else selectedResourceIds.delete(checkbox.value);renderResourcePicker()});
 resourceForm.addEventListener('submit',event=>{event.preventDefault();if(!selectedResourceIds.size||!activeId)return;const candidates=directoryResourceCandidates[activeResourceType],selected=candidates.filter(item=>selectedResourceIds.has(item.id));selected.forEach(item=>{if(!files.some(file=>file[0]===activeSpace&&file[1]===activeId&&file[2]===item.name&&file[5]===activeResourceType))files.push([activeSpace,activeId,item.name,item.type,'当前用户',activeResourceType])});saveFiles();setDialogState(resourceDialog,false);renderTree();renderFiles();showToast(`已向“${node(activeId)?.name}”添加 ${selected.length} 项资源`)});
 document.querySelector('[data-directory-permission-search]').addEventListener('input',renderPermissions);
+document.querySelector('[data-directory-public-access]')?.addEventListener('change',event=>{const list=permissionList(),existing=list.find(item=>item.public||item.name==='全体成员');if(event.currentTarget.checked&&!existing)list.push({kind:'group',name:'全体成员',path:'当前空间或目录',level:'view',public:true});if(!event.currentTarget.checked&&existing)list.splice(list.indexOf(existing),1);syncNodePermissions();renderPermissions();showToast(event.currentTarget.checked?'已开启全员可见':'已关闭全员可见')});
 document.querySelector('[data-directory-permission-rows]').addEventListener('change',event=>{const select=event.target.closest('[data-permission-entry]');if(!select)return;const visible=permissionList().filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase()));if(visible[Number(select.dataset.permissionEntry)]){visible[Number(select.dataset.permissionEntry)].level=select.value;syncNodePermissions()}showToast('权限已更新')});
 document.querySelector('[data-directory-permission-rows]').addEventListener('click',event=>{const remove=event.target.closest('[data-remove-permission]');if(!remove)return;const list=permissionList(),visible=list.filter(item=>item.kind===activePermissionKind&&`${item.name} ${item.path}`.toLowerCase().includes(document.querySelector('[data-directory-permission-search]').value.trim().toLowerCase())),target=visible[Number(remove.dataset.removePermission)];if(target){list.splice(list.indexOf(target),1);syncNodePermissions();renderPermissions();showToast(`已移除“${target.name}”的权限`)}});
 document.querySelector('[data-open-directory-permission]').addEventListener('click',()=>{permissionForm.reset();permissionDraft=[];const labels={user:'用户',group:'用户组',org:'组织机构'};document.querySelector('[data-permission-picker-title]').textContent=`添加${labels[activePermissionKind]}`;document.querySelector('[data-permission-candidate-search]').value='';renderPermissionPicker();setDialogState(permissionDialog,true,'[data-permission-candidate-search]')});
@@ -2799,7 +3006,11 @@ document.querySelector('[data-permission-selected]').addEventListener('change',e
 document.querySelector('[data-permission-selected]').addEventListener('click',event=>{const remove=event.target.closest('[data-remove-draft-permission]');if(remove){permissionDraft=permissionDraft.filter(item=>item.id!==remove.dataset.removeDraftPermission);renderPermissionPicker()}});
 permissionForm.addEventListener('submit',event=>{event.preventDefault();if(!permissionDraft.length)return;const list=permissionList();permissionDraft.forEach(item=>{const entry={kind:activePermissionKind,name:item.name,path:item.path,level:item.level},matched=list.find(current=>current.kind===entry.kind&&current.name===entry.name);if(matched&&!matched.locked)matched.level=entry.level;else if(!matched)list.push(entry)});const count=permissionDraft.length;syncNodePermissions();setDialogState(permissionDialog,false);renderPermissions();showToast(`已添加 ${count} 个权限对象`)});
 document.querySelectorAll('[data-resource-directory-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(dialog,false)));dialog.addEventListener('click',event=>{if(event.target===dialog)setDialogState(dialog,false)});
-form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form),parent=pendingParent?node(pendingParent):null,name=String(data.get('directoryName')).trim();if(space().nodes.some(item=>item.parentId===pendingParent&&item.name===name))return showToast('同级目录名称已存在');const item={id:`${activeSpace}-${Date.now()}`,name,description:String(data.get('directoryDescription')).trim(),parentId:pendingParent,depth:parent?parent.depth+1:1};if(activeSpace==='team'){item.inherit=Boolean(parent);item.permissions=parent?JSON.parse(JSON.stringify(parent.permissions||{manage:[],edit:[],view:[]})):{manage:[],edit:[],view:[]};if(!item.permissions.manage.includes(teamOwner()))item.permissions.manage.unshift(teamOwner())}space().nodes.push(item);activeId=item.id;save();setDialogState(dialog,false);renderTree();renderFiles();renderPermissions();showToast(`已创建目录“${name}”`)});if(selectedTeamSpace){document.querySelector('.page-title').textContent=selectedTeamSpace==='all'?'全员空间':selectedTeamSpace==='finance'?'金融空间':selectedTeamSpace==='risk'?'风险管理空间':selectedTeamSpace;document.querySelector('.page-description').textContent='管理当前团队空间的目录、资源与继承权限。'}activateSpace(selectedTeamSpace?'team':document.body.dataset.directoryDefaultSpace||'team');
+form.addEventListener('submit',event=>{event.preventDefault();if(!form.reportValidity())return;const data=new FormData(form),current=pendingDirectoryId?node(pendingDirectoryId):null,parent=pendingParent?node(pendingParent):null,name=String(data.get('directoryName')||'').trim(),description=String(data.get('directoryDescription')||'').trim();if(directoryAction==='modify'){current.description=description;save();setDialogState(dialog,false);renderTree();renderFiles();showToast(`已修改目录“${current.name}”`);return}if(directoryAction==='rename'){if(space().nodes.some(item=>item.id!==current.id&&item.parentId===current.parentId&&item.name===name))return showToast('同级目录名称已存在');const previous=current.name;current.name=name;save();setDialogState(dialog,false);renderTree();renderFiles();showToast(`已将“${previous}”重命名为“${name}”`);return}if(space().nodes.some(item=>item.parentId===pendingParent&&item.name===name))return showToast('同级目录名称已存在');const item={id:`${activeSpace}-${Date.now()}`,name,description,parentId:pendingParent,depth:parent?parent.depth+1:1};if(activeSpace==='team'){item.inherit=Boolean(parent);item.permissions=parent?JSON.parse(JSON.stringify(parent.permissions||{manage:[],edit:[],view:[]})):{manage:[],edit:[],view:[]};if(!item.permissions.manage.includes(teamOwner()))item.permissions.manage.unshift(teamOwner())}space().nodes.push(item);activeId=item.id;save();setDialogState(dialog,false);renderTree();renderFiles();renderPermissions();showToast(`已创建目录“${name}”`)});
+document.querySelectorAll('[data-directory-move-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(moveDialog,false)));moveDialog.addEventListener('click',event=>{if(event.target===moveDialog)setDialogState(moveDialog,false)});
+moveForm.addEventListener('submit',event=>{event.preventDefault();const current=node(pendingDirectoryId),targetValue=String(new FormData(moveForm).get('targetParent')),targetParent=targetValue==='root'?null:targetValue,targetNode=targetParent?node(targetParent):null;if(current.parentId===targetParent)return showToast('当前目录已经位于该上级目录下');if(space().nodes.some(item=>item.id!==current.id&&item.parentId===targetParent&&item.name===current.name))return showToast('目标位置已存在同名目录');const previousDepth=current.depth,newDepth=targetNode?targetNode.depth+1:1,delta=newDepth-previousDepth,descendants=descendantIds(current.id),deepest=Math.max(...[...descendants].map(id=>node(id)?.depth||0));if(deepest+delta>5)return showToast('移动后目录层级将超过五级');current.parentId=targetParent;descendants.forEach(id=>{const item=node(id);if(item)item.depth+=delta});if(activeSpace==='team'){current.inherit=Boolean(targetNode);if(targetNode?.permissions)current.permissions=JSON.parse(JSON.stringify(targetNode.permissions))}save();setDialogState(moveDialog,false);activeId=current.id;renderTree();renderFiles();renderPermissions();showToast(`已将目录“${current.name}”移动到“${targetNode?.name||space().name}”`)});
+document.querySelectorAll('[data-directory-delete-close]').forEach(button=>button.addEventListener('click',()=>setDialogState(deleteDialog,false)));deleteDialog.addEventListener('click',event=>{if(event.target===deleteDialog)setDialogState(deleteDialog,false)});document.querySelector('[data-directory-delete-confirm]').addEventListener('click',()=>{const current=node(pendingDeleteId);if(!current)return;space().nodes=space().nodes.filter(item=>item.id!==current.id);if(activeId===current.id)activeId=null;save();setDialogState(deleteDialog,false);renderTree();renderFiles();renderPermissions();showToast(`已删除目录“${current.name}”`)});
+if(selectedTeamSpace){document.querySelector('.page-title').textContent=selectedTeamSpace==='all'?'全员空间':selectedTeamSpace==='finance'?'金融空间':selectedTeamSpace==='risk'?'风险管理空间':selectedTeamSpace;document.querySelector('.page-description').textContent=permissionScope==='space'?'配置当前团队空间的管理员、编辑成员和查看成员。':'管理当前团队空间的目录、资源与继承权限。'}activateSpace(selectedTeamSpace?'team':document.body.dataset.directoryDefaultSpace||'team');if(permissionScope==='space')activeId=null;if(directoryQuery.get('tab')==='permissions'){document.querySelector('[data-directory-content-tab="permissions"]')?.click();renderPermissions()}
 }
 
 const metadataStandardDialog = document.querySelector('[data-metadata-standard-dialog]');

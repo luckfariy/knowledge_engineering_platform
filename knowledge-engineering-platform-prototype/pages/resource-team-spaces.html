@@ -6,7 +6,7 @@
   <title>团队空间 - 知识工程平台</title>
   <link rel="stylesheet" href="../assets/design-system/design-tokens.css" />
   <link rel="stylesheet" href="../assets/design-system/components.css" />
-  <link rel="stylesheet" href="../assets/css/platform.css?v=48" />
+  <link rel="stylesheet" href="../assets/css/platform.css?v=49" />
 </head>
 <body data-page="resource-team-spaces">
   <div data-shell></div>
@@ -22,39 +22,38 @@
     </section>
 
     <section class="resource-space-card-grid" data-team-space-grid aria-label="团队空间列表">
-      <button class="resource-space-create-card" type="button" data-open-team-space><span class="resource-space-create-icon" aria-hidden="true">＋</span><strong class="text-normal-bold">新建团队空间</strong><span class="text-small">创建独立目录并配置访问权限</span></button>
+      <button class="resource-space-create-card" type="button" data-open-team-space><span class="resource-space-create-icon" aria-hidden="true">＋</span><strong class="text-normal-bold">新建团队空间</strong><span class="text-small">创建空间后再单独配置授权</span></button>
       <article class="resource-space-card" data-team-space-card data-search-text="全员空间 平台管理员 全体员工">
         <div class="resource-space-card-art resource-space-card-art-all" aria-hidden="true"><span class="space-art-orbit"></span><span class="space-art-core">全</span></div>
         <div class="resource-space-card-body"><div class="resource-space-card-title"><h2 class="text-medium-bold">全员空间</h2><span class="tag tag-small">全员可见</span></div><p class="text-small">沉淀公司级制度、通知与公共知识，面向全体员工统一开放。</p><div class="resource-space-card-meta text-small"><span>18 个目录</span><span>126 项资源</span><span>负责人：平台管理员</span></div></div>
-        <footer class="resource-space-card-footer"><span class="text-small">更新于 2026-09-10</span><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=all">进入空间 →</a></footer>
+        <footer class="resource-space-card-footer"><span class="text-small">更新于 2026-09-10</span><div class="resource-space-card-actions"><a class="btn btn-dense btn-secondary" href="resource-catalog-design.html?space=all&amp;scope=space&amp;tab=permissions">授权配置</a><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=all">进入空间 →</a></div></footer>
       </article>
       <article class="resource-space-card" data-team-space-card data-search-text="金融空间 王浩杰 公司金融 零售金融">
         <div class="resource-space-card-art resource-space-card-art-finance" aria-hidden="true"><span class="space-art-orbit"></span><span class="space-art-core">金</span></div>
         <div class="resource-space-card-body"><div class="resource-space-card-title"><h2 class="text-medium-bold">金融空间</h2><span class="tag tag-small">指定成员</span></div><p class="text-small">汇聚公司金融、零售金融和授信业务相关制度与业务资料。</p><div class="resource-space-card-meta text-small"><span>16 个目录</span><span>112 项资源</span><span>负责人：王浩杰</span></div></div>
-        <footer class="resource-space-card-footer"><span class="text-small">更新于 2026-09-09</span><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=finance">进入空间 →</a></footer>
+        <footer class="resource-space-card-footer"><span class="text-small">更新于 2026-09-09</span><div class="resource-space-card-actions"><a class="btn btn-dense btn-secondary" href="resource-catalog-design.html?space=finance&amp;scope=space&amp;tab=permissions">授权配置</a><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=finance">进入空间 →</a></div></footer>
       </article>
       <article class="resource-space-card" data-team-space-card data-search-text="风险管理空间 刘敏 风险管理部">
         <div class="resource-space-card-art resource-space-card-art-risk" aria-hidden="true"><span class="space-art-orbit"></span><span class="space-art-core">险</span></div>
         <div class="resource-space-card-body"><div class="resource-space-card-title"><h2 class="text-medium-bold">风险管理空间</h2><span class="tag tag-small">部门可见</span></div><p class="text-small">集中管理风险政策、评估规则、合规材料与风险处置案例。</p><div class="resource-space-card-meta text-small"><span>14 个目录</span><span>88 项资源</span><span>负责人：刘敏</span></div></div>
-        <footer class="resource-space-card-footer"><span class="text-small">更新于 2026-09-08</span><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=risk">进入空间 →</a></footer>
+        <footer class="resource-space-card-footer"><span class="text-small">更新于 2026-09-08</span><div class="resource-space-card-actions"><a class="btn btn-dense btn-secondary" href="resource-catalog-design.html?space=risk&amp;scope=space&amp;tab=permissions">授权配置</a><a class="btn btn-dense btn-primary" href="resource-catalog-design.html?space=risk">进入空间 →</a></div></footer>
       </article>
     </section>
     <div class="source-empty-state resource-space-empty" data-team-space-empty hidden><strong class="text-normal-bold">未找到匹配空间</strong><span class="text-small">请尝试调整搜索关键词。</span></div>
 
     <div class="dialog-mask" data-team-space-dialog hidden>
       <section class="dialog dialog-wide resource-team-space-dialog" role="dialog" aria-modal="true" aria-labelledby="team-space-dialog-title">
-        <header class="dialog-header"><div><h2 class="dialog-title" id="team-space-dialog-title">新建团队空间</h2><p class="dialog-description text-small">创建空间并一次完成基础权限配置，后续可在空间内继续调整。</p></div><button class="dialog-close" type="button" aria-label="关闭" data-team-space-close></button></header>
+        <header class="dialog-header"><div><h2 class="dialog-title" id="team-space-dialog-title">新建团队空间</h2><p class="dialog-description text-small">创建时填写基础信息，创建完成后通过空间卡片配置授权。</p></div><button class="dialog-close" type="button" aria-label="关闭" data-team-space-close></button></header>
         <form data-team-space-form>
           <div class="dialog-body resource-team-space-form">
-            <div class="resource-team-space-fields"><label class="field"><span class="field-label">空间名称</span><span class="input-wrap input-middle"><input class="input" name="spaceName" maxlength="30" required placeholder="例如：审计管理空间" /></span></label><label class="field"><span class="field-label">空间负责人</span><span class="input-wrap input-middle"><input class="input" name="spaceOwner" maxlength="20" required placeholder="请输入负责人" /></span></label></div>
+            <div class="resource-team-space-fields"><label class="field"><span class="field-label">空间名称</span><span class="input-wrap input-middle"><input class="input" name="spaceName" maxlength="30" required placeholder="例如：审计管理空间" /></span></label><label class="field"><span class="field-label">空间负责人</span><span class="input-wrap input-middle"><input class="input" name="spaceOwner" list="team-space-owner-options" maxlength="20" required autocomplete="off" placeholder="输入姓名、账号或机构搜索" /></span><span class="field-hint text-small">支持输入关键词模糊查找负责人</span></label><datalist id="team-space-owner-options"><option value="王浩杰">wanghaojie · 总行 / 产品部</option><option value="刘丹">liudan · 总行 / 产品部</option><option value="刘焕">liuhuan · 总行 / 公司金融部</option><option value="刘捷">liujie · 总行 / 风险管理部</option><option value="刘漪泽">liuyize · 总行 / 数据中心</option><option value="刘翔龙">liuxianglong · 分行 / 信息科技部</option></datalist></div>
             <label class="field"><span class="field-label">空间描述</span><span class="input-wrap"><textarea class="input resource-directory-description-input" name="spaceDescription" rows="3" maxlength="120" required placeholder="说明空间覆盖的业务范围和资源用途"></textarea></span></label>
-            <fieldset class="resource-directory-permissions"><legend class="text-normal-bold">空间权限</legend><div class="resource-space-visibility"><label class="control"><input class="radio" type="radio" name="visibility" value="全员可见" checked /><span class="control-label">全员可见</span></label><label class="control"><input class="radio" type="radio" name="visibility" value="指定成员" /><span class="control-label">指定组织与成员</span></label><label class="control"><input class="radio" type="radio" name="visibility" value="仅空间成员" /><span class="control-label">仅空间成员</span></label></div><div class="resource-directory-permission-grid"><label class="field"><span class="field-label">空间管理员</span><span class="input-wrap input-middle"><input class="input" name="spaceManagers" required placeholder="用户或组织，逗号分隔" /></span><span class="field-hint text-small">可管理空间、目录和权限。</span></label><label class="field"><span class="field-label">可编辑成员</span><span class="input-wrap input-middle"><input class="input" name="spaceEditors" placeholder="用户或组织，逗号分隔" /></span><span class="field-hint text-small">可新建目录与维护资源。</span></label><label class="field"><span class="field-label">可查看成员</span><span class="input-wrap input-middle"><input class="input" name="spaceViewers" placeholder="用户或组织，逗号分隔" /></span><span class="field-hint text-small">可浏览和下载空间资源。</span></label></div></fieldset>
           </div>
           <footer class="dialog-actions"><button class="btn btn-medium btn-secondary" type="button" data-team-space-close>取消</button><button class="btn btn-medium btn-primary" type="submit">创建空间</button></footer>
         </form>
       </section>
     </div>
   </template>
-  <script type="module" src="../assets/js/app.js?v=41"></script>
+  <script type="module" src="../assets/js/app.js?v=57"></script>
 </body>
 </html>
